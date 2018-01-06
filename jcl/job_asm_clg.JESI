@@ -1,0 +1,52 @@
+//** /*  master for ASM jobs (Assembler compile-load-go)
+//** /*  parameters:
+//** /*    Name         Default             Comment
+//** /*    ${JOB}       n/a                 job name
+//** /*    ${JOBPOS}    'S322-0C4','WFJM'   job positional parms
+//** /*    ${JOBEXT}                        job extra parms (must end in ,!)
+//** /*    ${CLASS}     A                   job class
+//** /*    ${MSGCLASS}  A                   message class
+//** /*    ${MSGLEVEL}  (1,1)               message level
+//** /*    ${REGION}    128K                job memory
+//** /*    ${TIME}      (1,0)               job time limit
+//** /*    ${PRTY}      8                   job priority
+//** /*    ${DDSRC}     n/a                 source file
+//** /*    ${DDDAT}     n/a                 data file
+//** /*    ${SYSUT1SPA} (1700,(600,100))    SYSUT1   SPACE
+//** /*    ${SYSUT2SPA} (1700,(300,50))     SYSUT2/3 SPACE
+//** /*    ${SYSGOSPA}  (80,(2000,500))     SYSGO    SPACE
+//** /*    ${PARMC}     'NODECK,LOAD'       compile step PARM
+//** /*    ${PARML}     'MAP,LIST,LET,NCAL' linker  step PARM
+//** /*    ${PARMG}     ''                  go      step PARM
+//** /*    ${DMPLIM}    '2000'              go      step SYSUDUMP limit
+//** /*    ${OUTLIM}    '5000'              go      step SYSPRINT limit
+//** /*
+//** /* Notes:
+//** /*  1. COND is overridden such that jobs abort when ASM end with RC >= 8.
+//** /*     Assembler codes with RC>=8 are faulty and usually ABEND anyway.
+//** /*  2. the SYSUT* must be increased via ${SYSUT*SPA} for very large
+//** /*     modules (>=15000 lines of code (including macro generated)).
+//** /*
+//${JOB} JOB ${JOBPOS:-'S322-0C4','WFJM'},${JOBEXT:-}
+//      CLASS=${CLASS:-A},MSGCLASS=${MSGCLASS:-A},MSGLEVEL=${MSGLEVEL:-(1,1)},
+//      REGION=${REGION:-128K},TIME=${TIME:-(1,0)},PRTY=${PRTY:-8}
+//CLG EXEC ASMFCLG,
+//      MAC1='SYS2.MACLIB',
+//      PARM.ASM=${PARMC:-'NODECK,LOAD'},
+//      PARM.LKED=${PARML:-'MAP,LIST,LET,NCAL'},
+//      COND.LKED=(8,LE,ASM),
+//      PARM.GO=${PARMG:-''},
+//      COND.GO=((8,LE,ASM),(4,LT,LKED))
+//ASM.SYSUT1 DD DSN=&&SYSUT1,UNIT=SYSDA,SPACE=${SYSUT1SPA:-(1700,(600,100))}
+//ASM.SYSUT2 DD DSN=&&SYSUT2,UNIT=SYSDA,SPACE=${SYSUT2SPA:-(1700,(300,50))}
+//ASM.SYSUT3 DD DSN=&&SYSUT3,UNIT=SYSDA,SPACE=${SYSUT2SPA:-(1700,(300,50))}
+//ASM.SYSGO  DD DSN=&&OBJSET,UNIT=SYSDA,SPACE=${SYSGOSPA:-(80,(2000,500))}
+//ASM.SYSIN  DD *
+//** ##include ${DDSRC}
+/*
+//GO.SYSUDUMP DD SYSOUT=*,OUTLIM=${DMPLIM:-2000}
+//GO.SYSPRINT DD SYSOUT=*,OUTLIM=${OUTLIM:-5000}
+//GO.SYSIN DD *
+//** ##include ${DDDAT}
+/*
+//
