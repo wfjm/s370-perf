@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: s370_perf_sum 986 2018-01-06 13:41:50Z mueller $
+# $Id: s370_perf_sum 989 2018-01-14 14:27:23Z mueller $
 #
 # Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-01-13   989   1.0.3  handle negative times (even though they are faulty!)
 # 2018-01-06   986   1.0.2  rename to s370_perf_sum
 # 2017-12-02   967   1.0.1  fix 'overwrite' message
 # 2017-11-18   963   1.0    Initial version
@@ -79,8 +80,8 @@ sub do_file {
 
   while (<IFILE>) {
     if (m/^(T\d\d\d)\s+(.*?)\s+:\s+(\d+)
-          \s+([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)%
-          \s+([0-9.]+)\s+([0-9.]+)\s*$/x) {
+          \s+([0-9.]+)\s+([0-9.]+)\s+(-?[0-9.]+)\s+([0-9.]+)%
+          \s+(-?[0-9.]+)\s+(-?[0-9.]+)\s*$/x) {
       my $tag = $1;
       my $txt = $2;
       my $nt  = $3;
@@ -90,7 +91,7 @@ sub do_file {
       my $w50 = $7;
       my $nrr = $8;
       my $nrx = $9;
-      ##printf "%s %-22s : %8.2f\n",$tag,$txt,$tpi;
+      ## printf "%s %-22s : %8.2f\n",$tag,$txt,$tpi;
       my $val = $tpi;
       $val = $nrr if $opts{'nrr'};
       $val = $nrx if $opts{'nrx'};
@@ -144,12 +145,16 @@ sub do_show {
     if ($opts{'rel'}) {
       $vmin = 1.e20;
       foreach my $val (@vals) {
-        $vmin = $val if defined $val && $val < $vmin;
+        $vmin = $val if defined $val && $val > 0. && $val < $vmin;
       }
     }
     foreach my $val (@vals) {
       if (defined $val) {
-        printf " %9.2f", $val/$vmin;
+        if ($val > 0.) {
+          printf " %9.2f", $val/$vmin;
+        } else {
+        printf "        <0";
+        }
       } else {
         printf "         -";
       }
