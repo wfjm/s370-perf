@@ -1,6 +1,6 @@
 *        1         2         3         4         5         6         71
 *23456789*12345*789012345678901234*678901234567890123456789012345678901
-* $Id: s370_perf.asm 986 2018-01-06 13:41:50Z mueller $
+* $Id: s370_perf.asm 989 2018-01-14 14:27:23Z mueller $
 *
 * Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 *
@@ -45,8 +45,8 @@
 *     /GAUT   automatic determination of GMUL, aim is 1 sec per test
 *     /Gnnn   set GMUL to nnn
 *     /GnnK   set GMUL to nn * 1000
-*     /Dnnn   enable  test Tnnn
-*     /Ennn   disable test Tnnn
+*     /Ennn   enable  test Tnnn
+*     /Dnnn   disable test Tnnn
 *     /Tnnn   select  test Tnnn
 *
 *   Notes on option usage:
