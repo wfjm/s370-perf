@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: s370_perf_sum 989 2018-01-14 14:27:23Z mueller $
+# $Id: s370_perf_sum 991 2018-01-28 18:24:38Z mueller $
 #
 # Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-01-28   991   1.0.4  allow extra columns in input files (e.g. from -cp)
 # 2018-01-13   989   1.0.3  handle negative times (even though they are faulty!)
 # 2018-01-06   986   1.0.2  rename to s370_perf_sum
 # 2017-12-02   967   1.0.1  fix 'overwrite' message
@@ -36,7 +37,7 @@ GetOptions(\%opts, "help", "nrr", "nrx", "min", "w50", "rel")
 
 
 # handle help
-if (defined $opts{'help'}) { do_help();  exit 0; }
+if (defined $opts{help}) { do_help();  exit 0; }
 
 #
 # handle input files
@@ -79,9 +80,15 @@ sub do_file {
   open IFILE,"<$fname" or die "failed to open $fname";
 
   while (<IFILE>) {
-    if (m/^(T\d\d\d)\s+(.*?)\s+:\s+(\d+)
-          \s+([0-9.]+)\s+([0-9.]+)\s+(-?[0-9.]+)\s+([0-9.]+)%
-          \s+(-?[0-9.]+)\s+(-?[0-9.]+)\s*$/x) {
+    if (m/^(T\d\d\d)\s+                     # tag
+          (.*?)\s+:\s+                      # txt
+          (\d+)\s+                          # nt
+          ([0-9.]+)\s+                      # min
+          ([0-9.]+)\s+                      # max
+          (-?[0-9.]+)\s+                    # tpi
+          ([0-9.]+)%\s+                     # w50
+          (-?[0-9.]+)\s+                    # nrr
+          (-?[0-9.]+)/x) {                  # nrx
       my $tag = $1;
       my $txt = $2;
       my $nt  = $3;
@@ -93,10 +100,10 @@ sub do_file {
       my $nrx = $9;
       ## printf "%s %-22s : %8.2f\n",$tag,$txt,$tpi;
       my $val = $tpi;
-      $val = $nrr if $opts{'nrr'};
-      $val = $nrx if $opts{'nrx'};
-      $val = $min if $opts{'min'};
-      $val = $w50 if $opts{'w50'};
+      $val = $nrr if $opts{nrr};
+      $val = $nrx if $opts{nrx};
+      $val = $min if $opts{min};
+      $val = $w50 if $opts{w50};
       #
       if (exists $tag2txt{$tag} && $tag2txt{$tag} ne $txt) {
         printf STDERR "s370_perf_sum-W file '%s' overwrites text for tag '%s'\n",
@@ -125,13 +132,13 @@ sub do_show {
   printf "\n";
 
   my $vnam = 'tpi';
-  $vnam = 'nrr' if $opts{'nrr'};
-  $vnam = 'nrx' if $opts{'nrx'};
-  $vnam = 'min' if $opts{'min'};
-  $vnam = 'w50' if $opts{'w50'};
+  $vnam = 'nrr' if $opts{nrr};
+  $vnam = 'nrx' if $opts{nrx};
+  $vnam = 'min' if $opts{min};
+  $vnam = 'w50' if $opts{w50};
   printf "Tag   Comment                :";
   foreach my $fnum (@fnums) {
-    printf "   %s%s%s", ($opts{'rel'}?'r-':'  '),$vnam,$fnum;
+    printf "   %s%s%s", ($opts{rel}?'r-':'  '),$vnam,$fnum;
   }
   printf "\n";
 
@@ -142,7 +149,7 @@ sub do_show {
       push @vals, $tag2val{$tag}{$fnum};
     }
     my $vmin = 1.;
-    if ($opts{'rel'}) {
+    if ($opts{rel}) {
       $vmin = 1.e20;
       foreach my $val (@vals) {
         $vmin = $val if defined $val && $val > 0. && $val < $vmin;
