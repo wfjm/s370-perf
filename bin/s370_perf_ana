@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: s370_perf_ana 986 2018-01-06 13:41:50Z mueller $
+# $Id: s370_perf_ana 991 2018-01-28 18:24:38Z mueller $
 #
 # Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-01-28   991   1.2    add chktag; add -cf,-cp,-cn
 # 2018-01-06   986   1.1.2  rename to s370_perf_ana
 # 2017-12-16   970   1.1.1  add sprt() for sliding precision in output
 # 2017-12-10   969   1.1    adopt to new file format; add loop timing correction
@@ -28,26 +29,30 @@ use Getopt::Long;
 my %opts = ();
 my %tags;
 
-GetOptions(\%opts, "help", "ltpi", "ldf", "lrun", "ttim", "nolcor", "d1")
+GetOptions(\%opts, "help", "ltpi", "ldf", "lrun", "ttim", "nolcor", "d1",
+          "cf=f", "cp=f", "cn=i")
   or die "bad options";
 
 my $dolcor = not exists $opts{nolcor};
 
 # handle help
-if (defined $opts{'help'}) { do_help();  exit 0; }
+if (defined $opts{help}) { do_help();  exit 0; }
+
+# handle -cf, map to -cp
+$opts{cp} = 1000./$opts{cf} if exists $opts{cf};
 
 #
 # handle input files
 #
 
 print "file name ----------------------------".
-      "  GMUL  i-count  -- total time --   MIPS\n" if $opts{'lrun'};
+      "  GMUL  i-count  -- total time --   MIPS\n" if $opts{lrun};
 
 foreach my $fname (@ARGV) {
   do_file($fname);
 }
 
-print "\n" if $opts{'lrun'};
+print "\n" if $opts{lrun};
 
 do_anal();
 do_show();
@@ -63,6 +68,9 @@ sub do_help {
   print "  -ltpi    list per run tpi values\n";
   print "  -ldf     list tpi distribution function\n";
   print "  -lrun    list file/run statistics\n";
+  print "  -cf=f    specify clock frequency (in MHz)\n";
+  print "  -cp=p    specify clock period (in ns)\n";
+  print "  -cn=n    number of clock phases (default = 1)\n";
   print "  -ttim    use test time field (instead of instruction time)\n";
   print "  -nolcor  no loop (bctr/bct) timing corrction\n";
   print "  -d1      reduce time field precision (for slow systems)\n";
@@ -92,8 +100,13 @@ sub do_file {
     }
     next unless $resok;
 
-    if (m/^(T\d\d\d)\s+(.*?)\s+:\s+(\d+\.\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+:
-          \s+(\d+\.\d+)\s*$/x) {
+    if (m/^(T\d\d\d)\s+                     # tag
+          (.*?)\s+:\s+                      # txt
+          (\d+\.\d+)\s+                     # test time
+          (\d+)\s+                          # lrcnt
+          (\d+)\s+                          # igcnt
+          (\d+)\s+:\s+                      # ltype
+          (\d+\.\d+)\s*$/x) {               # tpi
       my $tag   = $1;
       my $txt   = $2;
       my $tim   = $3;
@@ -123,7 +136,7 @@ sub do_file {
 
     if (m/^PERF004I done with tests/) {
       $resok = 0;
-      if ($opts{'lrun'}) {
+      if ($opts{lrun}) {
         my $gtim_min = int ($gtim/60.);
         my $gtim_sec = $gtim - 60.*$gtim_min;
         my $mips = ($gtim>0) ? 1.e-6*$gcnt/$gtim : 0.;
@@ -161,10 +174,8 @@ sub do_anal {
 
   return unless $dolcor;
 
-  unless (exists $tags{T311} && exists $tags{T312}) {
-    printf STDERR "s370_perf_ana-E: T311 or T312 not found\n";
-    return;
-  }
+  return if chktag('T311','BCTR');
+  return if chktag('T312','BCT');
   my @lcor = (0.,0.,0.);
   $lcor[1] = $tags{T311}->{tpimed};
   $lcor[2] = $tags{T312}->{tpimed};
@@ -199,16 +210,17 @@ sub df_lookup {
 #
 
 sub do_show {
-  unless (exists $tags{T100} && exists $tags{T102}) {
-    printf STDERR "s370_perf_ana-E: T100 or T102 not found\n";
-    return;
-  }
+  return if chktag('T100','LR');
+  return if chktag('T102','L');
   my $norrr = $tags{T100}->{tpicor};
   my $norrx = $tags{T102}->{tpicor};
 
   my $vname = $dolcor ? "cor" : "med";
   printf "Tag   Comment                ".
-         ": nt     min     max      %s   w50%%    n-rr   n-rx\n", $vname;
+         ": nt     min     max      %s   w50%%    n-rr   n-rx", $vname;
+  printf "    n-cp  e-cp%%   mcc" if $opts{cp};
+  printf "   scc" if $opts{cn};
+  printf "\n";
 
   my $fmt1 = '%7.1f';
   my $fmt2 = '%8.2f';
@@ -219,7 +231,7 @@ sub do_show {
 
   foreach my $tag (sort keys %tags) {
 
-    printf "%s  %-22s :%3d %s %s %s %5.1f%% %s %s\n",
+    printf "%s  %-22s :%3d %s %s %s %5.1f%% %s %s",
       $tag,$tags{$tag}->{txt},
       $tags{$tag}->{tpicnt},
       sprt($tags{$tag}->{tpimin},$fmt1),
@@ -228,8 +240,22 @@ sub do_show {
       100.*$tags{$tag}->{tpiw50}/$tags{$tag}->{tpimed},
       sprt($tags{$tag}->{tpicor}/$norrr,'%7.2f'),
       sprt($tags{$tag}->{tpicor}/$norrx,'%6.2f');
+    if (exists $opts{cp}) {
+      my $ncp = $tags{$tag}->{tpicor} / $opts{cp};
+      my $cc  = int($ncp + 0.5);
+      my $ecp = 100. * ($ncp - $cc);
+      printf " %s   %3d%%", sprt($ncp,'%7.2f'),$ecp;
+      if (exists $opts{cn}) {
+        my $mcc = int($cc/$opts{cn});
+        my $scc = $cc - $mcc * $opts{cn};
+        printf " %5d %5d", $mcc, $scc;
+      } else {
+        printf " %5d", $cc;
+      }
+    }
+    printf "\n";
 
-    if ($opts{'ltpi'}) {
+    if ($opts{ltpi}) {
       my $ival = 0;
       my $nval = scalar(@{$tags{$tag}->{tpival}});
       foreach my $val (@{$tags{$tag}->{tpival}}) {
@@ -240,7 +266,7 @@ sub do_show {
       }
       print "\n" unless $ival%5 == 0;
     }
-    if ($opts{'ldf'}) {
+    if ($opts{ldf}) {
       my @tpisort = sort { $a <=> $b } @{$tags{$tag}->{tpival}};
       my $ival = 0;
       my $nval = scalar(@tpisort);
@@ -258,6 +284,25 @@ sub do_show {
     }
   }
   return;
+}
+
+#
+# -- chktag: check existence and instruction match of tag --------------------
+#
+
+sub chktag {
+  my ($tag,$inst) = @_;
+  if (not exists $tags{$tag}) {
+    printf STDERR "s370_perf_ana-E: tag %s not found\n", $tag;
+    return 1;
+  }
+  my ($taginst) = ($tags{$tag}{txt} =~ m/([A-Z]+)/);
+  if ($taginst ne $inst) {
+    printf STDERR "s370_perf_ana-E: instruction mismatch for %s,".
+                  " seen %s, expected %s\n", $tag,$taginst,$inst;
+    return 1;
+  }
+  return 0;
 }
 
 #
