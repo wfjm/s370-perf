@@ -1,6 +1,6 @@
 *        1         2         3         4         5         6         71
 *23456789*12345*789012345678901234*678901234567890123456789012345678901
-* $Id: s370_perf.asm 989 2018-01-14 14:27:23Z mueller $
+* $Id: s370_perf.asm 992 2018-02-04 11:53:04Z mueller $
 *
 * Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 *
@@ -3944,51 +3944,53 @@ T621L    REPINS2 MVI,(T621V,X'FF'),TS,(T621V)
 T621V    DC    X'FF'              target for TS instruction
          TSIMEND
 *
+* Test 7xx -- mix sequence ======================================
+*
 * Test 700 -- Mix Int RR -----------------------------------
 *
          TSIMBEG T700,20000,40,1,C'mix int RR basic'
 *
 T700L    EQU   *
-         LA    R2,1               R2 :=00000001 FIN
-         LR    R3,R2              R3 :=00000001
-         SLA   R3,8               R3 :=00000100 FIN
-         XR    R4,R4              R4 :=00000000
-         OR    R4,R3              R4 :=00000100
-         BCTR  R4,0               R4 :=000000FF FIN
-         LCR   R5,R4              R5 :=FFFFFF01
-         SLL   R5,2               R5 :=FFFFFC04 FIN
-         LPR   R6,R5              R6 :=000003FC
-         AR    R6,R1              R6 :=000003FD
-         CR    R6,R1              !=
-         BE    T700BAD
-         LNR   R7,R3              R7 :=FFFFFF00
-         NR    R7,R6              R7 :=00000300
-         SRA   R7,2               R7 :=000000C0
-         SR    R7,R4              R7 :=FFFFFFC1
-         LTR   R8,R3              R8 :=00000100
-         SRL   R8,1               R8 :=00000080
-         ALR   R8,R3              R8 :=00000180
-         SLR   R8,R7              R8 :=000001BF
-         CLR   R8,R3              !=
-         BE    T700BAD
-         LA    R9,602             R9 :=0000025A
-         XR    R9,R4              R9 :=000002A5 FIN
-         LTR   R10,R9             R10:=000002A5
-         AR    R10,R9             R10:=000004FF
-         OR    R10,R5             R10:=FFFFFCFF
-         LPR   R6,R10             R6 :=00000301
-         ALR   R6,R4              R6 :=00000400
-         SLA   R6,1               R6 :=00000800
-         SR    R6,R9              R6 :=0000055B
-         BCTR  R6,0               R6 :=0000055A
-         NR    R6,R5              R6 :=00000400
-         SRA   R6,5               R6 :=00000020
-         CR    R6,R4              !=
-         LNR   R7,R6              R7 :=FFFFFFC0
-         SLL   R7,2               R7 :=FFFFFF00
-         SLR   R7,R2              R7 :=FFFFFEFF
-         LCR   R8,R7              R8 :=00000101
-         CLR   R8,R3              !=
+         LA    R2,1               R2 :=00000001 FIN         01
+         LR    R3,R2              R3 :=00000001             02
+         SLA   R3,8               R3 :=00000100 FIN         03
+         XR    R4,R4              R4 :=00000000             04
+         OR    R4,R3              R4 :=00000100             05
+         BCTR  R4,0               R4 :=000000FF FIN         06
+         LCR   R5,R4              R5 :=FFFFFF01             07
+         SLL   R5,2               R5 :=FFFFFC04 FIN         08
+         LPR   R6,R5              R6 :=000003FC             09
+         AR    R6,R1              R6 :=000003FD             10
+         CR    R6,R1              !=                        11
+         BE    T700BAD                                      12
+         LNR   R7,R3              R7 :=FFFFFF00             13
+         NR    R7,R6              R7 :=00000300             14
+         SRA   R7,2               R7 :=000000C0             15
+         SR    R7,R4              R7 :=FFFFFFC1             16
+         LTR   R8,R3              R8 :=00000100             17
+         SRL   R8,1               R8 :=00000080             18
+         ALR   R8,R3              R8 :=00000180             19
+         SLR   R8,R7              R8 :=000001BF             20
+         CLR   R8,R3              !=                        21
+         BE    T700BAD                                      22
+         LA    R9,602             R9 :=0000025A             23
+         XR    R9,R4              R9 :=000002A5 FIN         24
+         LTR   R10,R9             R10:=000002A5             25
+         AR    R10,R9             R10:=000004FF             26
+         OR    R10,R5             R10:=FFFFFCFF             27
+         LPR   R6,R10             R6 :=00000301             28
+         ALR   R6,R4              R6 :=00000400             29
+         SLA   R6,1               R6 :=00000800             30
+         SR    R6,R9              R6 :=0000055B             31
+         BCTR  R6,0               R6 :=0000055A             32
+         NR    R6,R5              R6 :=00000400             33
+         SRA   R6,5               R6 :=00000020             34
+         CR    R6,R4              !=                        35
+         LNR   R7,R6              R7 :=FFFFFFC0             36
+         SLL   R7,2               R7 :=FFFFFF00             37
+         SLR   R7,R2              R7 :=FFFFFEFF             38
+         LCR   R8,R7              R8 :=00000101             39
+         CLR   R8,R3              !=                        40
          BCTR  R15,R11
          TSIMRET
 *
@@ -4001,27 +4003,27 @@ T700BAD  ABEND 60
          TSIMBEG T701,22000,21,1,C'mix int RX'
 *
 T701L    EQU   *
-         L     R2,T701F1          R2 :=00000072
-         A     R2,T701F2          R2 :=00010072
-         N     R2,T701F3          R2 :=00010042
-         SH    R2,T701H1          R2 :=00010041
-         MH    R2,T701H2          R2 :=00020082
-         AH    R2,T701H3          R2 :=00020182
-         CH    R2,T701H3
-         AL    R2,T701F4          R2 :=00020180
-         S     R2,T701F5          R2 :=0002017F
-         O     R2,T701F6          R2 :=0013817F
-         STH   R2,T701VH1
-         ST    R2,T701VF1+4
-         X     R2,T701F7          R2 :=00030178
-         C     R2,T701F6
-         LM    R4,R5,T701VF1      R5 :=0013817F (1278335)
-         M     R4,T701F8          R5 :=         (157235205)
-         D     R4,T701F9          R5 :=         (9249129)
-         STM   R4,R5,T701VF2
-         LH    R6,T701VH1         R6 :=FFFF817F
-         SL    R6,T701F10         R6 :=0000017F
-         CL    R6,T701F9
+         L     R2,T701F1          R2 :=00000072             01
+         A     R2,T701F2          R2 :=00010072             02
+         N     R2,T701F3          R2 :=00010042             03
+         SH    R2,T701H1          R2 :=00010041             04
+         MH    R2,T701H2          R2 :=00020082             05
+         AH    R2,T701H3          R2 :=00020182             06
+         CH    R2,T701H3                                    07
+         AL    R2,T701F4          R2 :=00020180             08
+         S     R2,T701F5          R2 :=0002017F             09
+         O     R2,T701F6          R2 :=0013817F             10
+         STH   R2,T701VH1                                   11
+         ST    R2,T701VF1+4                                 12
+         X     R2,T701F7          R2 :=00030178             13
+         C     R2,T701F6                                    14
+         LM    R4,R5,T701VF1      R5 :=0013817F (1278335)   15
+         M     R4,T701F8          R5 :=         (157235205) 16
+         D     R4,T701F9          R5 :=         (9249129)   17
+         STM   R4,R5,T701VF2                                18
+         LH    R6,T701VH1         R6 :=FFFF817F             19
+         SL    R6,T701F10         R6 :=0000017F             20
+         CL    R6,T701F9                                    21
          BCTR  R15,R11
          TSIMRET
 *
