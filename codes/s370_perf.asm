@@ -1,6 +1,6 @@
 *        1         2         3         4         5         6         71
 *23456789*12345*789012345678901234*678901234567890123456789012345678901
-* $Id: s370_perf.asm 992 2018-02-04 11:53:04Z mueller $
+* $Id: s370_perf.asm 993 2018-02-10 21:11:43Z mueller $
 *
 * Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 *
@@ -8,8 +8,10 @@
 * it under the terms of the GNU General Public License version 3.
 * See Licence.txt in distribition directory for further details.
 *
-*  Revision History:
+*  Revision History:  (!! update MSGVERS when adding here !!)
 * Date         Rev Version  Comment
+* 2018-02-10   993   0.9.2  add STCK time to PERF003/PERF004 messages
+*                           add PERF000 vers info; add warmup T102 run
 * 2018-01-06   986   0.9.1  rename to s370_perf        
 * 2017-12-16   970   0.9    add /Dxxx and /Exxx params; 8k code support
 *                           use 4k buffer for MVCL,CLCL; test renames
@@ -17,7 +19,7 @@
 *                           add T116-T117,T191-T192,T156-T158,T161-T162
 *                           add T165-T166,T450-T451,T507,T527
 * 2017-12-10   969   0.8    add ltype flag in TDSC; new output format
-*                           BCTR loop closure; code test D aligned
+*                           use BCTR loop closure; code test D aligned
 *                           add REPINS2,REPINS5,REPINSPI,REPINSAL
 *                           add T252-T254,T255-T259,T274-T277,T280-T283
 *                           add T290-292,T324-T325,T415,T440-T443
@@ -401,6 +403,14 @@ TTXTDSC  DS    F                  description text descriptor
 *
 MAIN     CSECT
 *
+* write header -------------------------------------------------------
+*
+         L     R1,MSGVHDR
+         BAL   R14,OTEXT          print VERS message prefix
+         L     R1,MSGVERS
+         BAL   R14,OTEXT          print version
+         BAL   R14,OPUTLINE       write line
+*
 * handle PARMs -------------------------------------------------------
 *   R2   PARM address
 *   R3   PARM length
@@ -605,6 +615,11 @@ OPTPTTE  EQU   *
 *
 * some final preparations --------------------------------------------
 *
+*   as warmup run T102 (with or without /GAUT !)
+*
+         L     R3,=A(T102TDSC)    get T102 descriptor
+         BAL   R10,DOTEST         run T102 with current GMUL
+*
 *   handle /GAUT -----------------------
 *
          CLI   FLGGAUT,X'00'      /GAUT active ?
@@ -678,6 +693,9 @@ OPTGAUTE EQU   *
 *
          L     R1,MSGSTRT
          BAL   R14,OTEXT          print 'start tests' message
+         STCK  TPRBEG             get program start time
+         LA    R1,TPRBEG
+         BAL   R14,OHEX210        print TPRBEG (as hex)
          BAL   R14,OPUTLINE       write line
 *
          L     R1,MSGTHD1
@@ -781,7 +799,24 @@ TLOOPN   LA    R2,4(R2)           push pointer to next TDSC
          BNL   TLOOP              if >= not, keep going
 *
          L     R1,MSGDONE
-         BAL   R14,OTEXT          print 'start tests' message
+         BAL   R14,OTEXT          print 'done tests' message
+         STCK  TCKEND             get program end time
+         LA    R1,TCKEND
+         BAL   R14,OHEX210        print TCKEND (as hex)
+*
+         LA    R1,TPRBEG
+         BAL   R14,CNVCK2D        convert program start time
+         LDR   FR6,FR0            keep in FR6
+*
+         LA    R1,TCKEND
+         BAL   R14,CNVCK2D        convert program end time
+         SDR   FR0,FR6            dt = end - beg
+         DD    FR0,=D'16.E6'      from 1/16 of usec to sec
+*
+         L     R1,MSGDT
+         BAL   R14,OTEXT          print 'done tests' message
+         BAL   R14,OFIX1306       print run time
+
          BAL   R14,OPUTLINE       write line
 *
 * close datasets and return to OS -------------------------------------
@@ -804,6 +839,7 @@ PCBUF    DS    F                  ptr to code area buffer
 PBUF4K1  DS    F                  ptr 1st 4k data buffer
 PBUF4K2  DS    F                  ptr 2nd 4k data buffer
 *
+TPRBEG   DS    D                  STCK value at program begin
 TCKBEG   DS    D                  STCK value at test begin
 TCKEND   DS    D                  STCK value at test end
 TBEG     DS    D                  TCKBEG as double in 1/16 usec
@@ -832,14 +868,17 @@ WTOMSG2  DC    C'Txxx'
          DC    B'0100000000000000'    routing codes (2=console info)
 *
          DS    0F
+MSGVERS  OTXTDSC  C's370_perf V0.9.2  rev  993  2018-02-10'
+MSGVHDR  OTXTDSC  C'PERF000I VERS: '
 MSGPARM  OTXTDSC  C'PERF001I PARM: '
 MSGGMUL  OTXTDSC  C'PERF002I run with GMUL= '
-MSGSTRT  OTXTDSC  C'PERF003I start with tests'
-MSGDONE  OTXTDSC  C'PERF004I done with tests'
+MSGSTRT  OTXTDSC  C'PERF003I start with tests at'
+MSGDONE  OTXTDSC  C'PERF004I done with tests  at'
 MSGPBAD  OTXTDSC  C'PERF005E bad option: '
 MSGPDIG  OTXTDSC  C'PERF006E bad digit: '
 MSGPTST  OTXTDSC  C'PERF006E bad test: '
 MSGPGM0  OTXTDSC  C'PERF007E GMUL is zero: '
+MSGDT    OTXTDSC  C'  dt='
 MSGOPTT  OTXTDSC  C' ind   tag        lr  ig  lt      addr    length'
 MSGTHD1  OTXTDSC  C' tag  description'
 MSGTHD2  OTXTDSC  C' :      test(s)         lr  ig  lt :    inst(usec)'
