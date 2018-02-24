@@ -24,3 +24,15 @@ The project files are organized in directories as
 | [data](data)   | benchmark results |
 | [doc](doc)     | documentation |
 | [jcl](jcl)     | JCL job templates |
+
+### License
+This project is released under the 
+[GPL V3 license](https://www.gnu.org/licenses/gpl-3.0.html),
+all files contain the disclaimer:
+
+    This program is free software; you may redistribute and/or modify
+    it under the terms of the GNU General Public License version 3.
+    See Licence.txt in distribition directory for further details.
+
+The full text of the GPL license is in this directory as
+[License.txt](License.txt).
