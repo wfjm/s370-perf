@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: s370_perf_sum 991 2018-01-28 18:24:38Z mueller $
+# $Id: s370_perf_sum 994 2018-02-24 13:07:45Z mueller $
 #
 # Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-02-23   994   1.0.5  add -fmis and -fsig options
 # 2018-01-28   991   1.0.4  allow extra columns in input files (e.g. from -cp)
 # 2018-01-13   989   1.0.3  handle negative times (even though they are faulty!)
 # 2018-01-06   986   1.0.2  rename to s370_perf_sum
@@ -32,7 +33,10 @@ my %tag2val;
 my %fnum2fnam;
 my $nfile = 0;
 
-GetOptions(\%opts, "help", "nrr", "nrx", "min", "w50", "rel")
+GetOptions(\%opts,
+           "help", "nrr", "nrx", "min", "w50", "rel",
+           "fsig:1","fmis:1",
+          )
   or die "bad options";
 
 
@@ -62,12 +66,14 @@ exit 0;
 
 sub do_help {
   print "usage: s370_perf_sum [OPTIONS] [FILE]...\n";
-  print "  -nrr     use n-rr (T100 normalized)\n";
-  print "  -nrx     use n-rx (T102 normalized)\n";
-  print "  -min     use min  (minimal time)\n";
-  print "  -w50     use w50  (50% distribution width)\n";
-  print "  -rel     show relative speed for each tag\n";
-  print "  -help    help text\n";
+  print "  -nrr       use n-rr (T100 normalized)\n";
+  print "  -nrx       use n-rx (T102 normalized)\n";
+  print "  -min       use min  (minimal time)\n";
+  print "  -w50       use w50  (50% distribution width)\n";
+  print "  -rel       show relative speed for each tag\n";
+  print "  -fmis[=n]  drop test line when n values missing\n";
+  print "  -fsig[=n]  show test line only when differing by n percent\n";
+  print "  -help      help text\n";
   return;
 }
 
@@ -143,7 +149,7 @@ sub do_show {
   printf "\n";
 
   foreach my $tag (sort keys %tag2txt) {
-    printf "%s  %-22s :", $tag,$tag2txt{$tag};
+    my $line = sprintf "%s  %-22s :", $tag,$tag2txt{$tag};
     my @vals;
     foreach my $fnum (@fnums) {
       push @vals, $tag2val{$tag}{$fnum};
@@ -155,18 +161,25 @@ sub do_show {
         $vmin = $val if defined $val && $val > 0. && $val < $vmin;
       }
     }
+    my $nmis = 0;
+    my $nsig = 0;
     foreach my $val (@vals) {
       if (defined $val) {
         if ($val > 0.) {
-          printf " %9.2f", $val/$vmin;
+          my $vnor = $val/$vmin;
+          $nsig += 1 if defined $opts{fsig} && $vnor >= 1. + 0.01 * $opts{fsig};
+          $line .= sprintf " %9.2f", $vnor;
         } else {
-        printf "        <0";
+          $line .= sprintf "       <=0";
         }
       } else {
-        printf "         -";
+        $nmis += 1;
+        $line .= sprintf "         -";
       }
     }
-    print "\n";
+    next if defined $opts{fmis} && $nmis >= $opts{fmis};
+    next if defined $opts{fsig} && $nsig == 0;
+    print "$line\n";
   }
   return;
 }
