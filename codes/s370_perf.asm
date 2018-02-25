@@ -1,6 +1,6 @@
 *        1         2         3         4         5         6         71
 *23456789*12345*789012345678901234*678901234567890123456789012345678901
-* $Id: s370_perf.asm 993 2018-02-10 21:11:43Z mueller $
+* $Id: s370_perf.asm 995 2018-02-25 18:42:56Z mueller $
 *
 * Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 *
@@ -10,6 +10,10 @@
 *
 *  Revision History:  (!! update MSGVERS when adding here !!)
 * Date         Rev Version  Comment
+* 2018-02-25   995   0.9.3  use R11,R12 as base to allow 8k  main code
+*                           add SETB DISBAS to disable BAS/BASR tests
+*                           add /Cxxx, sets GMUL test; /T*** wildcards
+*                           add config file handling
 * 2018-02-10   993   0.9.2  add STCK time to PERF003/PERF004 messages
 *                           add PERF000 vers info; add warmup T102 run
 * 2018-01-06   986   0.9.1  rename to s370_perf        
@@ -47,9 +51,10 @@
 *     /GAUT   automatic determination of GMUL, aim is 1 sec per test
 *     /Gnnn   set GMUL to nnn
 *     /GnnK   set GMUL to nn * 1000
-*     /Ennn   enable  test Tnnn
-*     /Dnnn   disable test Tnnn
-*     /Tnnn   select  test Tnnn
+*     /Cnnn   use     test Tnnn for GMUL calibration (default is C102)
+*     /Ennn   enable  test Tnnn (n can be digit or '*' wildcard)
+*     /Dnnn   disable test Tnnn (dito)
+*     /Tnnn   select  test Tnnn (dito)
 *
 *   Notes on option usage:
 *   1. GMUL default and start value is 1
@@ -62,6 +67,21 @@
 *   6. /Dnnn allows to disable a pre-enabled test
 *   7. /Ennn allows to enable  a pre-disabled test
 *
+* Configuration file:
+*   read from SYSIN, is optional. Line starting with '#' are ignored
+*   all other lines must have the format
+*     Tnnn    e     lrcnt
+*   with
+*     Tnnn     test name
+*     e        enable flag, 0 or 1 (with 4 spaces in front)
+*     lrcnt    new LRCNT, 10 digit field, ignored if zero
+*   Main usage of the config file is to redefine the LRCNT of test
+*   when s370_perf is run on systems other than a Hercules emulator.
+*   Note that the config file is processed before the PARMs.
+*
+* Code configuration options:
+*   in 'global definitions' before main code, currently:
+*   &DISBAS  SETB     a 1 will disable BAS/BASR tests
 *
 * Return codes:
 *   RC =  0  ok
@@ -351,12 +371,19 @@ TCODE    CSECT
          MNOTE *,'//       &CODE  &MASTR'
          MEND
 *
+* global definitions --------------------------------------------------
+*
+         GBLB  &DISBAS
+&DISBAS  SETB  0                 set 1 for disable BAS/BASR tests
+*
 * main preamble -------------------------------------------------------
 *
 MAIN     START 0                  start main code csect at base 0
          SAVE  (14,12)            Save input registers
-         LR    R12,R15            base register := entry address
-         USING MAIN,R12           declare base register
+         LR    R11,R15            base register 1 := entry address
+         LA    R12,2048(R11)
+         LA    R12,2048(R12)      base register 1 := entry address+4k
+         USING MAIN,R11,R12       declare 2 base register for 8k code
          ST    R13,SAVE+4         set back pointer in current save area
          LR    R2,R13             remember callers save area
          LA    R13,SAVE           setup current save area
@@ -368,7 +395,7 @@ CBUFSIZE EQU  8192
 *
 * some preparations --------------------------------------------------
 *
-         LR    R2,R1              save argument list pointer for later   
+         ST    R1,ARGPTR          save argument list pointer for later 
          L     R3,=A(TDSCTBLE-4)  pointer to last entry of TDSCTBL
          MVI   0(R3),X'80'        mark last entry of TDSCTBL
 *
@@ -411,11 +438,16 @@ MAIN     CSECT
          BAL   R14,OTEXT          print version
          BAL   R14,OPUTLINE       write line
 *
+* handle config file -------------------------------------------------
+*
+         BAL   R14,CNFRD          all done in procedure
+*
 * handle PARMs -------------------------------------------------------
 *   R2   PARM address
 *   R3   PARM length
 *
 *
+         L     R2,ARGPTR          get argument list pointer
          L     R2,0(R2)           load PARM base address
          LH    R3,0(R2)           load PARM length
          LTR   R3,R3              test length
@@ -468,9 +500,44 @@ OPTORIP  C     R4,=C'ORIP'        is it /ORIP ?
          MVI   FLGORIP,X'01'
          B     OPTDONE
 *
-* handle /Tnnn, /Dnnn, /Ennn -----------
+* handle /Cnnn -------------------------
+*   R4   ptr to current TDSCTBL entry
+*   R5   current TDSC
+*   R6   current tag text descriptor
+*   R7   current option (as Tnnn)
 *
-OPTODONE LA    R8,1               set disable flag
+OPTODONE CLI   1(R2),C'C'         is it /C ?
+         BNE   OPTCDONE           if != try next
+         L     R7,1(R2)           load all 4 option bytes
+         ICM   R7,B'1000',CHART   force leading byte to 'T'
+*
+         L     R4,=A(TDSCTBL)     get head of TDSCTBL
+OPTCLOOP L     R5,0(R4)           get next TDSC
+         USING TDSC,R5            declare TDSC base register
+         L     R6,TTAGDSC         get tag text descriptor
+         C     R7,0(R6)           does Tnnn option match tag ?
+         BNE   OPTCNEXT           if != not, try next
+*
+         ST    R5,GMULTDSC        setup GMUL TDSC pointer
+         B     OPTDONE            and consider option handled
+*
+         DROP  R5
+*
+OPTCNEXT LA    R4,4(R4)           push pointer to next TDSC
+         LTR   R5,R5              end tag X'80000000' seen ?
+         BNL   OPTCLOOP           if >= not, keep going
+         B     PARMABOT           if here no test found, complain
+*
+* handle /Tnnn, /Dnnn, /Ennn -----------
+*   R4   ptr to current TDSCTBL entry
+*   R5   current TDSC
+*   R6   current tag text descriptor
+*   R7   current option (as Tnnn)
+*   R8   disable flag (0 if /Dnnn, 1 if /Ennn or /Tnnn)
+*   R9   current tag text (with wildcards injected)
+*   R10  count of matched tags
+*
+OPTCDONE LA    R8,1               set disable flag
          CLI   1(R2),C'D'         is it /D ?
          BE    OPTTDISE           if = yes, proceed
          XR    R8,R8              clear disable flag
@@ -493,26 +560,41 @@ OPTTDISL L     R5,0(R4)           get next TDSC
 OPTTDISE L     R7,1(R2)           load all 4 option bytes
          ICM   R7,B'1000',CHART   force leading byte to 'T'
 *
+         XR    R10,R10            clear match count
          L     R4,=A(TDSCTBL)     get head of TDSCTBL
 OPTTENAL L     R5,0(R4)           get next TDSC
          USING TDSC,R5            declare TDSC base register
          L     R6,TTAGDSC         get tag text descriptor
-         C     R7,0(R6)           does Tnnn option match tag ?
+         L     R9,0(R6)           load tag text
+*
+         CLI   2(R2),C'*'         /T*nn wildcard
+         BNE   OPTTNOW3           if != not
+         ICM   R9,B'0100',CHARWC  otherwise inject wildcard
+OPTTNOW3 CLI   3(R2),C'*'         /Tn*n wildcard
+         BNE   OPTTNOW2           if != not
+         ICM   R9,B'0010',CHARWC  otherwise inject wildcard
+OPTTNOW2 CLI   4(R2),C'*'         /Tnn* wildcard
+         BNE   OPTTNOW1           if != not
+         ICM   R9,B'0001',CHARWC  otherwise inject wildcard
+*
+OPTTNOW1 CR    R7,R9              does Tnnn option match tag ?
          BNE   OPTTENAN           if != not, try next
 *
+         LA    R10,1(R10)         increment match count
          LTR   R8,R8              test disable flag
          BNE   OPTTDIS            if != yes, do disable
          NI    0(R4),X'FE'        clear disable flag bit
-         B     OPTDONE            and consider option handled
+         B     OPTTENAN           and go for next tag
 OPTTDIS  OI    0(R4),X'01'        set disable flag bit
-         B     OPTDONE            and consider option handled
 *
          DROP  R5
 *
 OPTTENAN LA    R4,4(R4)           push pointer to next TDSC
          LTR   R5,R5              end tag X'80000000' seen ?
          BNL   OPTTENAL           if >= not, keep going
-         B     PARMABOT           if here no test found, complain
+         LTR   R10,R10            end of table, check match count
+         BE    PARMABOT           if =, no test found, complain
+         B     OPTDONE            otherwise consider option handled
 *
 * handle /Gxxx -------------------------
 *
@@ -615,18 +697,18 @@ OPTPTTE  EQU   *
 *
 * some final preparations --------------------------------------------
 *
-*   as warmup run T102 (with or without /GAUT !)
+*   as warmup run test used for GMUL (with or without /GAUT !)
 *
-         L     R3,=A(T102TDSC)    get T102 descriptor
-         BAL   R10,DOTEST         run T102 with current GMUL
+         L     R3,GMULTDSC        get GMUL test descriptor
+         BAL   R10,DOTEST         run test with current GMUL
 *
 *   handle /GAUT -----------------------
 *
          CLI   FLGGAUT,X'00'      /GAUT active ?
          BE    OPTGAUTE           if = not, skip handling
 *
-         L     R3,=A(T102TDSC)    get T102 descriptor
-OPTGAUTL BAL   R10,DOTEST         run T102 with current GMUL
+         L     R3,GMULTDSC        get GMUL test descriptor
+OPTGAUTL BAL   R10,DOTEST         run test with current GMUL
          LM    R4,R5,TCKBEG       get start time
          SRDL  R4,12              get it in usec
          LM    R6,R7,TCKEND       get end time
@@ -832,8 +914,10 @@ EXIT     CLOSE SYSPRINT           close SYSPRINT
 SAVE     DS    18F                save area (for main)
 SAVETST  DS    18F                save area (shared by Txxx)
 RC       DC    F'0'               return code
+ARGPTR   DC    F'0'               argument list pointer
 *
 GMUL     DC    F'1'               general multiplier
+GMULTDSC DC    A(T102TDSC)        test used for GMUL
 *
 PCBUF    DS    F                  ptr to code area buffer
 PBUF4K1  DS    F                  ptr 1st 4k data buffer
@@ -853,11 +937,13 @@ GMULZONE DC    C'000000'
 FLGODBG  DC    X'00'              /ODBG active     
 FLGOWTO  DC    X'00'              /OWTO active  
 FLGOTGA  DC    X'00'              /OTGA active  
+FLGOPCF  DC    X'00'              /OPCF active  
 FLGOPTT  DC    X'00'              /OPTT active  
 FLGORIP  DC    X'00'              /ORIP active  
 FLGGAUT  DC    X'00'              /GAUT active  
 TDSCDIS  DC    X'00'              TDSC disable done after 1st /Tnnn
 CHART    DC    C'T'               just letter 'T'
+CHARWC   DC    C'*'               just letter '*'
 *
          DS    0F
 WTOPLIST DC    AL2(4+L'WTOMSG1+L'WTOMSG2)  text length + 4
@@ -868,7 +954,7 @@ WTOMSG2  DC    C'Txxx'
          DC    B'0100000000000000'    routing codes (2=console info)
 *
          DS    0F
-MSGVERS  OTXTDSC  C's370_perf V0.9.2  rev  993  2018-02-10'
+MSGVERS  OTXTDSC  C's370_perf V0.9.3  rev  995  2018-02-25'
 MSGVHDR  OTXTDSC  C'PERF000I VERS: '
 MSGPARM  OTXTDSC  C'PERF001I PARM: '
 MSGGMUL  OTXTDSC  C'PERF002I run with GMUL= '
@@ -876,8 +962,10 @@ MSGSTRT  OTXTDSC  C'PERF003I start with tests at'
 MSGDONE  OTXTDSC  C'PERF004I done with tests  at'
 MSGPBAD  OTXTDSC  C'PERF005E bad option: '
 MSGPDIG  OTXTDSC  C'PERF006E bad digit: '
-MSGPTST  OTXTDSC  C'PERF006E bad test: '
-MSGPGM0  OTXTDSC  C'PERF007E GMUL is zero: '
+MSGPTST  OTXTDSC  C'PERF007E bad test: '
+MSGPGM0  OTXTDSC  C'PERF008E GMUL is zero: '
+MSGCBAD  OTXTDSC  C'PERF009E bad config item: '
+MSGCLNE  OTXTDSC  C'PERF010I config: '
 MSGDT    OTXTDSC  C'  dt='
 MSGOPTT  OTXTDSC  C' ind   tag        lr  ig  lt      addr    length'
 MSGTHD1  OTXTDSC  C' tag  description'
@@ -896,6 +984,81 @@ MSGTGA   OTXTDSC  C'--  GAUT:'
 * helper used in 'far call' BAL/BALR tests ---------------------------
 *
 BR14FAR  BR   R14
+*
+* handle config file read --------------------------------------------
+*   R2   new ENA state
+*   R3   new LRCNT
+*   R4   ptr to current TDSCTBL entry
+*   R5   current TDSC
+*   R6   current tag text descriptor
+*   R7   test name
+*   R8   address of text name
+*
+CNFRD    ST    R14,CNFRDL
+         OPEN  (SYSIN,INPUT)      open SYSIN
+         LTR   R15,R15            test return code
+         BNE   CNFRDE             if != failed, quit
+*
+         LA    R15,CNFRDE         end handling address
+         ST    R15,IEOFEXIT       use it exit if EOF seen
+CNFRDNL  BAL   R14,IGETLINE       read input line
+         L     R8,ILPTR           get input pointer
+*
+         CLI   0(R8),C'#'         is it comnment line ?
+         BE    CNFRDNL            if =, skip and try next line
+*
+         L     R1,MSGCLNE
+         BAL   R14,OTEXT          print prefix
+         LR    R1,R8
+         A     R1,=X'50000000'    build text descriptor length=80
+         BAL   R14,OTEXT          print input line
+         BAL   R14,OPUTLINE       write line
+**         B     CNFRDNL
+*        
+         L     R7,0(R8)           get text name
+         LA    R15,4(R8)          push pointer by 4 char
+         ST    R15,ILPTR          and update
+         BAL   R14,IINT05         get ENA
+         LR    R2,R1              R2 = ENA flag
+         BAL   R14,IINT10         get LRCNT
+         LR    R3,R1              R3 = LRCNT
+*
+         L     R4,=A(TDSCTBL)     get head of TDSCTBL
+CNFRDLOP L     R5,0(R4)           get next TDSC
+         USING TDSC,R5            declare TDSC base register
+         L     R6,TTAGDSC         get tag text descriptor
+         C     R7,0(R6)           does Tnnn option match tag ?
+         BNE   CNFRDNXT           if != not, try next
+*
+         NI    0(R4),X'FE'        clear disable flag bit
+         LTR   R2,R2              test enable flag
+         BNE   CNFRDENA           if !=, keep enabled
+         OI    0(R4),X'01'        otherwise set disable flag bit
+*
+CNFRDENA LTR   R3,R3              test new LRCNT
+         BE    CNFRDNL            if =, don't update
+         ST    R3,TLRCNT          update LRCNT
+         B     CNFRDNL            line done, go for next line
+         DROP  R5
+*
+CNFRDNXT LA    R4,4(R4)           push pointer to next TDSC
+         LTR   R5,R5              end tag X'80000000' seen ?
+         BNL   CNFRDLOP           if >= not, keep going
+*
+         L     R1,MSGCBAD
+         BAL   R14,OTEXT          print error message
+         LR    R1,R8              get test name address
+         A     R1,=X'04000000'    build text descriptor length=4
+         BAL   R14,OTEXT          print test name
+         BAL   R14,OPUTLINE       write line
+         MVI   RC+3,X'04'
+         B     EXIT               quit with RC=4
+*
+CNFRDE   CLOSE SYSIN              close SYSIN
+         L     R14,CNFRDL
+         BR    R14
+*
+CNFRDL   DS    1F                 save area for R14 (return linkage)
 *
 * helper to execute test inner loop with timing ----------------------
 *    R3  holds pointer to TDSC
@@ -1046,6 +1209,10 @@ TRCRESL  DS    1F                 save area for R14 (return linkage)
 //** ##rinclude ../clib/sos_ohex10.asm
 //** ##rinclude ../clib/sos_ohex210.asm
 //** ##rinclude ../clib/sos_ofix1308.asm
+* include simple input system -----------------------------------------
+//** ##rinclude ../clib/sis_base.asm
+//** ##rinclude ../clib/sis_iint05.asm
+//** ##rinclude ../clib/sis_iint10.asm
 *
 * spill literal pool for MAIN
 *
@@ -3053,6 +3220,11 @@ T323L    REPINS BAL,(R14,0(R2))         repeat: BAL R14,0(R2)
          TSIMRET
          TSIMEND
 *
+* old IFOX versions don't handle BAS and BASR. That's why the next
+* two tests can be disabled by setting DISBAS to 1 in the preamble.
+*
+         AIF (&DISBAS).DISBAS
+*
 * Test 324 -- BASR R,R; BR R -------------------------------
 *
          TSIMBEG T324,8000,50,1,C'BASR R,R; BR R'
@@ -3077,6 +3249,8 @@ T325L    REPINS BAS,(R14,T325R)         repeat: BAS R14,T325R
          DS    0H
 T325R    BR    R14
          TSIMEND
+*
+.DISBAS  ANOP
 *
 * Test 330 -- L;BALR;SAV;RET --------------------------------
 *

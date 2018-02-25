@@ -13,10 +13,16 @@ the documentation is consistent.
 
 ### Summary
 
+- remove bin/hercjis; add instead whole herc-tools project as submodule
 - s370_perf
   - add `STCK` time to `PERF003I` and `PERF004I` messages
   - add `PERF000I` version info message
   - run test `T102` as warmup before `/GAUT` processing or testing
+  - use R11,R12 as base to allow 8k  main code
+  - add SETB DISBAS to disable BAS/BASR tests
+  - add /Cxxx, sets test used for GMUL (and warmup)
+  - support /X*** wildcards for /Tnnn,/Ennn and /Dnnn
+  - add config file handling
 - rename 2018-01-03-rasp2b.dat -> 2018-01-03_rasp2b.dat
 
 <!-- --------------------------------------------------------------------- -->
