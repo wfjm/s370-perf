@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: s370_perf_ana 991 2018-01-28 18:24:38Z mueller $
+# $Id: s370_perf_ana 994 2018-02-24 13:07:45Z mueller $
 #
 # Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-02-24   994   1.2.1  add -d3 for fast systems
 # 2018-01-28   991   1.2    add chktag; add -cf,-cp,-cn
 # 2018-01-06   986   1.1.2  rename to s370_perf_ana
 # 2017-12-16   970   1.1.1  add sprt() for sliding precision in output
@@ -29,7 +30,7 @@ use Getopt::Long;
 my %opts = ();
 my %tags;
 
-GetOptions(\%opts, "help", "ltpi", "ldf", "lrun", "ttim", "nolcor", "d1",
+GetOptions(\%opts, "help", "ltpi", "ldf", "lrun", "ttim", "nolcor", "d1", "d3",
           "cf=f", "cp=f", "cn=i")
   or die "bad options";
 
@@ -74,6 +75,7 @@ sub do_help {
   print "  -ttim    use test time field (instead of instruction time)\n";
   print "  -nolcor  no loop (bctr/bct) timing corrction\n";
   print "  -d1      reduce time field precision (for slow systems)\n";
+  print "  -d3      increase time field precision (for fast systems)\n";
   print "  -help    help text\n";
   return;
 }
@@ -228,16 +230,20 @@ sub do_show {
     $fmt1 = '%7.0f';
     $fmt2 = '%8.1f';
   }
+  if ($opts{d3}) {
+    $fmt1 = '%7.2f';
+    $fmt2 = '%8.3f';
+  }
 
   foreach my $tag (sort keys %tags) {
 
-    printf "%s  %-22s :%3d %s %s %s %5.1f%% %s %s",
+    printf "%s  %-22s :%3d %s %s %s %s%% %s %s",
       $tag,$tags{$tag}->{txt},
       $tags{$tag}->{tpicnt},
       sprt($tags{$tag}->{tpimin},$fmt1),
       sprt($tags{$tag}->{tpimax},$fmt1),
       sprt($tags{$tag}->{tpicor},$fmt2),
-      100.*$tags{$tag}->{tpiw50}/$tags{$tag}->{tpimed},
+      sprt(100.*$tags{$tag}->{tpiw50}/$tags{$tag}->{tpimed},'%5.1f'),
       sprt($tags{$tag}->{tpicor}/$norrr,'%7.2f'),
       sprt($tags{$tag}->{tpicor}/$norrx,'%6.2f');
     if (exists $opts{cp}) {
