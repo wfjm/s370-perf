@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: s370_perf_ana 994 2018-02-24 13:07:45Z mueller $
+# $Id: s370_perf_ana 996 2018-03-03 13:59:23Z mueller $
 #
 # Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-03-03   996   1.3    print s370_perf version; add -raw,-t311,-t312
 # 2018-02-24   994   1.2.1  add -d3 for fast systems
 # 2018-01-28   991   1.2    add chktag; add -cf,-cp,-cn
 # 2018-01-06   986   1.1.2  rename to s370_perf_ana
@@ -29,9 +30,13 @@ use Getopt::Long;
 
 my %opts = ();
 my %tags;
+my $s370_perf_vers;
 
-GetOptions(\%opts, "help", "ltpi", "ldf", "lrun", "ttim", "nolcor", "d1", "d3",
-          "cf=f", "cp=f", "cn=i")
+GetOptions(\%opts, "help", "ltpi", "ldf",
+           "lrun", "ttim", "nolcor", "raw",
+           "d1", "d3",
+           "t311=f","t312=f",
+           "cf=f", "cp=f", "cn=i")
   or die "bad options";
 
 my $dolcor = not exists $opts{nolcor};
@@ -43,6 +48,16 @@ if (defined $opts{help}) { do_help();  exit 0; }
 $opts{cp} = 1000./$opts{cf} if exists $opts{cf};
 
 #
+# print essential option
+#
+my $opttxt;
+$opttxt .= "  -cf   " . $opts{cf}   if exists $opts{cf};
+$opttxt .= "  -cp   " . sprintf "%6.3f",$opts{cp} if exists $opts{cp};
+$opttxt .= "  -cn   " . $opts{cn}   if exists $opts{cn};
+$opttxt .= "  -t311 " . $opts{t311} if exists $opts{t311};
+$opttxt .= "  -t312 " . $opts{t312} if exists $opts{t312};
+print "s370_perf_ana $opttxt\n\n" if defined $opttxt;
+#
 # handle input files
 #
 
@@ -53,6 +68,7 @@ foreach my $fname (@ARGV) {
   do_file($fname);
 }
 
+print "s370_perf version: $s370_perf_vers\n" if defined $s370_perf_vers;
 print "\n" if $opts{lrun};
 
 do_anal();
@@ -74,6 +90,9 @@ sub do_help {
   print "  -cn=n    number of clock phases (default = 1)\n";
   print "  -ttim    use test time field (instead of instruction time)\n";
   print "  -nolcor  no loop (bctr/bct) timing corrction\n";
+  print "  -t311=t  overide time used for bctr loop correction\n";
+  print "  -t312=t  overide time used for bct  loop correction\n";
+  print "  -raw     show raw data\n";
   print "  -d1      reduce time field precision (for slow systems)\n";
   print "  -d3      increase time field precision (for fast systems)\n";
   print "  -help    help text\n";
@@ -92,6 +111,8 @@ sub do_file {
   my $gmul  = 0;
   my $gtim  = 0;
   my $gcnt  = 0;
+  my $vers;
+
   while (<IFILE>) {
     s{\f}{}g;                               # drop ^L
     $gmul  = $1 if m/^PERF002I run with GMUL=\s*(\d+)/;
@@ -99,6 +120,12 @@ sub do_file {
       $resok = 1;
       $gtim  = 0.;
       $gcnt  = 0;
+    }
+    if (m/^PERF000I VERS:\s*(.*)$/) {
+      if (defined $s370_perf_vers && $s370_perf_vers ne $1) {
+        print "s370_perf_ana-W mixed s370_perf version: $1\n";
+      }
+      $s370_perf_vers = $1;
     }
     next unless $resok;
 
@@ -176,11 +203,20 @@ sub do_anal {
 
   return unless $dolcor;
 
-  return if chktag('T311','BCTR');
-  return if chktag('T312','BCT');
   my @lcor = (0.,0.,0.);
-  $lcor[1] = $tags{T311}->{tpimed};
-  $lcor[2] = $tags{T312}->{tpimed};
+  unless ($opts{t311}) {
+    return if chktag('T311','BCTR');
+    $lcor[1] = $tags{T311}->{tpimed};
+  } else {
+    $lcor[1] = $opts{t311};
+  }
+  unless ($opts{t312}) {
+    return if chktag('T312','BCT');
+    $lcor[2] = $tags{T312}->{tpimed};
+  } else {
+    $lcor[2] = $opts{t312};
+  }
+
   foreach my $tag (sort keys %tags) {
     my $tpimed = $tags{$tag}->{tpimed};
     my $ltype  = $tags{$tag}->{ltype};
@@ -217,37 +253,58 @@ sub do_show {
   my $norrr = $tags{T100}->{tpicor};
   my $norrx = $tags{T102}->{tpicor};
 
-  my $vname = $dolcor ? "cor" : "med";
-  printf "Tag   Comment                ".
-         ": nt     min     max      %s   w50%%    n-rr   n-rx", $vname;
+  printf "Tag   Comment                : nt";
+  unless ($opts{raw}) {
+    my $vname = $dolcor ? "cor" : "med";
+    printf "     min     max      %s   w50%%    n-rr   n-rx", $vname;
+  } else {
+    printf "     lr  ig lt        raw   w50%%";
+  }
   printf "    n-cp  e-cp%%   mcc" if $opts{cp};
   printf "   scc" if $opts{cn};
   printf "\n";
 
   my $fmt1 = '%7.1f';
   my $fmt2 = '%8.2f';
+  my $fmt3 = '%10.2f';
   if ($opts{d1}) {
     $fmt1 = '%7.0f';
     $fmt2 = '%8.1f';
+    $fmt3 = '%10.1f';
   }
   if ($opts{d3}) {
     $fmt1 = '%7.2f';
     $fmt2 = '%8.3f';
+    $fmt3 = '%10.3f';
   }
 
   foreach my $tag (sort keys %tags) {
 
-    printf "%s  %-22s :%3d %s %s %s %s%% %s %s",
-      $tag,$tags{$tag}->{txt},
-      $tags{$tag}->{tpicnt},
-      sprt($tags{$tag}->{tpimin},$fmt1),
-      sprt($tags{$tag}->{tpimax},$fmt1),
-      sprt($tags{$tag}->{tpicor},$fmt2),
-      sprt(100.*$tags{$tag}->{tpiw50}/$tags{$tag}->{tpimed},'%5.1f'),
-      sprt($tags{$tag}->{tpicor}/$norrr,'%7.2f'),
-      sprt($tags{$tag}->{tpicor}/$norrx,'%6.2f');
+    printf "%s  %-22s :%3d",
+      $tag,
+      $tags{$tag}{txt},
+      $tags{$tag}{tpicnt};
+    unless ($opts{raw}) {
+      printf " %s %s %s %s%% %s %s",
+        sprt($tags{$tag}{tpimin},$fmt1),
+        sprt($tags{$tag}{tpimax},$fmt1),
+        sprt($tags{$tag}{tpicor},$fmt2),
+        sprt(100.*$tags{$tag}{tpiw50}/$tags{$tag}{tpimed},'%5.1f'),
+        sprt($tags{$tag}{tpicor}/$norrr,'%7.2f'),
+        sprt($tags{$tag}{tpicor}/$norrx,'%6.2f');
+    } else {
+      printf " %6d %3d %2d %s %s%%",
+        $tags{$tag}{lrcnt},
+        $tags{$tag}{igcnt},
+        $tags{$tag}{ltype},
+        sprt($tags{$tag}{igcnt}*$tags{$tag}{tpimed},$fmt3),
+        sprt(100.*$tags{$tag}{tpiw50}/$tags{$tag}{tpimed},'%5.1f');
+    }
     if (exists $opts{cp}) {
-      my $ncp = $tags{$tag}->{tpicor} / $opts{cp};
+      my $time = $opts{raw} ?
+                   $tags{$tag}{igcnt}*$tags{$tag}{tpimed} :
+                   $tags{$tag}{tpicor};
+      my $ncp = $time / $opts{cp};
       my $cc  = int($ncp + 0.5);
       my $ecp = 100. * ($ncp - $cc);
       printf " %s   %3d%%", sprt($ncp,'%7.2f'),$ecp;
@@ -317,7 +374,7 @@ sub chktag {
 
 sub sprt {
   my ($val,$fmt) = @_;
-  my ($ndig,$prec) = ($fmt =~ m/^.*(\d+)\.(\d+)f$/);
+  my ($ndig,$prec) = ($fmt =~ m/^%(\d+)\.(\d+)f$/);
   ## print "+++1 '$fmt': $ndig, $prec\n";
   my $str   = sprintf $fmt,$val;
   my $ntrim = length($str) - $ndig;
