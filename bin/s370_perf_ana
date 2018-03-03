@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: s370_perf_ana 996 2018-03-03 13:59:23Z mueller $
+# $Id: s370_perf_ana 997 2018-03-03 20:23:21Z mueller $
 #
 # Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -51,12 +51,13 @@ $opts{cp} = 1000./$opts{cf} if exists $opts{cf};
 # print essential option
 #
 my $opttxt;
-$opttxt .= "  -cf   " . $opts{cf}   if exists $opts{cf};
-$opttxt .= "  -cp   " . sprintf "%6.3f",$opts{cp} if exists $opts{cp};
-$opttxt .= "  -cn   " . $opts{cn}   if exists $opts{cn};
+$opttxt .= "  -raw"                 if exists $opts{raw};
+$opttxt .= "  -cf "   . $opts{cf}   if exists $opts{cf};
+$opttxt .= "  -cp "   . sprintf "%6.3f",$opts{cp} if exists $opts{cp};
+$opttxt .= "  -cn "   . $opts{cn}   if exists $opts{cn};
 $opttxt .= "  -t311 " . $opts{t311} if exists $opts{t311};
 $opttxt .= "  -t312 " . $opts{t312} if exists $opts{t312};
-print "s370_perf_ana $opttxt\n\n" if defined $opttxt;
+printf "s370_perf_ana%s\n\n",$opttxt if defined $opttxt;
 #
 # handle input files
 #
@@ -148,7 +149,7 @@ sub do_file {
       if (not exists $tags{$tag}) {
         $tags{$tag}{txt} = $txt;
       } else {
-        if ($tags{$tag}->{txt} ne $txt) {
+        if ($tags{$tag}{txt} ne $txt) {
           $tags{$tag}{txt} = $txt;
           print "s370_perf_ana-W tag text for $tag redefined\n";
         }
@@ -157,7 +158,7 @@ sub do_file {
       $tpi = 1.e6 * $tim / $lcnt if ($opts{ttim});
       $gcnt += $lcnt;
       $gtim += $lcnt * $tpi * 1.e-6;
-      push @{$tags{$tag}->{tpival}},(1000.*$tpi);
+      push @{$tags{$tag}{tpival}},(1000.*$tpi);
       $tags{$tag}{lrcnt} = $lrcnt;
       $tags{$tag}{igcnt} = $igcnt;
       $tags{$tag}{ltype} = $ltype;
@@ -185,7 +186,7 @@ sub do_file {
 
 sub do_anal {
   foreach my $tag (sort keys %tags) {
-    my @tpisort = sort { $a <=> $b } @{$tags{$tag}->{tpival}};
+    my @tpisort = sort { $a <=> $b } @{$tags{$tag}{tpival}};
     ## printf "%s : %s\n",$tag,join(",", @tpisort);
     my $tpicnt = scalar(@tpisort);
     my $tpimin = $tpisort[0];
@@ -193,12 +194,12 @@ sub do_anal {
     my $df25 = df_lookup(\@tpisort, 0.25);
     my $df50 = df_lookup(\@tpisort, 0.50);
     my $df75 = df_lookup(\@tpisort, 0.75);
-    $tags{$tag}->{tpicnt} = $tpicnt;
-    $tags{$tag}->{tpimin} = $tpimin;
-    $tags{$tag}->{tpimax} = $tpimax;
-    $tags{$tag}->{tpimed} = $df50;
-    $tags{$tag}->{tpiw50} = $df75-$df25;
-    $tags{$tag}->{tpicor} = $df50;
+    $tags{$tag}{tpicnt} = $tpicnt;
+    $tags{$tag}{tpimin} = $tpimin;
+    $tags{$tag}{tpimax} = $tpimax;
+    $tags{$tag}{tpimed} = $df50;
+    $tags{$tag}{tpiw50} = $df75-$df25;
+    $tags{$tag}{tpicor} = $df50;
   }
 
   return unless $dolcor;
@@ -206,22 +207,22 @@ sub do_anal {
   my @lcor = (0.,0.,0.);
   unless ($opts{t311}) {
     return if chktag('T311','BCTR');
-    $lcor[1] = $tags{T311}->{tpimed};
+    $lcor[1] = $tags{T311}{tpimed};
   } else {
     $lcor[1] = $opts{t311};
   }
   unless ($opts{t312}) {
     return if chktag('T312','BCT');
-    $lcor[2] = $tags{T312}->{tpimed};
+    $lcor[2] = $tags{T312}{tpimed};
   } else {
     $lcor[2] = $opts{t312};
   }
 
   foreach my $tag (sort keys %tags) {
-    my $tpimed = $tags{$tag}->{tpimed};
-    my $ltype  = $tags{$tag}->{ltype};
+    my $tpimed = $tags{$tag}{tpimed};
+    my $ltype  = $tags{$tag}{ltype};
     if ($ltype >= 0 && $ltype <= 2) {
-      $tags{$tag}->{tpicor} = $tpimed - $lcor[$ltype] / $tags{$tag}->{igcnt};
+      $tags{$tag}{tpicor} = $tpimed - $lcor[$ltype] / $tags{$tag}{igcnt};
     }
   }
   return;
@@ -250,15 +251,15 @@ sub df_lookup {
 sub do_show {
   return if chktag('T100','LR');
   return if chktag('T102','L');
-  my $norrr = $tags{T100}->{tpicor};
-  my $norrx = $tags{T102}->{tpicor};
+  my $norrr = $tags{T100}{tpicor};
+  my $norrx = $tags{T102}{tpicor};
 
   printf "Tag   Comment                : nt";
   unless ($opts{raw}) {
     my $vname = $dolcor ? "cor" : "med";
     printf "     min     max      %s   w50%%    n-rr   n-rx", $vname;
   } else {
-    printf "     lr  ig lt        raw   w50%%";
+    printf "      lr  ig lt        raw   w50%%";
   }
   printf "    n-cp  e-cp%%   mcc" if $opts{cp};
   printf "   scc" if $opts{cn};
@@ -293,7 +294,7 @@ sub do_show {
         sprt($tags{$tag}{tpicor}/$norrr,'%7.2f'),
         sprt($tags{$tag}{tpicor}/$norrx,'%6.2f');
     } else {
-      printf " %6d %3d %2d %s %s%%",
+      printf " %7d %3d %2d %s %s%%",
         $tags{$tag}{lrcnt},
         $tags{$tag}{igcnt},
         $tags{$tag}{ltype},
@@ -320,8 +321,8 @@ sub do_show {
 
     if ($opts{ltpi}) {
       my $ival = 0;
-      my $nval = scalar(@{$tags{$tag}->{tpival}});
-      foreach my $val (@{$tags{$tag}->{tpival}}) {
+      my $nval = scalar(@{$tags{$tag}{tpival}});
+      foreach my $val (@{$tags{$tag}{tpival}}) {
         print '  tpi:' if $ival%5 == 0;
         printf "  %8.3f",$val;
         $ival += 1;
@@ -330,7 +331,7 @@ sub do_show {
       print "\n" unless $ival%5 == 0;
     }
     if ($opts{ldf}) {
-      my @tpisort = sort { $a <=> $b } @{$tags{$tag}->{tpival}};
+      my @tpisort = sort { $a <=> $b } @{$tags{$tag}{tpival}};
       my $ival = 0;
       my $nval = scalar(@tpisort);
       foreach my $val (@tpisort) {
