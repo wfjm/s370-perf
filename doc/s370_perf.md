@@ -5,6 +5,7 @@
 - [Overview](#user-content-overview)
 - [Description](#user-content-description)
 - [Parameters](#user-content-parameters)
+- [Configuration file](#user-content-config)
 - [Output](#user-content-output)
 - [Usage](#user-content-usage)
 
@@ -56,11 +57,13 @@ options, each starting with a `/`. Valid options are:
 | [/OWTO](#user-content-par-owto) | enable step by step MVS console messages |
 | [/ODBG](#user-content-par-odbg) | enable debug trace output for test steps |
 | [/OTGA](#user-content-par-otga) | enable debug trace output for [/GAUT](#user-content-par-gaut) processing |
+| [/OPCF](#user-content-par-opcf) | print configuration file entries |
 | [/OPTT](#user-content-par-optt) | print test descriptor table |
 | [/ORIP](#user-content-par-orip) | run tests in place (default is relocate) |
 | [/GAUT](#user-content-par-gaut) | automatic determination of `GMUL`, aim is 1 sec per test |
 | [/Gnnn](#user-content-par-gnnn) | set `GMUL` to nnn |
 | [/GnnK](#user-content-par-gnnn) | set `GMUL` to nn * 1000 |
+| [/Cnnn](#user-content-par-cnnn) | select test used for /GAUT |
 | [/Ennn](#user-content-par-ennn) | enable  test Tnnn |
 | [/Dnnn](#user-content-par-ennn) | disable test Tnnn |
 | [/Tnnn](#user-content-par-tnnn) | select  test Tnnn |
@@ -96,6 +99,15 @@ The 1st number gives the current `GMUL`, the next two the time retrieved with
 `STCK` before and after an execution of the T102 test, the last difference
 divided by 4096, which is the elapsed time in units usec.
 
+#### /OPCF <a name="par-opcf"></a>
+Prints configuration file entries (comments are skipped) in the format
+```
+  PERF010I config: T151    1      2000
+  PERF010I config: T152    1      4000
+  PERF010I config: T154    1      4000
+  ...
+```
+
 #### /OPTT <a name="par-optt"></a>
 Prints the test descriptor table in the format
 ```
@@ -127,9 +139,12 @@ it. Useful for debugging tests with break after relocation.
 
 #### /GAUT <a name="par-gaut"></a>
 Enables automatic determination of `GMUL`. This will setup the global repeat
-count such that the T102 test runs 1 sec. Because the local repeat count of
+count such that the `T102` test or the one selected with a
+[/Cnnn](#user-content-par-cnnn) option
+runs about 1 sec. Because the local repeat count of
 each test have been tuned to get about equal CPU time for all tests on the
-reference system this will result in about 1 sec CPU time for all tests.
+reference system this will result in about 1 sec CPU time for all tests
+for systems with simuilar characteristics.
 With about 200 tests currently available one gets about 3 minutes CPU time
 for a typical `s370_perf` run.
 
@@ -138,16 +153,56 @@ With `/Gnnn` or `GnnK`, where n are decimal digits, the global multiplier
 `GMUL` will be set to nnn or nn*1000, respectively. Helpful for debugging,
 normal production runs usually use [/GAUT](#user-content-par-gaut).
 
+#### /Cnnn <a name="par-cnnn"></a>
+Selects the test used by [/GAUT](#user-content-par-gaut). The three digit
+code must match one of the test numbers. By default `T102` is used.
+
 #### /Ennn and /Dnnn <a name="par-ennn"></a>
-Allow to enable or disable the test Tnnn. By default all tests are enabled
-with the exception of T284 and T285 (very slow `CLCL` tests). Can be used to
-disable tests which cause problems. To setup a run with only a few tests
-use the [/Tnnn](#user-content-par-tnnn) option.
+Allow to enable or disable the test Tnnn.
+The three characters after the leading `/T` or `/D` can be either a number
+`0` - `9` or a wildcard character `*`, which will match any number in that
+postion. This allows to handle groups of tests, e.g. `/E1**` will enable all
+tests in the 100 to 199 range, `/D5**` will disable all test in the range
+500 to 599 (the floating point group).
+By default all tests are enabled with the exception of T284 and T285
+(very slow `CLCL` tests).
+Can be used to disable tests which cause problems.
+To setup a run with only a few tests use the
+[/Tnnn](#user-content-par-tnnn) option.
 
 #### /Tnnn <a name="par-tnnn"></a>
-When `/Tnnn` options are in the PARM list all tests will be disabled.
-Each `/Tnnn` re-enable than the test Tnnn. This allows to setup a run with
-only a few tests enabled.
+When the first `/Tnnn` option is detcted in the PARM list all tests will
+be disabled.
+Each `/Tnnn` re-enables than the test Tnnn. This allows to setup a run with
+only a few tests enabled. Wildcards are supported as described for
+[/Ennn](#user-content-par-ennn).
+
+### Configuration file <a name="config"></a>
+The local repeat counts for each test have been adjusted such that all
+tests consume roughly the same CPU time on a reference system, a Hercules
+emulator running on an up-to-date Intel CPU. For very environments
+environments, like z/PDT emulator or real hardware like a P/390 system,
+the relative CPU consumption can be very different. In those cases the
+local repeat counts can be redefined with a configuration file read from
+`SYSIN` in the format
+```
+#nnn    e     lrcnt
+T151    1      2000
+T152    1      4000
+T154    1      4000
+```
+Lines starting with `#` are considered comments and are ignored.
+Each line holds
+- a four character task name, like `T154`. No wildcards supported here.
+- an enable flag, `0` or `1`, which overrides the test enable status
+- a new local repeat count for this test. If 0 is specified the old one is kept.
+
+Note that the fields are strictly positional, the enable must be in column 9,
+the local repeat count right justified in columns 12 to 18. It is thus
+advisable to have a comment line as shown in the example above.
+The processing of the configuration file can be monitored with the
+[/OPCF](#user-content-par-opcf) option, the final settings can be
+inspected with the [/OPTT](#user-content-par-optt) option.
 
 ### Output <a name="output"></a>
 The output of `s370_perf` is a table of test step results in the form

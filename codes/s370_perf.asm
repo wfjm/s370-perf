@@ -1,6 +1,6 @@
 *        1         2         3         4         5         6         71
 *23456789*12345*789012345678901234*678901234567890123456789012345678901
-* $Id: s370_perf.asm 996 2018-03-03 13:59:23Z mueller $
+* $Id: s370_perf.asm 997 2018-03-03 20:23:21Z mueller $
 *
 * Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 *
@@ -10,6 +10,7 @@
 *
 *  Revision History:  (!! update MSGVERS when adding here !!)
 * Date         Rev Version  Comment
+* 2018-03-03   997   0.9.4  reorganize PARM decode; add /OPCF
 * 2018-02-25   995   0.9.3  use R11,R12 as base to allow 8k  main code
 *                           add SETB DISBAS to disable BAS/BASR tests
 *                           add /Cxxx, sets GMUL test; /T*** wildcards
@@ -46,6 +47,7 @@
 *     /OWTO   enable step by step MVS console messages
 *     /ODBG   enable debug trace output for test steps
 *     /OTGA   enable debug trace output for /GAUT processing
+*     /OPCF   print config file
 *     /OPTT   print test table
 *     /ORIP   run tests in place (default is relocate)
 *     /GAUT   automatic determination of GMUL, aim is 1 sec per test
@@ -438,221 +440,11 @@ MAIN     CSECT
          BAL   R14,OTEXT          print version
          BAL   R14,OPUTLINE       write line
 *
-* handle config file -------------------------------------------------
+* handle PARMs and config file----------------------------------------
 *
-         BAL   R14,CNFRD          all done in procedure
-*
-* handle PARMs -------------------------------------------------------
-*   R2   PARM address
-*   R3   PARM length
-*
-*
-         L     R2,ARGPTR          get argument list pointer
-         L     R2,0(R2)           load PARM base address
-         LH    R3,0(R2)           load PARM length
-         LTR   R3,R3              test length
-         BZ    PARMDONE           if =0 no PARM specified
-*
-         LA    R2,2(R2)           R2 points to 1st PARM char
-         N     R2,=X'00FFFFFF'    force upper bit to zero
-*
-         L     R1,MSGPARM
-         BAL   R14,OTEXT          print PARM message prefix
-         LR    R1,R3              get length
-         SLL   R1,24              put length into bits 0-7
-         OR    R1,R2              and address into bits 8-31
-         BAL   R14,OTEXT          print PARM as passed
-         BAL   R14,OPUTLINE       write line
-*
-* loop over options ----------------------------------------
-*
-OLOOP    CLI   0(R2),C'/'         does option start with / ?   
-         BNE   PARMABO            if != not
-         C     R3,=F'5'           at least 5 chars left ?
-         BL    PARMABO            if < not
-         BE    OPTLOK             if = exactly 5 char left
-         CLI   5(R2),C'/'         does option end with / ?   
-         BNE   PARMABO            if != not
-*
-* handle /Oxxx -------------------------
-*
-OPTLOK   CLI   1(R2),C'O'         is it /O ?
-         BNE   OPTODONE           if != try next
-         L     R4,1(R2)           load all 4 option bytes
-OPTODBG  C     R4,=C'ODBG'        is it /ODBG ?
-         BNE   OPTOWTO
-         MVI   FLGODBG,X'01'
-         B     OPTDONE
-OPTOWTO  C     R4,=C'OWTO'        is it /OWTO ?
-         BNE   OPTOTGA
-         MVI   FLGOWTO,X'01'
-         B     OPTDONE
-OPTOTGA  C     R4,=C'OTGA'        is it /OTGA ?
-         BNE   OPTOPTT
-         MVI   FLGOTGA,X'01'
-         B     OPTDONE
-OPTOPTT  C     R4,=C'OPTT'        is it /OPTT ?
-         BNE   OPTORIP
-         MVI   FLGOPTT,X'01'
-         B     OPTDONE
-OPTORIP  C     R4,=C'ORIP'        is it /ORIP ?
-         BNE   PARMABO
-         MVI   FLGORIP,X'01'
-         B     OPTDONE
-*
-* handle /Cnnn -------------------------
-*   R4   ptr to current TDSCTBL entry
-*   R5   current TDSC
-*   R6   current tag text descriptor
-*   R7   current option (as Tnnn)
-*
-OPTODONE CLI   1(R2),C'C'         is it /C ?
-         BNE   OPTCDONE           if != try next
-         L     R7,1(R2)           load all 4 option bytes
-         ICM   R7,B'1000',CHART   force leading byte to 'T'
-*
-         L     R4,=A(TDSCTBL)     get head of TDSCTBL
-OPTCLOOP L     R5,0(R4)           get next TDSC
-         USING TDSC,R5            declare TDSC base register
-         L     R6,TTAGDSC         get tag text descriptor
-         C     R7,0(R6)           does Tnnn option match tag ?
-         BNE   OPTCNEXT           if != not, try next
-*
-         ST    R5,GMULTDSC        setup GMUL TDSC pointer
-         B     OPTDONE            and consider option handled
-*
-         DROP  R5
-*
-OPTCNEXT LA    R4,4(R4)           push pointer to next TDSC
-         LTR   R5,R5              end tag X'80000000' seen ?
-         BNL   OPTCLOOP           if >= not, keep going
-         B     PARMABOT           if here no test found, complain
-*
-* handle /Tnnn, /Dnnn, /Ennn -----------
-*   R4   ptr to current TDSCTBL entry
-*   R5   current TDSC
-*   R6   current tag text descriptor
-*   R7   current option (as Tnnn)
-*   R8   disable flag (0 if /Dnnn, 1 if /Ennn or /Tnnn)
-*   R9   current tag text (with wildcards injected)
-*   R10  count of matched tags
-*
-OPTCDONE LA    R8,1               set disable flag
-         CLI   1(R2),C'D'         is it /D ?
-         BE    OPTTDISE           if = yes, proceed
-         XR    R8,R8              clear disable flag
-         CLI   1(R2),C'E'         is it /E ?
-         BE    OPTTDISE           if = yes, proceed
-*
-         CLI   1(R2),C'T'         is it /T ?
-         BNE   OPTTDONE           if != try next
-         CLI   TDSCDIS,X'00'      TDSC disable already done ?
-         BNE   OPTTDISE           if != yes, skip over disable loop
-*
-         MVI   TDSCDIS,X'01'      set disable done flag
-         L     R4,=A(TDSCTBL)     get head of TDSCTBL
-OPTTDISL L     R5,0(R4)           get next TDSC
-         OI    0(R4),X'01'        set disable flag bit
-         LA    R4,4(R4)           push pointer to next TDSC
-         LTR   R5,R5              end tag X'80000000' seen ?
-         BNL   OPTTDISL           if >= not, keep going
-*
-OPTTDISE L     R7,1(R2)           load all 4 option bytes
-         ICM   R7,B'1000',CHART   force leading byte to 'T'
-*
-         XR    R10,R10            clear match count
-         L     R4,=A(TDSCTBL)     get head of TDSCTBL
-OPTTENAL L     R5,0(R4)           get next TDSC
-         USING TDSC,R5            declare TDSC base register
-         L     R6,TTAGDSC         get tag text descriptor
-         L     R9,0(R6)           load tag text
-*
-         CLI   2(R2),C'*'         /T*nn wildcard
-         BNE   OPTTNOW3           if != not
-         ICM   R9,B'0100',CHARWC  otherwise inject wildcard
-OPTTNOW3 CLI   3(R2),C'*'         /Tn*n wildcard
-         BNE   OPTTNOW2           if != not
-         ICM   R9,B'0010',CHARWC  otherwise inject wildcard
-OPTTNOW2 CLI   4(R2),C'*'         /Tnn* wildcard
-         BNE   OPTTNOW1           if != not
-         ICM   R9,B'0001',CHARWC  otherwise inject wildcard
-*
-OPTTNOW1 CR    R7,R9              does Tnnn option match tag ?
-         BNE   OPTTENAN           if != not, try next
-*
-         LA    R10,1(R10)         increment match count
-         LTR   R8,R8              test disable flag
-         BNE   OPTTDIS            if != yes, do disable
-         NI    0(R4),X'FE'        clear disable flag bit
-         B     OPTTENAN           and go for next tag
-OPTTDIS  OI    0(R4),X'01'        set disable flag bit
-*
-         DROP  R5
-*
-OPTTENAN LA    R4,4(R4)           push pointer to next TDSC
-         LTR   R5,R5              end tag X'80000000' seen ?
-         BNL   OPTTENAL           if >= not, keep going
-         LTR   R10,R10            end of table, check match count
-         BE    PARMABOT           if =, no test found, complain
-         B     OPTDONE            otherwise consider option handled
-*
-* handle /Gxxx -------------------------
-*
-OPTTDONE CLI   1(R2),C'G'         is it /G ?
-         BNE   PARMABO            if != is unknown option
-*
-         L     R4,1(R2)           load all 4 option bytes
-         C     R4,=C'GAUT'        is it /GAUT ?
-         BNE   OPTGNNN
-         MVI   FLGGAUT,X'01'
-         B     OPTDONE
-*
-OPTGNNN  CLI   4(R2),C'K'         is it /GnnK form ?
-         BE    OPTGNNK
-         MVC   GMULZONE+3(3),2(R2)   get 3 digit, place 000nnn
-         B     OPTGCNV
-OPTGNNK  MVC   GMULZONE+1(2),2(R2)   get 2 digit, place 0nn000
-*
-OPTGCNV  LA    R5,GMULZONE+1      setup digit check, data pointer
-         LA    R6,1               increment
-         LA    R7,GMULZONE+5      end pointer
-OPTGLOOP CLI   0(R5),C'0'         is char >= '0'
-         BL    PARMABOD           if < not
-         CLI   0(R5),C'9'         is char <= '9'
-         BH    PARMABOD           if > not
-         BXLE  R5,R6,OPTGLOOP     and loop till end
-*
-         PACK  GMULPACK(8),GMULZONE   zoned to packed
-         CVB   R0,GMULPACK            and packed to binary
-         LTR   R0,R0              test result
-         BNE   OPTGOK             if =0 complain
-         L     R1,MSGPGM0
-         B     PARMABO1
-OPTGOK   ST    R0,GMUL            store GMUL
-         B     OPTDONE
-*
-* now handle next option ---------------
-*
-OPTDONE  LA    R2,5(R2)           push to next option
-         S     R3,=F'5'           decrement rest length
-         BH    OLOOP              if >0 check next option
-         B     PARMDONE
-*
-PARMABOD L     R1,MSGPDIG
-         B     PARMABO1
-PARMABOT L     R1,MSGPTST
-         B     PARMABO1
-*
-PARMABO  L     R1,MSGPBAD
-PARMABO1 BAL   R14,OTEXT          print error message   
-         LR    R1,R3              get rest length
-         SLL   R1,24              put length into bits 0-7
-         OR    R1,R2              and rest address into bits 8-31
-         BAL   R14,OTEXT          print rest of PARM
-         BAL   R14,OPUTLINE       write line
-         MVI   RC+3,X'04'
-         B     EXIT               quit with RC=4
-PARMDONE EQU   *
+         BAL   R14,PARMPH1        handle PARM, phase 1
+         BAL   R14,CNFRD          handle config file
+         BAL   R14,PARMPH2        handle PARM, phase 2
 *
 * print test table if requested with /OPTT
 *
@@ -934,6 +726,15 @@ TINS     DS    D                  instruction time in usec
 GMULPACK DS    D        
 GMULZONE DC    C'000000'        
 *
+         DS    0F
+FLGTBL   DC    X'00',AL3(FLGODBG),C'ODBG'
+         DC    X'00',AL3(FLGOWTO),C'OTWO'
+         DC    X'00',AL3(FLGOTGA),C'OTGA'
+         DC    X'00',AL3(FLGOPCF),C'OPCF'
+         DC    X'00',AL3(FLGOPTT),C'OPTT'
+         DC    X'00',AL3(FLGORIP),C'ORIP'
+         DC    X'80',AL3(FLGGAUT),C'GAUT'
+*
 FLGODBG  DC    X'00'              /ODBG active     
 FLGOWTO  DC    X'00'              /OWTO active  
 FLGOTGA  DC    X'00'              /OTGA active  
@@ -954,7 +755,7 @@ WTOMSG2  DC    C'Txxx'
          DC    B'0100000000000000'    routing codes (2=console info)
 *
          DS    0F
-MSGVERS  OTXTDSC  C's370_perf V0.9.3  rev  995  2018-02-25'
+MSGVERS  OTXTDSC  C's370_perf V0.9.4  rev  997  2018-03-03'
 MSGVHDR  OTXTDSC  C'PERF000I VERS: '
 MSGPARM  OTXTDSC  C'PERF001I PARM: '
 MSGGMUL  OTXTDSC  C'PERF002I run with GMUL= '
@@ -979,11 +780,250 @@ MSGEND   OTXTDSC  C'--  TCKEND:'
 MSGDIF   OTXTDSC  C'--    DIFF:'
 MSGINS   OTXTDSC  C'--     INS:'
 MSGTGA   OTXTDSC  C'--  GAUT:'
+*
          DS    0H
 *
 * helper used in 'far call' BAL/BALR tests ---------------------------
 *
 BR14FAR  BR   R14
+*
+* handle PARMs, phase 1, all except /Tnnn /Dnnn /Ennn ----------------
+*   R2   PARM address
+*   R3   PARM length
+*
+PARMPH1  ST    R14,PARMPHXL
+*
+         L     R2,ARGPTR          get argument list pointer
+         L     R2,0(R2)           load PARM base address
+         LH    R3,0(R2)           load PARM length
+         LTR   R3,R3              test length
+         BZ    PARMPH1E           if =0 no PARM specified
+*
+         LA    R2,2(R2)           R2 points to 1st PARM char
+*
+* print PARM if given ------------------
+*
+         L     R1,MSGPARM
+         BAL   R14,OTEXT          print PARM message prefix
+         N     R2,=X'00FFFFFF'    force upper bit to zero
+         LR    R1,R3              get length
+         SLL   R1,24              put length into bits 0-7
+         OR    R1,R2              and address into bits 8-31
+         BAL   R14,OTEXT          print PARM as passed
+         BAL   R14,OPUTLINE       write line
+*
+* loop over options ----------------------------------------
+*
+PARMPH1L CLI   0(R2),C'/'         does option start with / ?   
+         BNE   PARMABO            if != not
+         C     R3,=F'5'           at least 5 chars left ?
+         BL    PARMABO            if < not
+         BE    OPTLOK             if = exactly 5 char left
+         CLI   5(R2),C'/'         does option end with / ?   
+         BNE   PARMABO            if != not
+*
+* handle flags: /Oxxx,/GAUT ------------
+*   R4   current option
+*   R5   current FLGTBL entry
+*   R6   ptr to flag
+*
+OPTLOK   L     R4,1(R2)           load all 4 option bytes
+         LA    R5,FLGTBL          load ptr to FLGTBL
+FLGLOOP  L     R6,0(R5)           load ptr to flag
+         C     R4,4(R5)           does table entry match ?
+         BNE   FLGNEXT            if != not, try next table entry
+         MVI   0(R6),X'01'        otherwise set flag
+         B     PARMPH1N           and try next option
+FLGNEXT  LA    R5,8(R5)           push ptr to next entry
+         LTR   R6,R6              end tag X'80000000' seen ?
+         BNL   FLGLOOP            if >= not, keep going
+*
+* check for /T /D /E, accept and ignore them in phase 1
+*
+         CLI   1(R2),C'T'         is it /T ?
+         BE    PARMPH1N           if = yes, accept and next option
+         CLI   1(R2),C'D'         is it /D ?
+         BE    PARMPH1N           if = yes, accept and next option
+         CLI   1(R2),C'E'         is it /E ?
+         BE    PARMPH1N           if = yes, accept and next option
+*
+* handle /Cnnn -------------------------
+*   R4   ptr to current TDSCTBL entry
+*   R5   current TDSC
+*   R6   current tag text descriptor
+*   R7   current option (as Tnnn)
+*
+         CLI   1(R2),C'C'         is it /C ?
+         BNE   OPTCDONE           if != try next
+         L     R7,1(R2)           load all 4 option bytes
+         ICM   R7,B'1000',CHART   force leading byte to 'T'
+*
+         L     R4,=A(TDSCTBL)     get head of TDSCTBL
+OPTCLOOP L     R5,0(R4)           get next TDSC
+         USING TDSC,R5            declare TDSC base register
+         L     R6,TTAGDSC         get tag text descriptor
+         C     R7,0(R6)           does Tnnn option match tag ?
+         BNE   OPTCNEXT           if != not, try next
+*
+         ST    R5,GMULTDSC        setup GMUL TDSC pointer
+         B     PARMPH1N           and consider option handled
+*
+         DROP  R5
+*
+OPTCNEXT LA    R4,4(R4)           push pointer to next TDSC
+         LTR   R5,R5              end tag X'80000000' seen ?
+         BNL   OPTCLOOP           if >= not, keep going
+         B     PARMABOT           if here no test found, complain
+*
+* handle /Gxxx -------------------------
+*
+OPTCDONE CLI   1(R2),C'G'         is it /G ?
+         BNE   PARMABO            if != is unknown option
+*
+OPTGNNN  CLI   4(R2),C'K'         is it /GnnK form ?
+         BE    OPTGNNK
+         MVC   GMULZONE+3(3),2(R2)   get 3 digit, place 000nnn
+         B     OPTGCNV
+OPTGNNK  MVC   GMULZONE+1(2),2(R2)   get 2 digit, place 0nn000
+*
+OPTGCNV  LA    R5,GMULZONE+1      setup digit check, data pointer
+         LA    R6,1               increment
+         LA    R7,GMULZONE+5      end pointer
+OPTGLOOP CLI   0(R5),C'0'         is char >= '0'
+         BL    PARMABOD           if < not
+         CLI   0(R5),C'9'         is char <= '9'
+         BH    PARMABOD           if > not
+         BXLE  R5,R6,OPTGLOOP     and loop till end
+*
+         PACK  GMULPACK(8),GMULZONE   zoned to packed
+         CVB   R0,GMULPACK            and packed to binary
+         LTR   R0,R0              test result
+         BNE   OPTGOK             if =0 complain
+         L     R1,MSGPGM0
+         B     PARMABO1
+OPTGOK   ST    R0,GMUL            store GMUL
+*
+* now handle next option ---------------
+*
+PARMPH1N LA    R2,5(R2)           push to next option
+         S     R3,=F'5'           decrement rest length
+         BH    PARMPH1L           if >0 check next option
+*
+PARMPH1E L     R14,PARMPHXL
+         BR    R14
+*
+* bad PARM abort handling
+*
+PARMABOD L     R1,MSGPDIG
+         B     PARMABO1
+PARMABOT L     R1,MSGPTST
+         B     PARMABO1
+*
+PARMABO  L     R1,MSGPBAD
+PARMABO1 BAL   R14,OTEXT          print error message   
+         LR    R1,R3              get rest length
+         SLL   R1,24              put length into bits 0-7
+         OR    R1,R2              and rest address into bits 8-31
+         BAL   R14,OTEXT          print rest of PARM
+         BAL   R14,OPUTLINE       write line
+         MVI   RC+3,X'04'
+         B     EXIT               quit with RC=4
+*
+PARMPHXL DS    1F                 R14 save area (for PARMPH*,CNFRD)
+*
+* handle PARMs, phase 2, handle /Tnnn /Dnnn /Ennn --------------------
+*   R2   PARM address
+*   R3   PARM length
+*
+PARMPH2  ST    R14,PARMPHXL
+*
+         L     R2,ARGPTR          get argument list pointer
+         L     R2,0(R2)           load PARM base address
+         LH    R3,0(R2)           load PARM length
+         LTR   R3,R3              test length
+         BZ    PARMPH2E           if =0 no PARM specified
+*
+         LA    R2,2(R2)           R2 points to 1st PARM char
+*
+* loop over options ----------------------------------------
+*
+PARMPH2L EQU   *                  no checks, all done in PARMPH1
+*
+* handle /Tnnn, /Dnnn, /Ennn -----------
+*   R4   ptr to current TDSCTBL entry
+*   R5   current TDSC
+*   R6   current tag text descriptor
+*   R7   current option (as Tnnn)
+*   R8   disable flag (0 if /Dnnn, 1 if /Ennn or /Tnnn)
+*   R9   current tag text (with wildcards injected)
+*   R10  count of matched tags
+*
+         LA    R8,1               set disable flag
+         CLI   1(R2),C'D'         is it /D ?
+         BE    OPTTDISE           if = yes, proceed
+         XR    R8,R8              clear disable flag
+         CLI   1(R2),C'E'         is it /E ?
+         BE    OPTTDISE           if = yes, proceed
+*
+         CLI   1(R2),C'T'         is it /T ?
+         BNE   PARMPH2N           if != try next
+         CLI   TDSCDIS,X'00'      TDSC disable already done ?
+         BNE   OPTTDISE           if != yes, skip over disable loop
+*
+         MVI   TDSCDIS,X'01'      set disable done flag
+         L     R4,=A(TDSCTBL)     get head of TDSCTBL
+OPTTDISL L     R5,0(R4)           get next TDSC
+         OI    0(R4),X'01'        set disable flag bit
+         LA    R4,4(R4)           push pointer to next TDSC
+         LTR   R5,R5              end tag X'80000000' seen ?
+         BNL   OPTTDISL           if >= not, keep going
+*
+OPTTDISE L     R7,1(R2)           load all 4 option bytes
+         ICM   R7,B'1000',CHART   force leading byte to 'T'
+*
+         XR    R10,R10            clear match count
+         L     R4,=A(TDSCTBL)     get head of TDSCTBL
+OPTTENAL L     R5,0(R4)           get next TDSC
+         USING TDSC,R5            declare TDSC base register
+         L     R6,TTAGDSC         get tag text descriptor
+         L     R9,0(R6)           load tag text
+*
+         CLI   2(R2),C'*'         /T*nn wildcard
+         BNE   OPTTNOW3           if != not
+         ICM   R9,B'0100',CHARWC  otherwise inject wildcard
+OPTTNOW3 CLI   3(R2),C'*'         /Tn*n wildcard
+         BNE   OPTTNOW2           if != not
+         ICM   R9,B'0010',CHARWC  otherwise inject wildcard
+OPTTNOW2 CLI   4(R2),C'*'         /Tnn* wildcard
+         BNE   OPTTNOW1           if != not
+         ICM   R9,B'0001',CHARWC  otherwise inject wildcard
+*
+OPTTNOW1 CR    R7,R9              does Tnnn option match tag ?
+         BNE   OPTTENAN           if != not, try next
+*
+         LA    R10,1(R10)         increment match count
+         LTR   R8,R8              test disable flag
+         BNE   OPTTDIS            if != yes, do disable
+         NI    0(R4),X'FE'        clear disable flag bit
+         B     OPTTENAN           and go for next tag
+OPTTDIS  OI    0(R4),X'01'        set disable flag bit
+*
+         DROP  R5
+*
+OPTTENAN LA    R4,4(R4)           push pointer to next TDSC
+         LTR   R5,R5              end tag X'80000000' seen ?
+         BNL   OPTTENAL           if >= not, keep going
+         LTR   R10,R10            end of table, check match count
+         BE    PARMABOT           if =, no test found, complain
+*
+* now handle next option ---------------
+*
+PARMPH2N LA    R2,5(R2)           push to next option
+         S     R3,=F'5'           decrement rest length
+         BH    PARMPH2L           if >0 check next option
+*
+PARMPH2E L     R14,PARMPHXL
+         BR    R14
 *
 * handle config file read --------------------------------------------
 *   R2   new ENA state
@@ -1007,15 +1047,16 @@ CNFRDNL  BAL   R14,IGETLINE       read input line
          CLI   0(R8),C'#'         is it comnment line ?
          BE    CNFRDNL            if =, skip and try next line
 *
+         CLI   FLGOPCF,X'00'      /OPCF seen ?
+         BE    OPTPCFE            if = not
          L     R1,MSGCLNE
          BAL   R14,OTEXT          print prefix
          LR    R1,R8
          A     R1,=X'50000000'    build text descriptor length=80
          BAL   R14,OTEXT          print input line
          BAL   R14,OPUTLINE       write line
-**         B     CNFRDNL
-*        
-         L     R7,0(R8)           get text name
+*                
+OPTPCFE  L     R7,0(R8)           get text name
          LA    R15,4(R8)          push pointer by 4 char
          ST    R15,ILPTR          and update
          BAL   R14,IINT05         get ENA

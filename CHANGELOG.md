@@ -18,6 +18,8 @@ the documentation is consistent.
 - s370_perf_ana: print s370_perf version; add -raw,-t311,-t312
 - s370_perf_sum: add -rat option
 - s370_perf
+  - add /OPCF, enables print of config file entries
+  - re-organized PRAM and config file handling
   - add `STCK` time to `PERF003I` and `PERF004I` messages
   - add `PERF000I` version info message
   - run test `T102` as warmup before `/GAUT` processing or testing
