@@ -1,6 +1,6 @@
 *        1         2         3         4         5         6         71
 *23456789*12345*789012345678901234*678901234567890123456789012345678901
-* $Id: s370_perf.asm 995 2018-02-25 18:42:56Z mueller $
+* $Id: s370_perf.asm 996 2018-03-03 13:59:23Z mueller $
 *
 * Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 *
@@ -13,7 +13,7 @@
 * 2018-02-25   995   0.9.3  use R11,R12 as base to allow 8k  main code
 *                           add SETB DISBAS to disable BAS/BASR tests
 *                           add /Cxxx, sets GMUL test; /T*** wildcards
-*                           add config file handling
+*                           add config file handling; use sios path
 * 2018-02-10   993   0.9.2  add STCK time to PERF003/PERF004 messages
 *                           add PERF000 vers info; add warmup T102 run
 * 2018-01-06   986   0.9.1  rename to s370_perf        
@@ -107,7 +107,7 @@
          PRINT NOGEN              don't show macro expansions
 *
 * local macros --------------------------------------------------------
-//** ##rinclude ../clib/otxtdsc.asm
+//** ##rinclude ../sios/otxtdsc.asm
 *
 * used global symbols
 *   type  name      set by    used by   comment
@@ -1203,16 +1203,16 @@ TRCRES   ST    R14,TRCRESL
 TRCRESL  DS    1F                 save area for R14 (return linkage)
 *
 * include simple output system ----------------------------------------
-//** ##rinclude ../clib/sos_base.asm
-//** ##rinclude ../clib/sos_oint10.asm
-//** ##rinclude ../clib/sos_oint04.asm
-//** ##rinclude ../clib/sos_ohex10.asm
-//** ##rinclude ../clib/sos_ohex210.asm
-//** ##rinclude ../clib/sos_ofix1308.asm
+//** ##rinclude ../sios/sos_base.asm
+//** ##rinclude ../sios/sos_oint10.asm
+//** ##rinclude ../sios/sos_oint04.asm
+//** ##rinclude ../sios/sos_ohex10.asm
+//** ##rinclude ../sios/sos_ohex210.asm
+//** ##rinclude ../sios/sos_ofix1308.asm
 * include simple input system -----------------------------------------
-//** ##rinclude ../clib/sis_base.asm
-//** ##rinclude ../clib/sis_iint05.asm
-//** ##rinclude ../clib/sis_iint10.asm
+//** ##rinclude ../sios/sis_base.asm
+//** ##rinclude ../sios/sis_iint05.asm
+//** ##rinclude ../sios/sis_iint10.asm
 *
 * spill literal pool for MAIN
 *

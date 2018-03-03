@@ -13,7 +13,10 @@ the documentation is consistent.
 
 ### Summary
 
+- rename clib -> sios
 - remove bin/hercjis; add instead whole herc-tools project as submodule
+- s370_perf_ana: print s370_perf version; add -raw,-t311,-t312
+- s370_perf_sum: add -rat option
 - s370_perf
   - add `STCK` time to `PERF003I` and `PERF004I` messages
   - add `PERF000I` version info message

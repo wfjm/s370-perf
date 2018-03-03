@@ -19,7 +19,7 @@ The project files are organized in directories as
 | Directory | Content |
 | --------- | ------- |
 | [bin](bin)     | some helper scripts |
-| [clib](clib)   | assembler code sniplets |
+| [sios](sios)   | assembler code snippets |
 | [codes](codes) | the codes and jobs |
 | [data](data)   | benchmark results |
 | [doc](doc)     | documentation |
