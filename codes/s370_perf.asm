@@ -1,6 +1,6 @@
 *        1         2         3         4         5         6         71
 *23456789*12345*789012345678901234*678901234567890123456789012345678901
-* $Id: s370_perf.asm 997 2018-03-03 20:23:21Z mueller $
+* $Id: s370_perf.asm 998 2018-03-04 15:42:28Z mueller $
 *
 * Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 *
@@ -10,6 +10,7 @@
 *
 *  Revision History:  (!! update MSGVERS when adding here !!)
 * Date         Rev Version  Comment
+* 2018-03-04   998   0.9.5  add T9**,T703; fix T232 text
 * 2018-03-03   997   0.9.4  reorganize PARM decode; add /OPCF
 * 2018-02-25   995   0.9.3  use R11,R12 as base to allow 8k  main code
 *                           add SETB DISBAS to disable BAS/BASR tests
@@ -38,7 +39,8 @@
 * 2017-10-15   956   0.1    First draft
 *
 * Description:
-*   Code to determine instruction timing non-priviledged instructions
+*   Code to determine instruction timing of S/370 non-priviledged
+*   instructions in 24 bit mode.
 *
 * Usage:
 *   s370_perf uses the PARM interface to determine job behaviour. The
@@ -66,8 +68,8 @@
 *   4. if no /Tnnn option is seen all pre-enabled tests are executed
 *   5. several /Tnnn options can be specified, in this case only these
 *        tests are run
-*   6. /Dnnn allows to disable a pre-enabled test
-*   7. /Ennn allows to enable  a pre-disabled test
+*   6. /Dnnn allows to disable an enabled test
+*   7. /Ennn allows to enable  a  disabled test
 *
 * Configuration file:
 *   read from SYSIN, is optional. Line starting with '#' are ignored
@@ -79,7 +81,7 @@
 *     lrcnt    new LRCNT, 10 digit field, ignored if zero
 *   Main usage of the config file is to redefine the LRCNT of test
 *   when s370_perf is run on systems other than a Hercules emulator.
-*   Note that the config file is processed before the PARMs.
+*   The config file is processed before the /Tnnn,/Ennn,/Dnnn PARMs.
 *
 * Code configuration options:
 *   in 'global definitions' before main code, currently:
@@ -399,7 +401,7 @@ CBUFSIZE EQU  8192
 *
          ST    R1,ARGPTR          save argument list pointer for later 
          L     R3,=A(TDSCTBLE-4)  pointer to last entry of TDSCTBL
-         MVI   0(R3),X'80'        mark last entry of TDSCTBL
+         OI    0(R3),X'80'        mark last entry of TDSCTBL
 *
 * open datasets --------------------------------------------
 *
@@ -755,7 +757,7 @@ WTOMSG2  DC    C'Txxx'
          DC    B'0100000000000000'    routing codes (2=console info)
 *
          DS    0F
-MSGVERS  OTXTDSC  C's370_perf V0.9.4  rev  997  2018-03-03'
+MSGVERS  OTXTDSC  C's370_perf V0.9.5  rev  998  2018-03-04'
 MSGVHDR  OTXTDSC  C'PERF000I VERS: '
 MSGPARM  OTXTDSC  C'PERF001I PARM: '
 MSGGMUL  OTXTDSC  C'PERF002I run with GMUL= '
@@ -2229,7 +2231,7 @@ T231L    REPINS X,(R2,=F'1')            repeat: X R2,=F'1'
 *
 * Test 232 -- XI R,i ---------------------------------------
 *
-         TSIMBEG T232,10000,50,1,C'XI R,i'
+         TSIMBEG T232,10000,50,1,C'XI m,i'
 *
 T232L    REPINS XI,(T232V,X'FF')        repeat: XI T232V,X'FF'
          BCTR  R15,R11
@@ -4200,7 +4202,7 @@ T621V    DC    X'FF'              target for TS instruction
 *
 * Test 7xx -- mix sequence ======================================
 *
-* Test 700 -- Mix Int RR -----------------------------------
+* Test 700 -- Mix Int RR basic -----------------------------------
 *
          TSIMBEG T700,20000,40,1,C'mix int RR basic'
 *
@@ -4355,6 +4357,1605 @@ T702H2   DC    X'0002'
 T702H3   DC    X'0100'
 T702VH1  DS    1H
 MAIN     CSECT
+*
+* Test 703 -- Mix Int RR noopt -----------------------------
+*    uses R14 as seed, all register values depend on initial R14
+*    uses R2 as output, stored after the loop in memory
+*    to ensure that optimizers, as in z/PDT, can't remove code
+*
+         TSIMBEG T703,20000,40,1,C'mix int RR noopt'
+*
+T703L    EQU   *
+         LR    R3,R14             R3 :=R14                  01 U 03
+         LA    R4,255             R4 :=000000FF             02 U 03
+         ALR   R3,R4              R3 :=R14 + 0xFF           03 U 06
+         LTR   R5,R14             R5 :=R14                  04 U 05
+         SLR   R5,R4              R5 :=R14 - 0xFF           05 U 16
+         LPR   R6,R3              R6 :=abs(R14+0xFF)        06 U 07
+         BCTR  R6,0               R6 :=abs(R14+0xFF)-1      07 U 08
+         LCR   R7,R6              R7 :=-(abs(R14+0xFF)-1)   08 U 09
+         NR    R7,R4              R7 :=f(R14) & 0xFF        09 U 10
+         AR    R7,R4              R7 :=f(R14)&0xFF+0xFF     10 U 11
+         CR    R7,R4              !=                        11 U 12
+         BE    T703BAD                                      12
+         SLA   R7,1               R7 :=2*f(R14) 10 bit      13 U 14
+         SR    R7,R4              R7 :=f(R14)   10 bit      14 U 15
+         SLL   R7,4               R7 :=f(R14)   14 bit      15 U 18
+         SRA   R5,1               R5 :=(R14-0xFF)/2         16 U 17
+         XR    R5,R14             R5 :=f(R14)               17 U 18
+         OR    R5,R7              R5 :=f(R14)               18 U 19
+         LNR   R8,R5              R8 :=f(R14)               19 U 20
+         SRL   R8,12              R8 :=f(R14)   20 bit      20 U 24
+         CLR   R3,R14             !=                        21 U 22
+         BE    T703BAD                                      22
+         SLA   R4,4               R4 :=00000FF0             23 U 24
+         XR    R8,R4              R8 :=f(R14)   20 bit      24 U 25
+         AR    R8,R4              R8 :=f(R14)   20 bit      25 U 28
+         LPR   R9,R7              R9 :=f(R14)   14 bit      26 U 27
+         SR    R9,R4              R9 :=f(R14)   14 bit      27 U 28
+         OR    R9,R8              R9 :=f(R14)   20 bit      28 U 29
+         BCTR  R9,0               R9 :=f(R14)   20 bit      29 U 30
+         SLL   R9,1               R9 :=f(R14)   21 bit      30 U 31
+         NR    R9,R4              R9 :=f(R14)   12 bit      31 U 32
+         SRA   R9,2               R9 :=f(R14)   10 bit      32 U 33
+         ALR   R9,R4              R9 :=f(R14)   13 bit      33 U 36
+         LTR   R10,R4             R10:=0000FF0              34 U 35
+         SRL   R10,2              R10:=00003FA              35 U 36
+         XR    R10,R9             R10:=f(R14)   13 bit      36 U 37
+         BCTR  R10,0              R10:=f(R14)   13 bit      37 U 38
+         SRA   R10,1              R10:=f(R14)   12 bit      38 U 39
+         ALR   R10,R8             R10:=f(R14)   20 bit      39 U 40
+         SLR   R2,R10                                       40 U ->
+         BCTR  R15,R11
+         ST    R2,T703RES         store after loop, prevent optimize
+         TSIMRET
+*
+         DS    0H
+T703BAD  ABEND 60
+         DS    0F
+T703RES  DC    F'0'
+*
+         TSIMEND
+*
+* Test 9xx -- misc tests ========================================
+*
+* Test 90x -- LR R,R count tests ===========================
+*
+* Test 900 -- LR R,R (ig=1) --------------------------------
+*
+         TSIMBEG T900,450000,1,1,C'LR R,R (ig=1)'
+*
+T900L    REPINS LR,(R2,R1)              repeat: LR R2,R1
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 901 -- LR R,R (ig=2) --------------------------------
+*
+         TSIMBEG T901,400000,2,1,C'LR R,R (ig=2)',DIS=1
+*
+T901L    REPINS LR,(R2,R1)              repeat: LR R2,R1
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 902 -- LR R,R (ig=3) --------------------------------
+*
+         TSIMBEG T902,400000,3,1,C'LR R,R (ig=3)',DIS=1
+*
+T902L    REPINS LR,(R2,R1)              repeat: LR R2,R1
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 903 -- LR R,R (ig=4) --------------------------------
+*
+         TSIMBEG T903,200000,4,1,C'LR R,R (ig=4)',DIS=1
+*
+T903L    REPINS LR,(R2,R1)              repeat: LR R2,R1
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 904 -- LR R,R (ig=5) --------------------------------
+*
+         TSIMBEG T904,150000,5,1,C'LR R,R (ig=5)',DIS=1
+*
+T904L    REPINS LR,(R2,R1)              repeat: LR R2,R1
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 905 -- LR R,R (ig=6) --------------------------------
+*
+         TSIMBEG T905,150000,6,1,C'LR R,R (ig=6)',DIS=1
+*
+T905L    REPINS LR,(R2,R1)              repeat: LR R2,R1
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 906 -- LR R,R (ig=7) --------------------------------
+*
+         TSIMBEG T906,150000,7,1,C'LR R,R (ig=7)',DIS=1
+*
+T906L    REPINS LR,(R2,R1)              repeat: LR R2,R1
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 907 -- LR R,R (ig=8) --------------------------------
+*
+         TSIMBEG T907,150000,8,1,C'LR R,R (ig=8)',DIS=1
+*
+T907L    REPINS LR,(R2,R1)              repeat: LR R2,R1
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 908 -- LR R,R (ig=9) --------------------------------
+*
+         TSIMBEG T908,150000,9,1,C'LR R,R (ig=9)',DIS=1
+*
+T908L    REPINS LR,(R2,R1)              repeat: LR R2,R1
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 909 -- LR R,R (ig=10) -------------------------------
+*
+         TSIMBEG T909,150000,10,1,C'LR R,R (ig=10)',DIS=1
+*
+T909L    REPINS LR,(R2,R1)              repeat: LR R2,R1
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 910 -- LR R,R (ig=12) -------------------------------
+*
+         TSIMBEG T910,120000,12,1,C'LR R,R (ig=12)',DIS=1
+*
+T910L    REPINS LR,(R2,R1)              repeat: LR R2,R1
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 911 -- LR R,R (ig=18) -------------------------------
+*
+         TSIMBEG T911,90000,18,1,C'LR R,R (ig=18)',DIS=1
+*
+T911L    REPINS LR,(R2,R1)              repeat: LR R2,R1
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 912 -- LR R,R (ig=25) -------------------------------
+*
+         TSIMBEG T912,70000,25,1,C'LR R,R (ig=25)',DIS=1
+*
+T912L    REPINS LR,(R2,R1)              repeat: LR R2,R1
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 913 -- LR R,R (ig=36) -------------------------------
+*
+         TSIMBEG T913,50000,36,1,C'LR R,R (ig=36)',DIS=1
+*
+T913L    REPINS LR,(R2,R1)              repeat: LR R2,R1
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 914 -- LR R,R (ig=50) -------------------------------
+*
+         TSIMBEG T914,45000,50,1,C'LR R,R (ig=50)',DIS=1
+*
+T914L    REPINS LR,(R2,R1)              repeat: LR R2,R1
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 915 -- LR R,R (ig=72) -------------------------------
+*
+         TSIMBEG T915,30000,72,1,C'LR R,R (ig=72)',DIS=1
+*
+T915L    REPINS LR,(R2,R1)              repeat: LR R2,R1
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 92x -- L R,m count tests ============================
+*
+* Test 920 -- L R,m (ig=1) ---------------------------------
+*
+         TSIMBEG T920,300000,1,1,C'L R,m (ig=1)'
+*
+T920L    REPINS L,(R2,=F'123')          repeat: L R2,=F'123'
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 921 -- L R,m (ig=2) ---------------------------------
+*
+         TSIMBEG T921,250000,2,1,C'L R,m (ig=2)',DIS=1
+*
+T921L    REPINS L,(R2,=F'123')          repeat: L R2,=F'123'
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 922 -- L R,m (ig=3) ---------------------------------
+*
+         TSIMBEG T922,200000,3,1,C'L R,m (ig=3)',DIS=1
+*
+T922L    REPINS L,(R2,=F'123')          repeat: L R2,=F'123'
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 923 -- L R,m (ig=4) ---------------------------------
+*
+         TSIMBEG T923,100000,4,1,C'L R,m (ig=4)',DIS=1
+*
+T923L    REPINS L,(R2,=F'123')          repeat: L R2,=F'123'
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 924 -- L R,m (ig=5) ---------------------------------
+*
+         TSIMBEG T924,100000,5,1,C'L R,m (ig=5)',DIS=1
+*
+T924L    REPINS L,(R2,=F'123')          repeat: L R2,=F'123'
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 925 -- L R,m (ig=6) ---------------------------------
+*
+         TSIMBEG T925,80000,6,1,C'L R,m (ig=6)',DIS=1
+*
+T925L    REPINS L,(R2,=F'123')          repeat: L R2,=F'123'
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 926 -- L R,m (ig=7) ---------------------------------
+*
+         TSIMBEG T926,70000,7,1,C'L R,m (ig=7)',DIS=1
+*
+T926L    REPINS L,(R2,=F'123')          repeat: L R2,=F'123'
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 927 -- L R,m (ig=8) ---------------------------------
+*
+         TSIMBEG T927,70000,8,1,C'L R,m (ig=8)',DIS=1
+*
+T927L    REPINS L,(R2,=F'123')          repeat: L R2,=F'123'
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 928 -- L R,m (ig=9) ---------------------------------
+*
+         TSIMBEG T928,70000,9,1,C'L R,m (ig=9)',DIS=1
+*
+T928L    REPINS L,(R2,=F'123')          repeat: L R2,=F'123'
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 929 -- L R,m (ig=10) --------------------------------
+*
+         TSIMBEG T929,70000,10,1,C'L R,m (ig=10)',DIS=1
+*
+T929L    REPINS L,(R2,=F'123')          repeat: L R2,=F'123'
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 930 -- L R,m (ig=12) --------------------------------
+*
+         TSIMBEG T930,50000,12,1,C'L R,m (ig=12)',DIS=1
+*
+T930L    REPINS L,(R2,=F'123')          repeat: L R2,=F'123'
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 931 -- L R,m (ig=18) --------------------------------
+*
+         TSIMBEG T931,35000,18,1,C'L R,m (ig=18)',DIS=1
+*
+T931L    REPINS L,(R2,=F'123')          repeat: L R2,=F'123'
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 932 -- L R,m (ig=25) --------------------------------
+*
+         TSIMBEG T932,25000,25,1,C'L R,m (ig=25)',DIS=1
+*
+T932L    REPINS L,(R2,=F'123')          repeat: L R2,=F'123'
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 933 -- L R,m (ig=36) --------------------------------
+*
+         TSIMBEG T933,20000,36,1,C'L R,m (ig=36)',DIS=1
+*
+T933L    REPINS L,(R2,=F'123')          repeat: L R2,=F'123'
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 95x -- T700 size tests ==============================
+*
+* Test 952 -- Mix Int RR 1st  2 ----------------------------
+*
+         TSIMBEG T952,250000,1,1,C'T700 1st  2',DIS=1
+*
+T952L    EQU   *
+         LA    R2,1               R2 :=00000001 FIN         01
+         LR    R3,R2              R3 :=00000001             02
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 953 -- Mix Int RR 1st  3 ----------------------------
+*
+         TSIMBEG T953,170000,1,1,C'T700 1st  3',DIS=1
+*
+T953L    EQU   *
+         LA    R2,1               R2 :=00000001 FIN         01
+         LR    R3,R2              R3 :=00000001             02
+         SLA   R3,8               R3 :=00000100 FIN         03
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 954 -- Mix Int RR 1st  4 ----------------------------
+*
+         TSIMBEG T954,140000,1,1,C'T700 1st  4',DIS=1
+*
+T954L    EQU   *
+         LA    R2,1               R2 :=00000001 FIN         01
+         LR    R3,R2              R3 :=00000001             02
+         SLA   R3,8               R3 :=00000100 FIN         03
+         XR    R4,R4              R4 :=00000000             04
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 955 -- Mix Int RR 1st  5 ----------------------------
+*
+         TSIMBEG T955,120000,1,1,C'T700 1st  5',DIS=1
+*
+T955L    EQU   *
+         LA    R2,1               R2 :=00000001 FIN         01
+         LR    R3,R2              R3 :=00000001             02
+         SLA   R3,8               R3 :=00000100 FIN         03
+         XR    R4,R4              R4 :=00000000             04
+         OR    R4,R3              R4 :=00000100             05
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 956 -- Mix Int RR 1st  6 ----------------------------
+*
+         TSIMBEG T956,105000,1,1,C'T700 1st  6',DIS=1
+*
+T956L    EQU   *
+         LA    R2,1               R2 :=00000001 FIN         01
+         LR    R3,R2              R3 :=00000001             02
+         SLA   R3,8               R3 :=00000100 FIN         03
+         XR    R4,R4              R4 :=00000000             04
+         OR    R4,R3              R4 :=00000100             05
+         BCTR  R4,0               R4 :=000000FF FIN         06
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 957 -- Mix Int RR 1st  7 ----------------------------
+*
+         TSIMBEG T957,90000,1,1,C'T700 1st  7',DIS=1
+*
+T957L    EQU   *
+         LA    R2,1               R2 :=00000001 FIN         01
+         LR    R3,R2              R3 :=00000001             02
+         SLA   R3,8               R3 :=00000100 FIN         03
+         XR    R4,R4              R4 :=00000000             04
+         OR    R4,R3              R4 :=00000100             05
+         BCTR  R4,0               R4 :=000000FF FIN         06
+         LCR   R5,R4              R5 :=FFFFFF01             07
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 958 -- Mix Int RR 1st  8 ----------------------------
+*
+         TSIMBEG T958,84000,1,1,C'T700 1st  8',DIS=1
+*
+T958L    EQU   *
+         LA    R2,1               R2 :=00000001 FIN         01
+         LR    R3,R2              R3 :=00000001             02
+         SLA   R3,8               R3 :=00000100 FIN         03
+         XR    R4,R4              R4 :=00000000             04
+         OR    R4,R3              R4 :=00000100             05
+         BCTR  R4,0               R4 :=000000FF FIN         06
+         LCR   R5,R4              R5 :=FFFFFF01             07
+         SLL   R5,2               R5 :=FFFFFC04 FIN         08
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 959 -- Mix Int RR 1st  9 ----------------------------
+*
+         TSIMBEG T959,75000,1,1,C'T700 1st  9',DIS=1
+*
+T959L    EQU   *
+         LA    R2,1               R2 :=00000001 FIN         01
+         LR    R3,R2              R3 :=00000001             02
+         SLA   R3,8               R3 :=00000100 FIN         03
+         XR    R4,R4              R4 :=00000000             04
+         OR    R4,R3              R4 :=00000100             05
+         BCTR  R4,0               R4 :=000000FF FIN         06
+         LCR   R5,R4              R5 :=FFFFFF01             07
+         SLL   R5,2               R5 :=FFFFFC04 FIN         08
+         LPR   R6,R5              R6 :=000003FC             09
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 960 -- Mix Int RR 1st 10 ----------------------------
+*
+         TSIMBEG T960,70000,1,1,C'T700 1st 10',DIS=1
+*
+T960L    EQU   *
+         LA    R2,1               R2 :=00000001 FIN         01
+         LR    R3,R2              R3 :=00000001             02
+         SLA   R3,8               R3 :=00000100 FIN         03
+         XR    R4,R4              R4 :=00000000             04
+         OR    R4,R3              R4 :=00000100             05
+         BCTR  R4,0               R4 :=000000FF FIN         06
+         LCR   R5,R4              R5 :=FFFFFF01             07
+         SLL   R5,2               R5 :=FFFFFC04 FIN         08
+         LPR   R6,R5              R6 :=000003FC             09
+         AR    R6,R1              R6 :=000003FD             10
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 961 -- Mix Int RR 1st 11 ----------------------------
+*
+         TSIMBEG T961,65000,1,1,C'T700 1st 11',DIS=1
+*
+T961L    EQU   *
+         LA    R2,1               R2 :=00000001 FIN         01
+         LR    R3,R2              R3 :=00000001             02
+         SLA   R3,8               R3 :=00000100 FIN         03
+         XR    R4,R4              R4 :=00000000             04
+         OR    R4,R3              R4 :=00000100             05
+         BCTR  R4,0               R4 :=000000FF FIN         06
+         LCR   R5,R4              R5 :=FFFFFF01             07
+         SLL   R5,2               R5 :=FFFFFC04 FIN         08
+         LPR   R6,R5              R6 :=000003FC             09
+         AR    R6,R1              R6 :=000003FD             10
+         CR    R6,R1              !=                        11
+         BCTR  R15,R11
+         TSIMRET
+*
+         DS    0H
+T961BAD  ABEND 60
+         TSIMEND
+*
+* Test 962 -- Mix Int RR 1st 12 ----------------------------
+*
+         TSIMBEG T962,60000,1,1,C'T700 1st 12',DIS=1
+*
+T962L    EQU   *
+         LA    R2,1               R2 :=00000001 FIN         01
+         LR    R3,R2              R3 :=00000001             02
+         SLA   R3,8               R3 :=00000100 FIN         03
+         XR    R4,R4              R4 :=00000000             04
+         OR    R4,R3              R4 :=00000100             05
+         BCTR  R4,0               R4 :=000000FF FIN         06
+         LCR   R5,R4              R5 :=FFFFFF01             07
+         SLL   R5,2               R5 :=FFFFFC04 FIN         08
+         LPR   R6,R5              R6 :=000003FC             09
+         AR    R6,R1              R6 :=000003FD             10
+         CR    R6,R1              !=                        11
+         BE    T962BAD                                      12
+         BCTR  R15,R11
+         TSIMRET
+*
+         DS    0H
+T962BAD  ABEND 60
+         TSIMEND
+*
+* Test 963 -- Mix Int RR 1st 13 ----------------------------
+*
+         TSIMBEG T963,55000,1,1,C'T700 1st 13',DIS=1
+*
+T963L    EQU   *
+         LA    R2,1               R2 :=00000001 FIN         01
+         LR    R3,R2              R3 :=00000001             02
+         SLA   R3,8               R3 :=00000100 FIN         03
+         XR    R4,R4              R4 :=00000000             04
+         OR    R4,R3              R4 :=00000100             05
+         BCTR  R4,0               R4 :=000000FF FIN         06
+         LCR   R5,R4              R5 :=FFFFFF01             07
+         SLL   R5,2               R5 :=FFFFFC04 FIN         08
+         LPR   R6,R5              R6 :=000003FC             09
+         AR    R6,R1              R6 :=000003FD             10
+         CR    R6,R1              !=                        11
+         BE    T963BAD                                      12
+         LNR   R7,R3              R7 :=FFFFFF00             13
+         BCTR  R15,R11
+         TSIMRET
+*
+         DS    0H
+T963BAD  ABEND 60
+         TSIMEND
+*
+* Test 964 -- Mix Int RR 1st 14 ----------------------------
+*
+         TSIMBEG T964,50000,1,1,C'T700 1st 14',DIS=1
+*
+T964L    EQU   *
+         LA    R2,1               R2 :=00000001 FIN         01
+         LR    R3,R2              R3 :=00000001             02
+         SLA   R3,8               R3 :=00000100 FIN         03
+         XR    R4,R4              R4 :=00000000             04
+         OR    R4,R3              R4 :=00000100             05
+         BCTR  R4,0               R4 :=000000FF FIN         06
+         LCR   R5,R4              R5 :=FFFFFF01             07
+         SLL   R5,2               R5 :=FFFFFC04 FIN         08
+         LPR   R6,R5              R6 :=000003FC             09
+         AR    R6,R1              R6 :=000003FD             10
+         CR    R6,R1              !=                        11
+         BE    T964BAD                                      12
+         LNR   R7,R3              R7 :=FFFFFF00             13
+         NR    R7,R6              R7 :=00000300             14
+         BCTR  R15,R11
+         TSIMRET
+*
+         DS    0H
+T964BAD  ABEND 60
+         TSIMEND
+*
+* Test 965 -- Mix Int RR 1st 15 ----------------------------
+*
+         TSIMBEG T965,50000,1,1,C'T700 1st 15',DIS=1
+*
+T965L    EQU   *
+         LA    R2,1               R2 :=00000001 FIN         01
+         LR    R3,R2              R3 :=00000001             02
+         SLA   R3,8               R3 :=00000100 FIN         03
+         XR    R4,R4              R4 :=00000000             04
+         OR    R4,R3              R4 :=00000100             05
+         BCTR  R4,0               R4 :=000000FF FIN         06
+         LCR   R5,R4              R5 :=FFFFFF01             07
+         SLL   R5,2               R5 :=FFFFFC04 FIN         08
+         LPR   R6,R5              R6 :=000003FC             09
+         AR    R6,R1              R6 :=000003FD             10
+         CR    R6,R1              !=                        11
+         BE    T965BAD                                      12
+         LNR   R7,R3              R7 :=FFFFFF00             13
+         NR    R7,R6              R7 :=00000300             14
+         SRA   R7,2               R7 :=000000C0             15
+         BCTR  R15,R11
+         TSIMRET
+*
+         DS    0H
+T965BAD  ABEND 60
+         TSIMEND
+*
+* Test 966 -- Mix Int RR 1st 16 ----------------------------
+*
+         TSIMBEG T966,45000,1,1,C'T700 1st 16',DIS=1
+*
+T966L    EQU   *
+         LA    R2,1               R2 :=00000001 FIN         01
+         LR    R3,R2              R3 :=00000001             02
+         SLA   R3,8               R3 :=00000100 FIN         03
+         XR    R4,R4              R4 :=00000000             04
+         OR    R4,R3              R4 :=00000100             05
+         BCTR  R4,0               R4 :=000000FF FIN         06
+         LCR   R5,R4              R5 :=FFFFFF01             07
+         SLL   R5,2               R5 :=FFFFFC04 FIN         08
+         LPR   R6,R5              R6 :=000003FC             09
+         AR    R6,R1              R6 :=000003FD             10
+         CR    R6,R1              !=                        11
+         BE    T966BAD                                      12
+         LNR   R7,R3              R7 :=FFFFFF00             13
+         NR    R7,R6              R7 :=00000300             14
+         SRA   R7,2               R7 :=000000C0             15
+         SR    R7,R4              R7 :=FFFFFFC1             16
+         BCTR  R15,R11
+         TSIMRET
+*
+         DS    0H
+T966BAD  ABEND 60
+         TSIMEND
+*
+* Test 967 -- Mix Int RR 1st 17 ----------------------------
+*
+         TSIMBEG T967,45000,1,1,C'T700 1st 17',DIS=1
+*
+T967L    EQU   *
+         LA    R2,1               R2 :=00000001 FIN         01
+         LR    R3,R2              R3 :=00000001             02
+         SLA   R3,8               R3 :=00000100 FIN         03
+         XR    R4,R4              R4 :=00000000             04
+         OR    R4,R3              R4 :=00000100             05
+         BCTR  R4,0               R4 :=000000FF FIN         06
+         LCR   R5,R4              R5 :=FFFFFF01             07
+         SLL   R5,2               R5 :=FFFFFC04 FIN         08
+         LPR   R6,R5              R6 :=000003FC             09
+         AR    R6,R1              R6 :=000003FD             10
+         CR    R6,R1              !=                        11
+         BE    T967BAD                                      12
+         LNR   R7,R3              R7 :=FFFFFF00             13
+         NR    R7,R6              R7 :=00000300             14
+         SRA   R7,2               R7 :=000000C0             15
+         SR    R7,R4              R7 :=FFFFFFC1             16
+         LTR   R8,R3              R8 :=00000100             17
+         BCTR  R15,R11
+         TSIMRET
+*
+         DS    0H
+T967BAD  ABEND 60
+         TSIMEND
+*
+* Test 968 -- Mix Int RR 1st 18 ----------------------------
+*
+         TSIMBEG T968,40000,1,1,C'T700 1st 18',DIS=1
+*
+T968L    EQU   *
+         LA    R2,1               R2 :=00000001 FIN         01
+         LR    R3,R2              R3 :=00000001             02
+         SLA   R3,8               R3 :=00000100 FIN         03
+         XR    R4,R4              R4 :=00000000             04
+         OR    R4,R3              R4 :=00000100             05
+         BCTR  R4,0               R4 :=000000FF FIN         06
+         LCR   R5,R4              R5 :=FFFFFF01             07
+         SLL   R5,2               R5 :=FFFFFC04 FIN         08
+         LPR   R6,R5              R6 :=000003FC             09
+         AR    R6,R1              R6 :=000003FD             10
+         CR    R6,R1              !=                        11
+         BE    T968BAD                                      12
+         LNR   R7,R3              R7 :=FFFFFF00             13
+         NR    R7,R6              R7 :=00000300             14
+         SRA   R7,2               R7 :=000000C0             15
+         SR    R7,R4              R7 :=FFFFFFC1             16
+         LTR   R8,R3              R8 :=00000100             17
+         SRL   R8,1               R8 :=00000080             18
+         BCTR  R15,R11
+         TSIMRET
+*
+         DS    0H
+T968BAD  ABEND 60
+         TSIMEND
+*
+* Test 969 -- Mix Int RR 1st 19 ----------------------------
+*
+         TSIMBEG T969,40000,1,1,C'T700 1st 19',DIS=1
+*
+T969L    EQU   *
+         LA    R2,1               R2 :=00000001 FIN         01
+         LR    R3,R2              R3 :=00000001             02
+         SLA   R3,8               R3 :=00000100 FIN         03
+         XR    R4,R4              R4 :=00000000             04
+         OR    R4,R3              R4 :=00000100             05
+         BCTR  R4,0               R4 :=000000FF FIN         06
+         LCR   R5,R4              R5 :=FFFFFF01             07
+         SLL   R5,2               R5 :=FFFFFC04 FIN         08
+         LPR   R6,R5              R6 :=000003FC             09
+         AR    R6,R1              R6 :=000003FD             10
+         CR    R6,R1              !=                        11
+         BE    T969BAD                                      12
+         LNR   R7,R3              R7 :=FFFFFF00             13
+         NR    R7,R6              R7 :=00000300             14
+         SRA   R7,2               R7 :=000000C0             15
+         SR    R7,R4              R7 :=FFFFFFC1             16
+         LTR   R8,R3              R8 :=00000100             17
+         SRL   R8,1               R8 :=00000080             18
+         ALR   R8,R3              R8 :=00000180             19
+         BCTR  R15,R11
+         TSIMRET
+*
+         DS    0H
+T969BAD  ABEND 60
+         TSIMEND
+*
+* Test 970 -- Mix Int RR 1st 20 ----------------------------
+*
+         TSIMBEG T970,40000,1,1,C'T700 1st 20',DIS=1
+*
+T970L    EQU   *
+         LA    R2,1               R2 :=00000001 FIN         01
+         LR    R3,R2              R3 :=00000001             02
+         SLA   R3,8               R3 :=00000100 FIN         03
+         XR    R4,R4              R4 :=00000000             04
+         OR    R4,R3              R4 :=00000100             05
+         BCTR  R4,0               R4 :=000000FF FIN         06
+         LCR   R5,R4              R5 :=FFFFFF01             07
+         SLL   R5,2               R5 :=FFFFFC04 FIN         08
+         LPR   R6,R5              R6 :=000003FC             09
+         AR    R6,R1              R6 :=000003FD             10
+         CR    R6,R1              !=                        11
+         BE    T970BAD                                      12
+         LNR   R7,R3              R7 :=FFFFFF00             13
+         NR    R7,R6              R7 :=00000300             14
+         SRA   R7,2               R7 :=000000C0             15
+         SR    R7,R4              R7 :=FFFFFFC1             16
+         LTR   R8,R3              R8 :=00000100             17
+         SRL   R8,1               R8 :=00000080             18
+         ALR   R8,R3              R8 :=00000180             19
+         SLR   R8,R7              R8 :=000001BF             20
+         BCTR  R15,R11
+         TSIMRET
+*
+         DS    0H
+T970BAD  ABEND 60
+         TSIMEND
+*
+* Test 971 -- Mix Int RR 1st 21 ----------------------------
+*
+         TSIMBEG T971,35000,1,1,C'T700 1st 21',DIS=1
+*
+T971L    EQU   *
+         LA    R2,1               R2 :=00000001 FIN         01
+         LR    R3,R2              R3 :=00000001             02
+         SLA   R3,8               R3 :=00000100 FIN         03
+         XR    R4,R4              R4 :=00000000             04
+         OR    R4,R3              R4 :=00000100             05
+         BCTR  R4,0               R4 :=000000FF FIN         06
+         LCR   R5,R4              R5 :=FFFFFF01             07
+         SLL   R5,2               R5 :=FFFFFC04 FIN         08
+         LPR   R6,R5              R6 :=000003FC             09
+         AR    R6,R1              R6 :=000003FD             10
+         CR    R6,R1              !=                        11
+         BE    T971BAD                                      12
+         LNR   R7,R3              R7 :=FFFFFF00             13
+         NR    R7,R6              R7 :=00000300             14
+         SRA   R7,2               R7 :=000000C0             15
+         SR    R7,R4              R7 :=FFFFFFC1             16
+         LTR   R8,R3              R8 :=00000100             17
+         SRL   R8,1               R8 :=00000080             18
+         ALR   R8,R3              R8 :=00000180             19
+         SLR   R8,R7              R8 :=000001BF             20
+         CLR   R8,R3              !=                        21
+         BCTR  R15,R11
+         TSIMRET
+*
+         DS    0H
+T971BAD  ABEND 60
+         TSIMEND
+*
+* Test 972 -- Mix Int RR 1st 22 ----------------------------
+*
+         TSIMBEG T972,35000,1,1,C'T700 1st 22',DIS=1
+*
+T972L    EQU   *
+         LA    R2,1               R2 :=00000001 FIN         01
+         LR    R3,R2              R3 :=00000001             02
+         SLA   R3,8               R3 :=00000100 FIN         03
+         XR    R4,R4              R4 :=00000000             04
+         OR    R4,R3              R4 :=00000100             05
+         BCTR  R4,0               R4 :=000000FF FIN         06
+         LCR   R5,R4              R5 :=FFFFFF01             07
+         SLL   R5,2               R5 :=FFFFFC04 FIN         08
+         LPR   R6,R5              R6 :=000003FC             09
+         AR    R6,R1              R6 :=000003FD             10
+         CR    R6,R1              !=                        11
+         BE    T972BAD                                      12
+         LNR   R7,R3              R7 :=FFFFFF00             13
+         NR    R7,R6              R7 :=00000300             14
+         SRA   R7,2               R7 :=000000C0             15
+         SR    R7,R4              R7 :=FFFFFFC1             16
+         LTR   R8,R3              R8 :=00000100             17
+         SRL   R8,1               R8 :=00000080             18
+         ALR   R8,R3              R8 :=00000180             19
+         SLR   R8,R7              R8 :=000001BF             20
+         CLR   R8,R3              !=                        21
+         BE    T972BAD                                      22
+         BCTR  R15,R11
+         TSIMRET
+*
+         DS    0H
+T972BAD  ABEND 60
+         TSIMEND
+*
+* Test 973 -- Mix Int RR 1st 23 ----------------------------
+*
+         TSIMBEG T973,35000,1,1,C'T700 1st 23',DIS=1
+*
+T973L    EQU   *
+         LA    R2,1               R2 :=00000001 FIN         01
+         LR    R3,R2              R3 :=00000001             02
+         SLA   R3,8               R3 :=00000100 FIN         03
+         XR    R4,R4              R4 :=00000000             04
+         OR    R4,R3              R4 :=00000100             05
+         BCTR  R4,0               R4 :=000000FF FIN         06
+         LCR   R5,R4              R5 :=FFFFFF01             07
+         SLL   R5,2               R5 :=FFFFFC04 FIN         08
+         LPR   R6,R5              R6 :=000003FC             09
+         AR    R6,R1              R6 :=000003FD             10
+         CR    R6,R1              !=                        11
+         BE    T973BAD                                      12
+         LNR   R7,R3              R7 :=FFFFFF00             13
+         NR    R7,R6              R7 :=00000300             14
+         SRA   R7,2               R7 :=000000C0             15
+         SR    R7,R4              R7 :=FFFFFFC1             16
+         LTR   R8,R3              R8 :=00000100             17
+         SRL   R8,1               R8 :=00000080             18
+         ALR   R8,R3              R8 :=00000180             19
+         SLR   R8,R7              R8 :=000001BF             20
+         CLR   R8,R3              !=                        21
+         BE    T973BAD                                      22
+         LA    R9,602             R9 :=0000025A             23
+         BCTR  R15,R11
+         TSIMRET
+*
+         DS    0H
+T973BAD  ABEND 60
+         TSIMEND
+*
+* Test 974 -- Mix Int RR 1st 24 ----------------------------
+*
+         TSIMBEG T974,30000,1,1,C'T700 1st 24',DIS=1
+*
+T974L    EQU   *
+         LA    R2,1               R2 :=00000001 FIN         01
+         LR    R3,R2              R3 :=00000001             02
+         SLA   R3,8               R3 :=00000100 FIN         03
+         XR    R4,R4              R4 :=00000000             04
+         OR    R4,R3              R4 :=00000100             05
+         BCTR  R4,0               R4 :=000000FF FIN         06
+         LCR   R5,R4              R5 :=FFFFFF01             07
+         SLL   R5,2               R5 :=FFFFFC04 FIN         08
+         LPR   R6,R5              R6 :=000003FC             09
+         AR    R6,R1              R6 :=000003FD             10
+         CR    R6,R1              !=                        11
+         BE    T974BAD                                      12
+         LNR   R7,R3              R7 :=FFFFFF00             13
+         NR    R7,R6              R7 :=00000300             14
+         SRA   R7,2               R7 :=000000C0             15
+         SR    R7,R4              R7 :=FFFFFFC1             16
+         LTR   R8,R3              R8 :=00000100             17
+         SRL   R8,1               R8 :=00000080             18
+         ALR   R8,R3              R8 :=00000180             19
+         SLR   R8,R7              R8 :=000001BF             20
+         CLR   R8,R3              !=                        21
+         BE    T974BAD                                      22
+         LA    R9,602             R9 :=0000025A             23
+         XR    R9,R4              R9 :=000002A5 FIN         24
+         BCTR  R15,R11
+         TSIMRET
+*
+         DS    0H
+T974BAD  ABEND 60
+         TSIMEND
+*
+* Test 975 -- Mix Int RR 1st 25 ----------------------------
+*
+         TSIMBEG T975,30000,1,1,C'T700 1st 25',DIS=1
+*
+T975L    EQU   *
+         LA    R2,1               R2 :=00000001 FIN         01
+         LR    R3,R2              R3 :=00000001             02
+         SLA   R3,8               R3 :=00000100 FIN         03
+         XR    R4,R4              R4 :=00000000             04
+         OR    R4,R3              R4 :=00000100             05
+         BCTR  R4,0               R4 :=000000FF FIN         06
+         LCR   R5,R4              R5 :=FFFFFF01             07
+         SLL   R5,2               R5 :=FFFFFC04 FIN         08
+         LPR   R6,R5              R6 :=000003FC             09
+         AR    R6,R1              R6 :=000003FD             10
+         CR    R6,R1              !=                        11
+         BE    T975BAD                                      12
+         LNR   R7,R3              R7 :=FFFFFF00             13
+         NR    R7,R6              R7 :=00000300             14
+         SRA   R7,2               R7 :=000000C0             15
+         SR    R7,R4              R7 :=FFFFFFC1             16
+         LTR   R8,R3              R8 :=00000100             17
+         SRL   R8,1               R8 :=00000080             18
+         ALR   R8,R3              R8 :=00000180             19
+         SLR   R8,R7              R8 :=000001BF             20
+         CLR   R8,R3              !=                        21
+         BE    T975BAD                                      22
+         LA    R9,602             R9 :=0000025A             23
+         XR    R9,R4              R9 :=000002A5 FIN         24
+         LTR   R10,R9             R10:=000002A5             25
+         BCTR  R15,R11
+         TSIMRET
+*
+         DS    0H
+T975BAD  ABEND 60
+         TSIMEND
+*
+* Test 976 -- Mix Int RR 1st 26 ----------------------------
+*
+         TSIMBEG T976,30000,1,1,C'T700 1st 26',DIS=1
+*
+T976L    EQU   *
+         LA    R2,1               R2 :=00000001 FIN         01
+         LR    R3,R2              R3 :=00000001             02
+         SLA   R3,8               R3 :=00000100 FIN         03
+         XR    R4,R4              R4 :=00000000             04
+         OR    R4,R3              R4 :=00000100             05
+         BCTR  R4,0               R4 :=000000FF FIN         06
+         LCR   R5,R4              R5 :=FFFFFF01             07
+         SLL   R5,2               R5 :=FFFFFC04 FIN         08
+         LPR   R6,R5              R6 :=000003FC             09
+         AR    R6,R1              R6 :=000003FD             10
+         CR    R6,R1              !=                        11
+         BE    T976BAD                                      12
+         LNR   R7,R3              R7 :=FFFFFF00             13
+         NR    R7,R6              R7 :=00000300             14
+         SRA   R7,2               R7 :=000000C0             15
+         SR    R7,R4              R7 :=FFFFFFC1             16
+         LTR   R8,R3              R8 :=00000100             17
+         SRL   R8,1               R8 :=00000080             18
+         ALR   R8,R3              R8 :=00000180             19
+         SLR   R8,R7              R8 :=000001BF             20
+         CLR   R8,R3              !=                        21
+         BE    T976BAD                                      22
+         LA    R9,602             R9 :=0000025A             23
+         XR    R9,R4              R9 :=000002A5 FIN         24
+         LTR   R10,R9             R10:=000002A5             25
+         AR    R10,R9             R10:=000004FF             26
+         BCTR  R15,R11
+         TSIMRET
+*
+         DS    0H
+T976BAD  ABEND 60
+         TSIMEND
+*
+* Test 977 -- Mix Int RR 1st 27 ----------------------------
+*
+         TSIMBEG T977,30000,1,1,C'T700 1st 27',DIS=1
+*
+T977L    EQU   *
+         LA    R2,1               R2 :=00000001 FIN         01
+         LR    R3,R2              R3 :=00000001             02
+         SLA   R3,8               R3 :=00000100 FIN         03
+         XR    R4,R4              R4 :=00000000             04
+         OR    R4,R3              R4 :=00000100             05
+         BCTR  R4,0               R4 :=000000FF FIN         06
+         LCR   R5,R4              R5 :=FFFFFF01             07
+         SLL   R5,2               R5 :=FFFFFC04 FIN         08
+         LPR   R6,R5              R6 :=000003FC             09
+         AR    R6,R1              R6 :=000003FD             10
+         CR    R6,R1              !=                        11
+         BE    T977BAD                                      12
+         LNR   R7,R3              R7 :=FFFFFF00             13
+         NR    R7,R6              R7 :=00000300             14
+         SRA   R7,2               R7 :=000000C0             15
+         SR    R7,R4              R7 :=FFFFFFC1             16
+         LTR   R8,R3              R8 :=00000100             17
+         SRL   R8,1               R8 :=00000080             18
+         ALR   R8,R3              R8 :=00000180             19
+         SLR   R8,R7              R8 :=000001BF             20
+         CLR   R8,R3              !=                        21
+         BE    T977BAD                                      22
+         LA    R9,602             R9 :=0000025A             23
+         XR    R9,R4              R9 :=000002A5 FIN         24
+         LTR   R10,R9             R10:=000002A5             25
+         AR    R10,R9             R10:=000004FF             26
+         OR    R10,R5             R10:=FFFFFCFF             27
+         BCTR  R15,R11
+         TSIMRET
+*
+         DS    0H
+T977BAD  ABEND 60
+         TSIMEND
+*
+* Test 978 -- Mix Int RR 1st 28 ----------------------------
+*
+         TSIMBEG T978,30000,1,1,C'T700 1st 28',DIS=1
+*
+T978L    EQU   *
+         LA    R2,1               R2 :=00000001 FIN         01
+         LR    R3,R2              R3 :=00000001             02
+         SLA   R3,8               R3 :=00000100 FIN         03
+         XR    R4,R4              R4 :=00000000             04
+         OR    R4,R3              R4 :=00000100             05
+         BCTR  R4,0               R4 :=000000FF FIN         06
+         LCR   R5,R4              R5 :=FFFFFF01             07
+         SLL   R5,2               R5 :=FFFFFC04 FIN         08
+         LPR   R6,R5              R6 :=000003FC             09
+         AR    R6,R1              R6 :=000003FD             10
+         CR    R6,R1              !=                        11
+         BE    T978BAD                                      12
+         LNR   R7,R3              R7 :=FFFFFF00             13
+         NR    R7,R6              R7 :=00000300             14
+         SRA   R7,2               R7 :=000000C0             15
+         SR    R7,R4              R7 :=FFFFFFC1             16
+         LTR   R8,R3              R8 :=00000100             17
+         SRL   R8,1               R8 :=00000080             18
+         ALR   R8,R3              R8 :=00000180             19
+         SLR   R8,R7              R8 :=000001BF             20
+         CLR   R8,R3              !=                        21
+         BE    T978BAD                                      22
+         LA    R9,602             R9 :=0000025A             23
+         XR    R9,R4              R9 :=000002A5 FIN         24
+         LTR   R10,R9             R10:=000002A5             25
+         AR    R10,R9             R10:=000004FF             26
+         OR    R10,R5             R10:=FFFFFCFF             27
+         LPR   R6,R10             R6 :=00000301             28
+         BCTR  R15,R11
+         TSIMRET
+*
+         DS    0H
+T978BAD  ABEND 60
+         TSIMEND
+*
+* Test 979 -- Mix Int RR 1st 29 ----------------------------
+*
+         TSIMBEG T979,25000,1,1,C'T700 1st 29',DIS=1
+*
+T979L    EQU   *
+         LA    R2,1               R2 :=00000001 FIN         01
+         LR    R3,R2              R3 :=00000001             02
+         SLA   R3,8               R3 :=00000100 FIN         03
+         XR    R4,R4              R4 :=00000000             04
+         OR    R4,R3              R4 :=00000100             05
+         BCTR  R4,0               R4 :=000000FF FIN         06
+         LCR   R5,R4              R5 :=FFFFFF01             07
+         SLL   R5,2               R5 :=FFFFFC04 FIN         08
+         LPR   R6,R5              R6 :=000003FC             09
+         AR    R6,R1              R6 :=000003FD             10
+         CR    R6,R1              !=                        11
+         BE    T979BAD                                      12
+         LNR   R7,R3              R7 :=FFFFFF00             13
+         NR    R7,R6              R7 :=00000300             14
+         SRA   R7,2               R7 :=000000C0             15
+         SR    R7,R4              R7 :=FFFFFFC1             16
+         LTR   R8,R3              R8 :=00000100             17
+         SRL   R8,1               R8 :=00000080             18
+         ALR   R8,R3              R8 :=00000180             19
+         SLR   R8,R7              R8 :=000001BF             20
+         CLR   R8,R3              !=                        21
+         BE    T979BAD                                      22
+         LA    R9,602             R9 :=0000025A             23
+         XR    R9,R4              R9 :=000002A5 FIN         24
+         LTR   R10,R9             R10:=000002A5             25
+         AR    R10,R9             R10:=000004FF             26
+         OR    R10,R5             R10:=FFFFFCFF             27
+         LPR   R6,R10             R6 :=00000301             28
+         ALR   R6,R4              R6 :=00000400             29
+         BCTR  R15,R11
+         TSIMRET
+*
+         DS    0H
+T979BAD  ABEND 60
+         TSIMEND
+*
+* Test 980 -- Mix Int RR 1st 30 ----------------------------
+*
+         TSIMBEG T980,25000,1,1,C'T700 1st 30',DIS=1
+*
+T980L    EQU   *
+         LA    R2,1               R2 :=00000001 FIN         01
+         LR    R3,R2              R3 :=00000001             02
+         SLA   R3,8               R3 :=00000100 FIN         03
+         XR    R4,R4              R4 :=00000000             04
+         OR    R4,R3              R4 :=00000100             05
+         BCTR  R4,0               R4 :=000000FF FIN         06
+         LCR   R5,R4              R5 :=FFFFFF01             07
+         SLL   R5,2               R5 :=FFFFFC04 FIN         08
+         LPR   R6,R5              R6 :=000003FC             09
+         AR    R6,R1              R6 :=000003FD             10
+         CR    R6,R1              !=                        11
+         BE    T980BAD                                      12
+         LNR   R7,R3              R7 :=FFFFFF00             13
+         NR    R7,R6              R7 :=00000300             14
+         SRA   R7,2               R7 :=000000C0             15
+         SR    R7,R4              R7 :=FFFFFFC1             16
+         LTR   R8,R3              R8 :=00000100             17
+         SRL   R8,1               R8 :=00000080             18
+         ALR   R8,R3              R8 :=00000180             19
+         SLR   R8,R7              R8 :=000001BF             20
+         CLR   R8,R3              !=                        21
+         BE    T980BAD                                      22
+         LA    R9,602             R9 :=0000025A             23
+         XR    R9,R4              R9 :=000002A5 FIN         24
+         LTR   R10,R9             R10:=000002A5             25
+         AR    R10,R9             R10:=000004FF             26
+         OR    R10,R5             R10:=FFFFFCFF             27
+         LPR   R6,R10             R6 :=00000301             28
+         ALR   R6,R4              R6 :=00000400             29
+         SLA   R6,1               R6 :=00000800             30
+         BCTR  R15,R11
+         TSIMRET
+*
+         DS    0H
+T980BAD  ABEND 60
+         TSIMEND
+*
+* Test 981 -- Mix Int RR 1st 31 ----------------------------
+*
+         TSIMBEG T981,25000,1,1,C'T700 1st 31',DIS=1
+*
+T981L    EQU   *
+         LA    R2,1               R2 :=00000001 FIN         01
+         LR    R3,R2              R3 :=00000001             02
+         SLA   R3,8               R3 :=00000100 FIN         03
+         XR    R4,R4              R4 :=00000000             04
+         OR    R4,R3              R4 :=00000100             05
+         BCTR  R4,0               R4 :=000000FF FIN         06
+         LCR   R5,R4              R5 :=FFFFFF01             07
+         SLL   R5,2               R5 :=FFFFFC04 FIN         08
+         LPR   R6,R5              R6 :=000003FC             09
+         AR    R6,R1              R6 :=000003FD             10
+         CR    R6,R1              !=                        11
+         BE    T981BAD                                      12
+         LNR   R7,R3              R7 :=FFFFFF00             13
+         NR    R7,R6              R7 :=00000300             14
+         SRA   R7,2               R7 :=000000C0             15
+         SR    R7,R4              R7 :=FFFFFFC1             16
+         LTR   R8,R3              R8 :=00000100             17
+         SRL   R8,1               R8 :=00000080             18
+         ALR   R8,R3              R8 :=00000180             19
+         SLR   R8,R7              R8 :=000001BF             20
+         CLR   R8,R3              !=                        21
+         BE    T981BAD                                      22
+         LA    R9,602             R9 :=0000025A             23
+         XR    R9,R4              R9 :=000002A5 FIN         24
+         LTR   R10,R9             R10:=000002A5             25
+         AR    R10,R9             R10:=000004FF             26
+         OR    R10,R5             R10:=FFFFFCFF             27
+         LPR   R6,R10             R6 :=00000301             28
+         ALR   R6,R4              R6 :=00000400             29
+         SLA   R6,1               R6 :=00000800             30
+         SR    R6,R9              R6 :=0000055B             31
+         BCTR  R15,R11
+         TSIMRET
+*
+         DS    0H
+T981BAD  ABEND 60
+         TSIMEND
+*
+* Test 982 -- Mix Int RR 1st 32 ----------------------------
+*
+         TSIMBEG T982,25000,1,1,C'T700 1st 32',DIS=1
+*
+T982L    EQU   *
+         LA    R2,1               R2 :=00000001 FIN         01
+         LR    R3,R2              R3 :=00000001             02
+         SLA   R3,8               R3 :=00000100 FIN         03
+         XR    R4,R4              R4 :=00000000             04
+         OR    R4,R3              R4 :=00000100             05
+         BCTR  R4,0               R4 :=000000FF FIN         06
+         LCR   R5,R4              R5 :=FFFFFF01             07
+         SLL   R5,2               R5 :=FFFFFC04 FIN         08
+         LPR   R6,R5              R6 :=000003FC             09
+         AR    R6,R1              R6 :=000003FD             10
+         CR    R6,R1              !=                        11
+         BE    T982BAD                                      12
+         LNR   R7,R3              R7 :=FFFFFF00             13
+         NR    R7,R6              R7 :=00000300             14
+         SRA   R7,2               R7 :=000000C0             15
+         SR    R7,R4              R7 :=FFFFFFC1             16
+         LTR   R8,R3              R8 :=00000100             17
+         SRL   R8,1               R8 :=00000080             18
+         ALR   R8,R3              R8 :=00000180             19
+         SLR   R8,R7              R8 :=000001BF             20
+         CLR   R8,R3              !=                        21
+         BE    T982BAD                                      22
+         LA    R9,602             R9 :=0000025A             23
+         XR    R9,R4              R9 :=000002A5 FIN         24
+         LTR   R10,R9             R10:=000002A5             25
+         AR    R10,R9             R10:=000004FF             26
+         OR    R10,R5             R10:=FFFFFCFF             27
+         LPR   R6,R10             R6 :=00000301             28
+         ALR   R6,R4              R6 :=00000400             29
+         SLA   R6,1               R6 :=00000800             30
+         SR    R6,R9              R6 :=0000055B             31
+         BCTR  R6,0               R6 :=0000055A             32
+         BCTR  R15,R11
+         TSIMRET
+*
+         DS    0H
+T982BAD  ABEND 60
+         TSIMEND
+*
+* Test 983 -- Mix Int RR 1st 33 ----------------------------
+*
+         TSIMBEG T983,25000,1,1,C'T700 1st 33',DIS=1
+*
+T983L    EQU   *
+         LA    R2,1               R2 :=00000001 FIN         01
+         LR    R3,R2              R3 :=00000001             02
+         SLA   R3,8               R3 :=00000100 FIN         03
+         XR    R4,R4              R4 :=00000000             04
+         OR    R4,R3              R4 :=00000100             05
+         BCTR  R4,0               R4 :=000000FF FIN         06
+         LCR   R5,R4              R5 :=FFFFFF01             07
+         SLL   R5,2               R5 :=FFFFFC04 FIN         08
+         LPR   R6,R5              R6 :=000003FC             09
+         AR    R6,R1              R6 :=000003FD             10
+         CR    R6,R1              !=                        11
+         BE    T983BAD                                      12
+         LNR   R7,R3              R7 :=FFFFFF00             13
+         NR    R7,R6              R7 :=00000300             14
+         SRA   R7,2               R7 :=000000C0             15
+         SR    R7,R4              R7 :=FFFFFFC1             16
+         LTR   R8,R3              R8 :=00000100             17
+         SRL   R8,1               R8 :=00000080             18
+         ALR   R8,R3              R8 :=00000180             19
+         SLR   R8,R7              R8 :=000001BF             20
+         CLR   R8,R3              !=                        21
+         BE    T983BAD                                      22
+         LA    R9,602             R9 :=0000025A             23
+         XR    R9,R4              R9 :=000002A5 FIN         24
+         LTR   R10,R9             R10:=000002A5             25
+         AR    R10,R9             R10:=000004FF             26
+         OR    R10,R5             R10:=FFFFFCFF             27
+         LPR   R6,R10             R6 :=00000301             28
+         ALR   R6,R4              R6 :=00000400             29
+         SLA   R6,1               R6 :=00000800             30
+         SR    R6,R9              R6 :=0000055B             31
+         BCTR  R6,0               R6 :=0000055A             32
+         NR    R6,R5              R6 :=00000400             33
+         BCTR  R15,R11
+         TSIMRET
+*
+         DS    0H
+T983BAD  ABEND 60
+         TSIMEND
+*
+* Test 984 -- Mix Int RR 1st 34 ----------------------------
+*
+         TSIMBEG T984,25000,1,1,C'T700 1st 34',DIS=1
+*
+T984L    EQU   *
+         LA    R2,1               R2 :=00000001 FIN         01
+         LR    R3,R2              R3 :=00000001             02
+         SLA   R3,8               R3 :=00000100 FIN         03
+         XR    R4,R4              R4 :=00000000             04
+         OR    R4,R3              R4 :=00000100             05
+         BCTR  R4,0               R4 :=000000FF FIN         06
+         LCR   R5,R4              R5 :=FFFFFF01             07
+         SLL   R5,2               R5 :=FFFFFC04 FIN         08
+         LPR   R6,R5              R6 :=000003FC             09
+         AR    R6,R1              R6 :=000003FD             10
+         CR    R6,R1              !=                        11
+         BE    T984BAD                                      12
+         LNR   R7,R3              R7 :=FFFFFF00             13
+         NR    R7,R6              R7 :=00000300             14
+         SRA   R7,2               R7 :=000000C0             15
+         SR    R7,R4              R7 :=FFFFFFC1             16
+         LTR   R8,R3              R8 :=00000100             17
+         SRL   R8,1               R8 :=00000080             18
+         ALR   R8,R3              R8 :=00000180             19
+         SLR   R8,R7              R8 :=000001BF             20
+         CLR   R8,R3              !=                        21
+         BE    T984BAD                                      22
+         LA    R9,602             R9 :=0000025A             23
+         XR    R9,R4              R9 :=000002A5 FIN         24
+         LTR   R10,R9             R10:=000002A5             25
+         AR    R10,R9             R10:=000004FF             26
+         OR    R10,R5             R10:=FFFFFCFF             27
+         LPR   R6,R10             R6 :=00000301             28
+         ALR   R6,R4              R6 :=00000400             29
+         SLA   R6,1               R6 :=00000800             30
+         SR    R6,R9              R6 :=0000055B             31
+         BCTR  R6,0               R6 :=0000055A             32
+         NR    R6,R5              R6 :=00000400             33
+         SRA   R6,5               R6 :=00000020             34
+         BCTR  R15,R11
+         TSIMRET
+*
+         DS    0H
+T984BAD  ABEND 60
+         TSIMEND
+*
+* Test 985 -- Mix Int RR 1st 35 ----------------------------
+*
+         TSIMBEG T985,25000,1,1,C'T700 1st 35',DIS=1
+*
+T985L    EQU   *
+         LA    R2,1               R2 :=00000001 FIN         01
+         LR    R3,R2              R3 :=00000001             02
+         SLA   R3,8               R3 :=00000100 FIN         03
+         XR    R4,R4              R4 :=00000000             04
+         OR    R4,R3              R4 :=00000100             05
+         BCTR  R4,0               R4 :=000000FF FIN         06
+         LCR   R5,R4              R5 :=FFFFFF01             07
+         SLL   R5,2               R5 :=FFFFFC04 FIN         08
+         LPR   R6,R5              R6 :=000003FC             09
+         AR    R6,R1              R6 :=000003FD             10
+         CR    R6,R1              !=                        11
+         BE    T985BAD                                      12
+         LNR   R7,R3              R7 :=FFFFFF00             13
+         NR    R7,R6              R7 :=00000300             14
+         SRA   R7,2               R7 :=000000C0             15
+         SR    R7,R4              R7 :=FFFFFFC1             16
+         LTR   R8,R3              R8 :=00000100             17
+         SRL   R8,1               R8 :=00000080             18
+         ALR   R8,R3              R8 :=00000180             19
+         SLR   R8,R7              R8 :=000001BF             20
+         CLR   R8,R3              !=                        21
+         BE    T985BAD                                      22
+         LA    R9,602             R9 :=0000025A             23
+         XR    R9,R4              R9 :=000002A5 FIN         24
+         LTR   R10,R9             R10:=000002A5             25
+         AR    R10,R9             R10:=000004FF             26
+         OR    R10,R5             R10:=FFFFFCFF             27
+         LPR   R6,R10             R6 :=00000301             28
+         ALR   R6,R4              R6 :=00000400             29
+         SLA   R6,1               R6 :=00000800             30
+         SR    R6,R9              R6 :=0000055B             31
+         BCTR  R6,0               R6 :=0000055A             32
+         NR    R6,R5              R6 :=00000400             33
+         SRA   R6,5               R6 :=00000020             34
+         CR    R6,R4              !=                        35
+         BCTR  R15,R11
+         TSIMRET
+*
+         DS    0H
+T985BAD  ABEND 60
+         TSIMEND
+*
+* Test 986 -- Mix Int RR 1st 36 ----------------------------
+*
+         TSIMBEG T986,20000,1,1,C'T700 1st 36',DIS=1
+*
+T986L    EQU   *
+         LA    R2,1               R2 :=00000001 FIN         01
+         LR    R3,R2              R3 :=00000001             02
+         SLA   R3,8               R3 :=00000100 FIN         03
+         XR    R4,R4              R4 :=00000000             04
+         OR    R4,R3              R4 :=00000100             05
+         BCTR  R4,0               R4 :=000000FF FIN         06
+         LCR   R5,R4              R5 :=FFFFFF01             07
+         SLL   R5,2               R5 :=FFFFFC04 FIN         08
+         LPR   R6,R5              R6 :=000003FC             09
+         AR    R6,R1              R6 :=000003FD             10
+         CR    R6,R1              !=                        11
+         BE    T986BAD                                      12
+         LNR   R7,R3              R7 :=FFFFFF00             13
+         NR    R7,R6              R7 :=00000300             14
+         SRA   R7,2               R7 :=000000C0             15
+         SR    R7,R4              R7 :=FFFFFFC1             16
+         LTR   R8,R3              R8 :=00000100             17
+         SRL   R8,1               R8 :=00000080             18
+         ALR   R8,R3              R8 :=00000180             19
+         SLR   R8,R7              R8 :=000001BF             20
+         CLR   R8,R3              !=                        21
+         BE    T986BAD                                      22
+         LA    R9,602             R9 :=0000025A             23
+         XR    R9,R4              R9 :=000002A5 FIN         24
+         LTR   R10,R9             R10:=000002A5             25
+         AR    R10,R9             R10:=000004FF             26
+         OR    R10,R5             R10:=FFFFFCFF             27
+         LPR   R6,R10             R6 :=00000301             28
+         ALR   R6,R4              R6 :=00000400             29
+         SLA   R6,1               R6 :=00000800             30
+         SR    R6,R9              R6 :=0000055B             31
+         BCTR  R6,0               R6 :=0000055A             32
+         NR    R6,R5              R6 :=00000400             33
+         SRA   R6,5               R6 :=00000020             34
+         CR    R6,R4              !=                        35
+         LNR   R7,R6              R7 :=FFFFFFC0             36
+         BCTR  R15,R11
+         TSIMRET
+*
+         DS    0H
+T986BAD  ABEND 60
+         TSIMEND
+*
+* Test 987 -- Mix Int RR 1st 37 ----------------------------
+*
+         TSIMBEG T987,20000,1,1,C'T700 1st 37',DIS=1
+*
+T987L    EQU   *
+         LA    R2,1               R2 :=00000001 FIN         01
+         LR    R3,R2              R3 :=00000001             02
+         SLA   R3,8               R3 :=00000100 FIN         03
+         XR    R4,R4              R4 :=00000000             04
+         OR    R4,R3              R4 :=00000100             05
+         BCTR  R4,0               R4 :=000000FF FIN         06
+         LCR   R5,R4              R5 :=FFFFFF01             07
+         SLL   R5,2               R5 :=FFFFFC04 FIN         08
+         LPR   R6,R5              R6 :=000003FC             09
+         AR    R6,R1              R6 :=000003FD             10
+         CR    R6,R1              !=                        11
+         BE    T987BAD                                      12
+         LNR   R7,R3              R7 :=FFFFFF00             13
+         NR    R7,R6              R7 :=00000300             14
+         SRA   R7,2               R7 :=000000C0             15
+         SR    R7,R4              R7 :=FFFFFFC1             16
+         LTR   R8,R3              R8 :=00000100             17
+         SRL   R8,1               R8 :=00000080             18
+         ALR   R8,R3              R8 :=00000180             19
+         SLR   R8,R7              R8 :=000001BF             20
+         CLR   R8,R3              !=                        21
+         BE    T987BAD                                      22
+         LA    R9,602             R9 :=0000025A             23
+         XR    R9,R4              R9 :=000002A5 FIN         24
+         LTR   R10,R9             R10:=000002A5             25
+         AR    R10,R9             R10:=000004FF             26
+         OR    R10,R5             R10:=FFFFFCFF             27
+         LPR   R6,R10             R6 :=00000301             28
+         ALR   R6,R4              R6 :=00000400             29
+         SLA   R6,1               R6 :=00000800             30
+         SR    R6,R9              R6 :=0000055B             31
+         BCTR  R6,0               R6 :=0000055A             32
+         NR    R6,R5              R6 :=00000400             33
+         SRA   R6,5               R6 :=00000020             34
+         CR    R6,R4              !=                        35
+         LNR   R7,R6              R7 :=FFFFFFC0             36
+         SLL   R7,2               R7 :=FFFFFF00             37
+         BCTR  R15,R11
+         TSIMRET
+*
+         DS    0H
+T987BAD  ABEND 60
+         TSIMEND
+*
+* Test 988 -- Mix Int RR 1st 38 ----------------------------
+*
+         TSIMBEG T988,20000,1,1,C'T700 1st 38',DIS=1
+*
+T988L    EQU   *
+         LA    R2,1               R2 :=00000001 FIN         01
+         LR    R3,R2              R3 :=00000001             02
+         SLA   R3,8               R3 :=00000100 FIN         03
+         XR    R4,R4              R4 :=00000000             04
+         OR    R4,R3              R4 :=00000100             05
+         BCTR  R4,0               R4 :=000000FF FIN         06
+         LCR   R5,R4              R5 :=FFFFFF01             07
+         SLL   R5,2               R5 :=FFFFFC04 FIN         08
+         LPR   R6,R5              R6 :=000003FC             09
+         AR    R6,R1              R6 :=000003FD             10
+         CR    R6,R1              !=                        11
+         BE    T988BAD                                      12
+         LNR   R7,R3              R7 :=FFFFFF00             13
+         NR    R7,R6              R7 :=00000300             14
+         SRA   R7,2               R7 :=000000C0             15
+         SR    R7,R4              R7 :=FFFFFFC1             16
+         LTR   R8,R3              R8 :=00000100             17
+         SRL   R8,1               R8 :=00000080             18
+         ALR   R8,R3              R8 :=00000180             19
+         SLR   R8,R7              R8 :=000001BF             20
+         CLR   R8,R3              !=                        21
+         BE    T988BAD                                      22
+         LA    R9,602             R9 :=0000025A             23
+         XR    R9,R4              R9 :=000002A5 FIN         24
+         LTR   R10,R9             R10:=000002A5             25
+         AR    R10,R9             R10:=000004FF             26
+         OR    R10,R5             R10:=FFFFFCFF             27
+         LPR   R6,R10             R6 :=00000301             28
+         ALR   R6,R4              R6 :=00000400             29
+         SLA   R6,1               R6 :=00000800             30
+         SR    R6,R9              R6 :=0000055B             31
+         BCTR  R6,0               R6 :=0000055A             32
+         NR    R6,R5              R6 :=00000400             33
+         SRA   R6,5               R6 :=00000020             34
+         CR    R6,R4              !=                        35
+         LNR   R7,R6              R7 :=FFFFFFC0             36
+         SLL   R7,2               R7 :=FFFFFF00             37
+         SLR   R7,R2              R7 :=FFFFFEFF             38
+         BCTR  R15,R11
+         TSIMRET
+*
+         DS    0H
+T988BAD  ABEND 60
+         TSIMEND
+*
+* Test 989 -- Mix Int RR 1st 39 ----------------------------
+*
+         TSIMBEG T989,20000,1,1,C'T700 1st 39',DIS=1
+*
+T989L    EQU   *
+         LA    R2,1               R2 :=00000001 FIN         01
+         LR    R3,R2              R3 :=00000001             02
+         SLA   R3,8               R3 :=00000100 FIN         03
+         XR    R4,R4              R4 :=00000000             04
+         OR    R4,R3              R4 :=00000100             05
+         BCTR  R4,0               R4 :=000000FF FIN         06
+         LCR   R5,R4              R5 :=FFFFFF01             07
+         SLL   R5,2               R5 :=FFFFFC04 FIN         08
+         LPR   R6,R5              R6 :=000003FC             09
+         AR    R6,R1              R6 :=000003FD             10
+         CR    R6,R1              !=                        11
+         BE    T989BAD                                      12
+         LNR   R7,R3              R7 :=FFFFFF00             13
+         NR    R7,R6              R7 :=00000300             14
+         SRA   R7,2               R7 :=000000C0             15
+         SR    R7,R4              R7 :=FFFFFFC1             16
+         LTR   R8,R3              R8 :=00000100             17
+         SRL   R8,1               R8 :=00000080             18
+         ALR   R8,R3              R8 :=00000180             19
+         SLR   R8,R7              R8 :=000001BF             20
+         CLR   R8,R3              !=                        21
+         BE    T989BAD                                      22
+         LA    R9,602             R9 :=0000025A             23
+         XR    R9,R4              R9 :=000002A5 FIN         24
+         LTR   R10,R9             R10:=000002A5             25
+         AR    R10,R9             R10:=000004FF             26
+         OR    R10,R5             R10:=FFFFFCFF             27
+         LPR   R6,R10             R6 :=00000301             28
+         ALR   R6,R4              R6 :=00000400             29
+         SLA   R6,1               R6 :=00000800             30
+         SR    R6,R9              R6 :=0000055B             31
+         BCTR  R6,0               R6 :=0000055A             32
+         NR    R6,R5              R6 :=00000400             33
+         SRA   R6,5               R6 :=00000020             34
+         CR    R6,R4              !=                        35
+         LNR   R7,R6              R7 :=FFFFFFC0             36
+         SLL   R7,2               R7 :=FFFFFF00             37
+         SLR   R7,R2              R7 :=FFFFFEFF             38
+         LCR   R8,R7              R8 :=00000101             39
+         BCTR  R15,R11
+         TSIMRET
+*
+         DS    0H
+T989BAD  ABEND 60
+         TSIMEND
+*
+* Test 990 -- Mix Int RR 1st 40 ----------------------------
+*
+         TSIMBEG T990,20000,1,1,C'T700 1st 40',DIS=1
+*
+T990L    EQU   *
+         LA    R2,1               R2 :=00000001 FIN         01
+         LR    R3,R2              R3 :=00000001             02
+         SLA   R3,8               R3 :=00000100 FIN         03
+         XR    R4,R4              R4 :=00000000             04
+         OR    R4,R3              R4 :=00000100             05
+         BCTR  R4,0               R4 :=000000FF FIN         06
+         LCR   R5,R4              R5 :=FFFFFF01             07
+         SLL   R5,2               R5 :=FFFFFC04 FIN         08
+         LPR   R6,R5              R6 :=000003FC             09
+         AR    R6,R1              R6 :=000003FD             10
+         CR    R6,R1              !=                        11
+         BE    T990BAD                                      12
+         LNR   R7,R3              R7 :=FFFFFF00             13
+         NR    R7,R6              R7 :=00000300             14
+         SRA   R7,2               R7 :=000000C0             15
+         SR    R7,R4              R7 :=FFFFFFC1             16
+         LTR   R8,R3              R8 :=00000100             17
+         SRL   R8,1               R8 :=00000080             18
+         ALR   R8,R3              R8 :=00000180             19
+         SLR   R8,R7              R8 :=000001BF             20
+         CLR   R8,R3              !=                        21
+         BE    T990BAD                                      22
+         LA    R9,602             R9 :=0000025A             23
+         XR    R9,R4              R9 :=000002A5 FIN         24
+         LTR   R10,R9             R10:=000002A5             25
+         AR    R10,R9             R10:=000004FF             26
+         OR    R10,R5             R10:=FFFFFCFF             27
+         LPR   R6,R10             R6 :=00000301             28
+         ALR   R6,R4              R6 :=00000400             29
+         SLA   R6,1               R6 :=00000800             30
+         SR    R6,R9              R6 :=0000055B             31
+         BCTR  R6,0               R6 :=0000055A             32
+         NR    R6,R5              R6 :=00000400             33
+         SRA   R6,5               R6 :=00000020             34
+         CR    R6,R4              !=                        35
+         LNR   R7,R6              R7 :=FFFFFFC0             36
+         SLL   R7,2               R7 :=FFFFFF00             37
+         SLR   R7,R2              R7 :=FFFFFEFF             38
+         LCR   R8,R7              R8 :=00000101             39
+         CLR   R8,R3              !=                        40
+         BCTR  R15,R11
+         TSIMRET
+*
+         DS    0H
+T990BAD  ABEND 60
+         TSIMEND
+*
+* END OF TESTS ==================================================
 *
 * Remember end of TDSCTBL ----------------------------------
 *
