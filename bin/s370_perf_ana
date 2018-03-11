@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: s370_perf_ana 997 2018-03-03 20:23:21Z mueller $
+# $Id: s370_perf_ana 999 2018-03-11 19:48:53Z mueller $
 #
 # Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-03-10   999   1.3.1  add -w2,-csv options; change -lrun to -nolrun
 # 2018-03-03   996   1.3    print s370_perf version; add -raw,-t311,-t312
 # 2018-02-24   994   1.2.1  add -d3 for fast systems
 # 2018-01-28   991   1.2    add chktag; add -cf,-cp,-cn
@@ -32,13 +33,14 @@ my %opts = ();
 my %tags;
 my $s370_perf_vers;
 
-GetOptions(\%opts, "help", "ltpi", "ldf",
-           "lrun", "ttim", "nolcor", "raw",
-           "d1", "d3",
-           "t311=f","t312=f",
-           "cf=f", "cp=f", "cn=i")
+GetOptions(\%opts, 'help', 'ltpi', 'ldf',
+           'raw','csv', 'nolrun', 'nolcor', 'ttim',
+           'd1', 'd3','w2','w3',
+           't311=f','t312=f',
+           'cf=f', 'cp=f', 'cn=i')
   or die "bad options";
 
+my $csv = $opts{csv};
 my $dolcor = not exists $opts{nolcor};
 
 # handle help
@@ -48,29 +50,31 @@ if (defined $opts{help}) { do_help();  exit 0; }
 $opts{cp} = 1000./$opts{cf} if exists $opts{cf};
 
 #
-# print essential option
+# print essential options
 #
 my $opttxt;
-$opttxt .= "  -raw"                 if exists $opts{raw};
-$opttxt .= "  -cf "   . $opts{cf}   if exists $opts{cf};
-$opttxt .= "  -cp "   . sprintf "%6.3f",$opts{cp} if exists $opts{cp};
-$opttxt .= "  -cn "   . $opts{cn}   if exists $opts{cn};
-$opttxt .= "  -t311 " . $opts{t311} if exists $opts{t311};
-$opttxt .= "  -t312 " . $opts{t312} if exists $opts{t312};
-printf "s370_perf_ana%s\n\n",$opttxt if defined $opttxt;
+$opttxt .= '  -raw'                 if exists $opts{raw};
+$opttxt .= '  -cf '   . $opts{cf}   if exists $opts{cf};
+$opttxt .= '  -cp '   . sprintf '%6.3f',$opts{cp} if exists $opts{cp};
+$opttxt .= '  -cn '   . $opts{cn}   if exists $opts{cn};
+$opttxt .= '  -t311 ' . $opts{t311} if exists $opts{t311};
+$opttxt .= '  -t312 ' . $opts{t312} if exists $opts{t312};
+printf "s370_perf_ana%s\n\n",$opttxt if defined $opttxt && not $csv;
 #
 # handle input files
 #
 
 print "file name ----------------------------".
-      "  GMUL  i-count  -- total time --   MIPS\n" if $opts{lrun};
+      "  GMUL  i-count  -- total time --   MIPS\n" unless $opts{nolrun} || $csv;
 
 foreach my $fname (@ARGV) {
   do_file($fname);
 }
 
-print "s370_perf version: $s370_perf_vers\n" if defined $s370_perf_vers;
-print "\n" if $opts{lrun};
+unless ($csv) {
+  print "s370_perf version: $s370_perf_vers\n" if defined $s370_perf_vers;
+  print "\n" unless $opts{nolrun};
+}
 
 do_anal();
 do_show();
@@ -83,19 +87,22 @@ exit 0;
 
 sub do_help {
   print "usage: s370_perf_ana [OPTIONS] [FILE]...\n";
+  print "  -d1      decrease time field precision (for slow systems)\n";
+  print "  -d3      increase time field precision (for fast systems)\n";
+  print "  -w2      increase w50 field precision\n";
+  print "  -w3      increase w50 field precision\n";
+  print "  -nolcor  no loop (bctr/bct) timing correction\n";
+  print "  -t311=t  override time used for bctr loop correction\n";
+  print "  -t312=t  override time used for bct  loop correction\n";
+  print "  -nolrun  suppress file/run statistics\n";
   print "  -ltpi    list per run tpi values\n";
   print "  -ldf     list tpi distribution function\n";
-  print "  -lrun    list file/run statistics\n";
-  print "  -cf=f    specify clock frequency (in MHz)\n";
+  print "  -raw     show raw data\n";
+  print "  -csv     output in csv format for spreadsheet import\n";
   print "  -cp=p    specify clock period (in ns)\n";
+  print "  -cf=f    specify clock frequency (in MHz)\n";
   print "  -cn=n    number of clock phases (default = 1)\n";
   print "  -ttim    use test time field (instead of instruction time)\n";
-  print "  -nolcor  no loop (bctr/bct) timing corrction\n";
-  print "  -t311=t  overide time used for bctr loop correction\n";
-  print "  -t312=t  overide time used for bct  loop correction\n";
-  print "  -raw     show raw data\n";
-  print "  -d1      reduce time field precision (for slow systems)\n";
-  print "  -d3      increase time field precision (for fast systems)\n";
   print "  -help    help text\n";
   return;
 }
@@ -166,7 +173,7 @@ sub do_file {
 
     if (m/^PERF004I done with tests/) {
       $resok = 0;
-      if ($opts{lrun}) {
+      unless ($opts{nolrun} || $csv) {
         my $gtim_min = int ($gtim/60.);
         my $gtim_sec = $gtim - 60.*$gtim_min;
         my $mips = ($gtim>0) ? 1.e-6*$gcnt/$gtim : 0.;
@@ -254,17 +261,42 @@ sub do_show {
   my $norrr = $tags{T100}{tpicor};
   my $norrx = $tags{T102}{tpicor};
 
-  printf "Tag   Comment                : nt";
+  my $del  = $csv ? '|' : ' ';
+  my $edel = $csv ? '|' : ':';
+  my $psym = $csv ? '%' : '%';
+
+  #
+  # print heading line
+  #
+  printf 'Tag ';
+  printf '%s Comment                ',$del;
+  printf '%s nt',$edel;
   unless ($opts{raw}) {
     my $vname = $dolcor ? "cor" : "med";
-    printf "     min     max      %s   w50%%    n-rr   n-rx", $vname;
+    printf '%s    min', $del;
+    printf '%s    max', $del;
+    printf '%s     %s', $del,$vname;
+    printf '%s  w50%s', $del,$psym;
+    printf '%s   n-rr', $del;
+    printf '%s  n-rx',  $del;
   } else {
-    printf "      lr  ig lt        raw   w50%%";
+    printf '%s     lr',    $del;
+    printf '%s ig',        $del;
+    printf '%slt',         $del;
+    printf '%s       raw', $del;
+    printf '%s  w50%s',    $del,$psym;
   }
-  printf "    n-cp  e-cp%%   mcc" if $opts{cp};
-  printf "   scc" if $opts{cn};
+  if ($opts{cp}) {
+    printf '%s   n-cp', $del;
+    printf '%s e-cp%s', $del,$psym;
+    printf '%s  mcc',   $del;;
+  }
+  printf '%s  scc',$del if $opts{cn};
   printf "\n";
 
+  #
+  # setup formats
+  #
   my $fmt1 = '%7.1f';
   my $fmt2 = '%8.2f';
   my $fmt3 = '%10.2f';
@@ -278,28 +310,38 @@ sub do_show {
     $fmt2 = '%8.3f';
     $fmt3 = '%10.3f';
   }
+  my $fmtw1 = '%5.1f';
+  if ($opts{w2}) {
+    $fmtw1 = '%5.2f';
+  }
+  if ($opts{w3}) {
+    $fmtw1 = '%5.3f';
+  }
 
+  #
+  # print test lines
+  #
   foreach my $tag (sort keys %tags) {
+    my $w50pcent = 100.*$tags{$tag}{tpiw50}/$tags{$tag}{tpimed};
 
-    printf "%s  %-22s :%3d",
-      $tag,
-      $tags{$tag}{txt},
-      $tags{$tag}{tpicnt};
+    printf '%s',        $tag;
+    printf '%s %-22s ', $del, $tags{$tag}{txt};
+    printf '%s%3d',     $edel, $tags{$tag}{tpicnt};
+
     unless ($opts{raw}) {
-      printf " %s %s %s %s%% %s %s",
-        sprt($tags{$tag}{tpimin},$fmt1),
-        sprt($tags{$tag}{tpimax},$fmt1),
-        sprt($tags{$tag}{tpicor},$fmt2),
-        sprt(100.*$tags{$tag}{tpiw50}/$tags{$tag}{tpimed},'%5.1f'),
-        sprt($tags{$tag}{tpicor}/$norrr,'%7.2f'),
-        sprt($tags{$tag}{tpicor}/$norrx,'%6.2f');
+      printf '%s%s',   $del,sprt($tags{$tag}{tpimin},$fmt1);
+      printf '%s%s',   $del,sprt($tags{$tag}{tpimax},$fmt1);
+      printf '%s%s',   $del,sprt($tags{$tag}{tpicor},$fmt2);
+      printf '%s%s%s', $del,sprt($w50pcent,$fmtw1), $psym;
+      printf '%s%s',   $del,sprt($tags{$tag}{tpicor}/$norrr,'%7.2f');
+      printf '%s%s',   $del,sprt($tags{$tag}{tpicor}/$norrx,'%6.2f');
     } else {
-      printf " %7d %3d %2d %s %s%%",
-        $tags{$tag}{lrcnt},
-        $tags{$tag}{igcnt},
-        $tags{$tag}{ltype},
-        sprt($tags{$tag}{igcnt}*$tags{$tag}{tpimed},$fmt3),
-        sprt(100.*$tags{$tag}{tpiw50}/$tags{$tag}{tpimed},'%5.1f');
+      my $totraw = $tags{$tag}{igcnt}*$tags{$tag}{tpimed};
+      printf '%s%7d',  $del,$tags{$tag}{lrcnt};
+      printf '%s%3d',  $del,$tags{$tag}{igcnt};
+      printf '%s%2d',  $del,$tags{$tag}{ltype};
+      printf '%s%s',   $del,sprt($totraw,$fmt3);
+      printf '%s%s%s', $del,sprt($w50pcent,$fmtw1), $psym;
     }
     if (exists $opts{cp}) {
       my $time = $opts{raw} ?
@@ -308,35 +350,37 @@ sub do_show {
       my $ncp = $time / $opts{cp};
       my $cc  = int($ncp + 0.5);
       my $ecp = 100. * ($ncp - $cc);
-      printf " %s   %3d%%", sprt($ncp,'%7.2f'),$ecp;
+      printf '%s%s',    $del,sprt($ncp,'%7.2f');
+      printf '%s%5d%s', $del,$ecp,$psym;
       if (exists $opts{cn}) {
         my $mcc = int($cc/$opts{cn});
         my $scc = $cc - $mcc * $opts{cn};
-        printf " %5d %5d", $mcc, $scc;
+        printf '%s%5d',$del,$mcc;
+        printf '%s%5d',$del,$scc;
       } else {
-        printf " %5d", $cc;
+        printf '%s%5d',$del,$cc;
       }
     }
-    printf "\n";
+    print "\n";
 
-    if ($opts{ltpi}) {
+    if ($opts{ltpi} && not $csv) {
       my $ival = 0;
       my $nval = scalar(@{$tags{$tag}{tpival}});
       foreach my $val (@{$tags{$tag}{tpival}}) {
-        print '  tpi:' if $ival%5 == 0;
-        printf "  %8.3f",$val;
+        print  '  tpi:' if $ival%5 == 0;
+        printf '  %8.3f',$val;
         $ival += 1;
         print "\n" if $ival%5 == 0;
       }
       print "\n" unless $ival%5 == 0;
     }
-    if ($opts{ldf}) {
+    if ($opts{ldf} && not $csv) {
       my @tpisort = sort { $a <=> $b } @{$tags{$tag}{tpival}};
       my $ival = 0;
       my $nval = scalar(@tpisort);
       foreach my $val (@tpisort) {
-        print '   df:' if $ival%5 == 0;
-        printf "  %8.3f",$val;
+        print  '  cdf:' if $ival%5 == 0;
+        printf '  %8.3f',$val;
         $ival += 1;
         print "\n" if $ival%5 == 0;
       }
