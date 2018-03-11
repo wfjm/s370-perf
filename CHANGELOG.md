@@ -15,8 +15,12 @@ the documentation is consistent.
 
 - rename clib -> sios
 - remove bin/hercjis; add instead whole herc-tools project as submodule
-- s370_perf_ana: print s370_perf version; add -raw,-t311,-t312
-- s370_perf_sum: add -rat option
+- s370_perf_ana:
+  - print s370_perf version; add -raw,-t311,-t312
+  - add -w2,-csv options; change -lrun to -nolrun
+- s370_perf_sum:
+  - add -rat option
+  - print essential options; print file stats, w50 ect
 - s370_perf
   - add T9**,T703; fix T232 text
   - add /OPCF, enables print of config file entries

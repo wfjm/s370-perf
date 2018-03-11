@@ -19,11 +19,12 @@ The project files are organized in directories as
 | Directory | Content |
 | --------- | ------- |
 | [bin](bin)     | some helper scripts |
-| [sios](sios)   | assembler code snippets |
 | [codes](codes) | the codes and jobs |
 | [data](data)   | benchmark results |
 | [doc](doc)     | documentation |
 | [jcl](jcl)     | JCL job templates |
+| [narr](narr)   | narrative for benchmark results |
+| [sios](sios)   | assembler code snippets |
 
 ### License
 This project is released under the 
