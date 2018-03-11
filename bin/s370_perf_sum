@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: s370_perf_sum 996 2018-03-03 13:59:23Z mueller $
+# $Id: s370_perf_sum 999 2018-03-11 19:48:53Z mueller $
 #
 # Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-03-10   999   1.0.7  print essential options; print file stats, w50 ect
 # 2018-03-03   996   1.0.6  add -rat option
 # 2018-02-23   994   1.0.5  add -fmis and -fsig options
 # 2018-01-28   991   1.0.4  allow extra columns in input files (e.g. from -cp)
@@ -31,12 +32,12 @@ use Getopt::Long;
 my %opts = ();
 my %tag2txt;
 my %tag2val;
-my %fnum2fnam;
+my %ftbl;
 my $nfile = 0;
 
 GetOptions(\%opts,
-           "help", "nrr", "nrx", "min", "w50", "rel","rat",
-           "fsig:1","fmis:1",
+           'help', 'nrr', 'nrx', 'min', 'w50', 'rel','rat',
+           'fsig:1','fmis:1',
           )
   or die "bad options";
 
@@ -45,17 +46,30 @@ GetOptions(\%opts,
 if (defined $opts{help}) { do_help();  exit 0; }
 
 #
+# print essential options
+#
+my $opttxt;
+$opttxt .= '  -nrr'                 if exists $opts{nrr};
+$opttxt .= '  -nrx'                 if exists $opts{nrx};
+$opttxt .= '  -min'                 if exists $opts{min};
+$opttxt .= '  -w50'                 if exists $opts{w50};
+$opttxt .= '  -rel'                 if exists $opts{rel};
+$opttxt .= '  -rat'                 if exists $opts{rat};
+$opttxt .= '  -fsig ' . $opts{fsig} if exists $opts{fsig};
+$opttxt .= '  -fmis ' . $opts{fmis} if exists $opts{fmis};
+printf "s370_perf_sum%s\n\n",$opttxt if defined $opttxt;
+#
 # handle input files
 #
 
 foreach my $fname (@ARGV) {
   $nfile += 1;
-  my $fnum = sprintf "%02d",$nfile;
-  $fnum2fnam{$fnum} = $fname;
+  my $fnum = sprintf '%02d',$nfile;
+  $ftbl{$fnum}{fname} = $fname;
   do_file($fnum, $fname);
 }
 
-my @fnums = sort keys %fnum2fnam;
+my @fnums = sort keys %ftbl;
 
 do_show();
 
@@ -87,6 +101,10 @@ sub do_file {
   my ($fnum,$fname) = @_;
   open IFILE,"<$fname" or die "failed to open $fname";
 
+  my $ntest  = 0;
+  my $tpisum = 0.;
+  my $w50sum = 0.;
+  my $w50max = 0.;
   while (<IFILE>) {
     if (m/^(T\d\d\d)\s+                     # tag
           (.*?)\s+:\s+                      # txt
@@ -112,6 +130,10 @@ sub do_file {
       $val = $nrx if $opts{nrx};
       $val = $min if $opts{min};
       $val = $w50 if $opts{w50};
+      $ntest  += 1;
+      $tpisum += $tpi;
+      $w50sum += $tpi*$w50;
+      $w50max  = $w50 if $w50 > $w50max;
       #
       if (exists $tag2txt{$tag} && $tag2txt{$tag} ne $txt) {
         printf STDERR "s370_perf_sum-W file '%s' overwrites text for tag '%s'\n",
@@ -124,6 +146,9 @@ sub do_file {
     }
   }
 
+  $ftbl{$fnum}{ntest}  = $ntest;
+  $ftbl{$fnum}{w50avr} = $tpisum > 0. ? $w50sum/$tpisum : 0.;
+  $ftbl{$fnum}{w50max} = $w50max;
   close IFILE;
   return;
 }
@@ -133,20 +158,26 @@ sub do_file {
 #
 
 sub do_show {
-  printf "File summary:\n";
+  print "File num: name ----------------------------------- ".
+        "#test w50-avr  w50-max\n";
   foreach my $fnum (@fnums) {
-    printf "  file%s: %s\n", $fnum, $fnum2fnam{$fnum};
+    printf "      %s: %-40s  %4d %6.2f%%  %6.1f%%\n",
+      $fnum,
+      $ftbl{$fnum}{fname},
+      $ftbl{$fnum}{ntest},
+      $ftbl{$fnum}{w50avr},
+      $ftbl{$fnum}{w50max};
   }
   printf "\n";
 
-  my $vnam = 'tpi';
-  $vnam = 'nrr' if $opts{nrr};
-  $vnam = 'nrx' if $opts{nrx};
-  $vnam = 'min' if $opts{min};
-  $vnam = 'w50' if $opts{w50};
+  my $vnam = ' tpi';
+  $vnam = ' nrr' if $opts{nrr};
+  $vnam = ' nrx' if $opts{nrx};
+  $vnam = ' min' if $opts{min};
+  $vnam = 'w50_' if $opts{w50};
   printf "Tag   Comment                :";
   foreach my $fnum (@fnums) {
-    printf "   %s%s%s", ($opts{rel}?'r-':'  '),$vnam,$fnum;
+    printf "  %s%s%s", ($opts{rel}?'r-':'  '),$vnam,$fnum;
   }
   if ($opts{rat}) {
     printf " :";
