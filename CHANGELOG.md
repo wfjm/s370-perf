@@ -3,6 +3,7 @@
 ### Table of contents
 - Current [HEAD](#user-content-head)
 - Release [V0.50](#user-content-V0.50)
+- Release [V0.60](#user-content-V0.60)
 
 <!-- --------------------------------------------------------------------- -->
 ---
@@ -13,6 +14,11 @@ the documentation is consistent.
 
 ### Summary
 
+<!-- --------------------------------------------------------------------- -->
+---
+## 2018-03-16: [V0.60](https://github.com/wfjm/s370-perf/releases/tag/V0.60) - rev 1000(wfjm) <a name="V0.60"></a>
+
+### Summary
 - rename clib -> sios
 - remove bin/hercjis; add instead whole herc-tools project as submodule
 - s370_perf_ana:
