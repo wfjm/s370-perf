@@ -13,6 +13,8 @@ The HEAD version shows the current development. No guarantees that software or
 the documentation is consistent.
 
 ### Summary
+- s370_perf_ana:
+  - cleanup ^L handling; add -dt,-dl,-du,-nonrr
 
 <!-- --------------------------------------------------------------------- -->
 ---
