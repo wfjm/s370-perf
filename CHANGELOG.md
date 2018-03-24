@@ -15,6 +15,44 @@ the documentation is consistent.
 ### Summary
 - s370_perf_ana:
   - cleanup ^L handling; add -dt,-dl,-du,-nonrr
+- s370_perf
+  - use REPINSN instead of REPINS5 and REPINS2
+  - add tests for subtract (don't assume add and sub have same timing)
+  - add MVC length cases (5d,15d,30d) to loop overhead subtraction
+  - add DP test (now AP,SP,MP and DP are covered)
+  - move loop closing BCTR in T302,T303 such that BCTR is always same page
+  - add test for BR R (use 10 registers, structure like T302,T303)
+  - some renames needed to have a logical test sequence:
+    - ren T150->T151, T151->T154, T152->T155, T153->T156
+    - ren T154->T157, T156->T167, T157->T168, T158->T169
+    - add T150  MVC m,m (5c)
+    - add T152  MVC m,m (15c)
+    - add T153  MVC m,m (30c)
+    - add T205  SR R,R
+    - add T206  S R,m
+    - add T207  SH R,m
+    - add T208  SLR R,R
+    - add T209  SL R,m
+    - add T304  BR R
+    - add T305  BR R (far)
+    - ren T422->T424, T423->T425
+    - add T422  SP m,m (10d)
+    - add T423  SP m,m (30d)
+    - add T426  MVC;DP m,m (10d)
+    - add T427  MVC;DP m,m (30d)
+    - ren T512->T514, T513->T515, T514->T516, T515->T517, T516->T520
+    - ren T517->T521, T518->T522, T519->T523
+    - add T512  SER R,R
+    - add T513  SE R,m
+    - ren T520->T530, T521->T531, T522->T532, T523->T533, T524->T534, T525->T535
+    - ren T526->T536, T527->T537, T528->T538, T529->T539, T530->T540, T531->T541
+    - ren T532->T544, T533->T545, T534->T546, T535->T547, T536->T550, T537->T551
+    - ren T538->T552, T539->T553, T540->T560, T541->T561
+    - add T542  SDR R,R
+    - add T543  SD R,m
+- *.JES
+  - ASM step:  use BUFSIZE(MAX), reduces WORK file accesses, lowers CPU time
+  - LKED step: use SIZE=(512000,122880), required to avoid IEW0364 ERROR
 
 <!-- --------------------------------------------------------------------- -->
 ---

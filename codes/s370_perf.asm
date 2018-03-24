@@ -1,6 +1,6 @@
 *        1         2         3         4         5         6         71
 *23456789*12345*789012345678901234*678901234567890123456789012345678901
-* $Id: s370_perf.asm 998 2018-03-04 15:42:28Z mueller $
+* $Id: s370_perf.asm 1001 2018-03-24 12:57:03Z mueller $
 *
 * Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 *
@@ -10,6 +10,10 @@
 *
 *  Revision History:  (!! update MSGVERS when adding here !!)
 * Date         Rev Version  Comment
+* 2018-03-24  1001   0.9.6  use REPINSN instead of REPINS5 and REPINS2
+*                           renames, add T150,T152,T153,T205-T209
+*                           add T304,T305,T422,T423,T426,T427
+*                           add T512,T513,T542,T543
 * 2018-03-04   998   0.9.5  add T9**,T703; fix T232 text
 * 2018-03-03   997   0.9.4  reorganize PARM decode; add /OPCF
 * 2018-02-25   995   0.9.3  use R11,R12 as base to allow 8k  main code
@@ -108,14 +112,14 @@
 *   T330CS      code for T330
 *   DATA        other data
 *
-         PRINT NOGEN              don't show macro expansions
+***         PRINT NOGEN              don't show macro expansions
 *
 * local macros --------------------------------------------------------
 //** ##rinclude ../sios/otxtdsc.asm
 *
 * used global symbols
 *   type  name      set by    used by   comment
-*   GBLA  TDIGCNT   TDSCGEN   REPINS
+*   GBLA  TDIGCNT   TDSCGEN   REPINS*
 *   GBLC  TTAG      TSIMBEG   TSIMEND
 *
 * TDSCGEN - setup test descriptor --------------------------
@@ -249,47 +253,10 @@ TCODE    CSECT
 *
          MEND
 *
-* REPINS2 - repeat 2 instructions --------------------------
+* REPINSN - repeat 5 instructions --------------------------
 *
          MACRO
-&LABEL   REPINS2 &CO1,&AL1,&CO2,&AL2
-         GBLA  &TDIGCNT
-         GBLC  &MACRETC
-         LCLA  &ICNT
-         LCLC  &ARGS1,&ARGS2
-*
-* build from sublist &ALIST* a comma separated string &ARGS*
-*
-         REPINSAL &AL1
-&ARGS1   SETC  '&MACRETC'
-         REPINSAL &AL2
-&ARGS2   SETC  '&MACRETC'
-*
-         AIF   ('&LABEL' EQ '').NOLBL
-&LABEL   EQU   *
-.NOLBL   ANOP
-*
-&ICNT    SETA  &TDIGCNT
-*
-* write a comment indicating what REPINS2 does (if NOGEN in effect)
-*
-         MNOTE *,'// REPINS2: do &ICNT times:'
-         REPINSPI  &CO1,&ARGS1
-         REPINSPI  &CO2,&ARGS2
-*
-* finally generate code: &ICNT copies of &CO1 ...
-*
-.ILOOP   &CO1 &ARGS1
-         &CO2 &ARGS2
-&ICNT    SETA  &ICNT-1
-         AIF   (&ICNT GT 0).ILOOP
-*
-         MEND
-*
-* REPINS5 - repeat 5 instructions --------------------------
-*
-         MACRO
-&LABEL   REPINS5 &CO1,&AL1,&CO2,&AL2,&CO3,&AL3,&CO4,&AL4,&CO5,&AL5
+&LABEL   REPINSN &CO1,&AL1,&CO2,&AL2,&CO3,&AL3,&CO4,&AL4,&CO5,&AL5
          GBLA  &TDIGCNT
          GBLC  &MACRETC
          LCLA  &ICNT
@@ -301,12 +268,16 @@ TCODE    CSECT
 &ARGS1   SETC  '&MACRETC'
          REPINSAL &AL2
 &ARGS2   SETC  '&MACRETC'
+         AIF   ('&CO3' EQ '').ARGDONE
          REPINSAL &AL3
 &ARGS3   SETC  '&MACRETC'
+         AIF   ('&CO4' EQ '').ARGDONE
          REPINSAL &AL4
 &ARGS4   SETC  '&MACRETC'
+         AIF   ('&CO5' EQ '').ARGDONE
          REPINSAL &AL5
 &ARGS5   SETC  '&MACRETC'
+.ARGDONE ANOP
 *
          AIF   ('&LABEL' EQ '').NOLBL
 &LABEL   EQU   *
@@ -314,22 +285,30 @@ TCODE    CSECT
 *
 &ICNT    SETA  &TDIGCNT
 *
-* write a comment indicating what REPINS5 does (if NOGEN in effect)
+* write a comment indicating what REPINSN does (if NOGEN in effect)
 *
-         MNOTE *,'// REPINS5: do &ICNT times:'
+         MNOTE *,'// REPINSN: do &ICNT times:'
          REPINSPI  &CO1,&ARGS1
          REPINSPI  &CO2,&ARGS2
+         AIF   ('&CO3' EQ '').PRTDONE
          REPINSPI  &CO3,&ARGS3
+         AIF   ('&CO4' EQ '').PRTDONE
          REPINSPI  &CO4,&ARGS4
+         AIF   ('&CO5' EQ '').PRTDONE
          REPINSPI  &CO5,&ARGS5
+.PRTDONE ANOP
 *
 * finally generate code: &ICNT copies of &CO1 ...
 *
 .ILOOP   &CO1 &ARGS1
          &CO2 &ARGS2
+         AIF   ('&CO3' EQ '').GENDONE
          &CO3 &ARGS3
+         AIF   ('&CO4' EQ '').GENDONE
          &CO4 &ARGS4
+         AIF   ('&CO5' EQ '').GENDONE
          &CO5 &ARGS5
+.GENDONE ANOP
 &ICNT    SETA  &ICNT-1
          AIF   (&ICNT GT 0).ILOOP
 *
@@ -757,7 +736,7 @@ WTOMSG2  DC    C'Txxx'
          DC    B'0100000000000000'    routing codes (2=console info)
 *
          DS    0F
-MSGVERS  OTXTDSC  C's370_perf V0.9.5  rev  998  2018-03-04'
+MSGVERS  OTXTDSC  C's370_perf V0.9.6  rev 1001  2018-03-24'
 MSGVHDR  OTXTDSC  C'PERF000I VERS: '
 MSGPARM  OTXTDSC  C'PERF001I PARM: '
 MSGGMUL  OTXTDSC  C'PERF002I run with GMUL= '
@@ -1574,113 +1553,115 @@ T125V    DC    F'1',F'2',F'3',F'4',F'5',F'6'
 *
 * Test 15x -- MVC, MVCIN ===================================
 *
-* Test 150 -- MVC m,m (10c) --------------------------------
+* Test 150 -- MVC m,m (5c) ---------------------------------
 *
-         TSIMBEG T150,5000,50,1,C'MVC m,m (10c)'
+         TSIMBEG T150,5000,50,1,C'MVC m,m (5c)'
 *
 T150L    REPINS MVC,(T150V1,T150V2)     repeat: MVC T150V1,T150V2
          BCTR  R15,R11
          TSIMRET
 *
          DS    0F
-T150V1   DC    CL10' '
-T150V2   DC    CL10'0123456789'
+T150V1   DC    CL5' '
+T150V2   DC    CL5'01234'
          DS    0H
          TSIMEND
 *
-* Test 151 -- MVC m,m (100c) -------------------------------
+* Test 151 -- MVC m,m (10c) --------------------------------
 *
-         TSIMBEG T151,4000,50,1,C'MVC m,m (100c)'
+         TSIMBEG T151,5000,50,1,C'MVC m,m (10c)'
 *
 T151L    REPINS MVC,(T151V1,T151V2)     repeat: MVC T151V1,T151V2
          BCTR  R15,R11
          TSIMRET
 *
          DS    0F
-T151V1   DC    CL100' '
-T151V2   DC    CL100'0123456789'
+T151V1   DC    CL10' '
+T151V2   DC    CL10'0123456789'
+         DS    0H
          TSIMEND
 *
-* Test 152 -- MVC m,m (250c) -------------------------------
+* Test 152 -- MVC m,m (15c) --------------------------------
 *
-         TSIMBEG T152,7500,20,1,C'MVC m,m (250c)'
+         TSIMBEG T152,5000,50,1,C'MVC m,m (15c)'
 *
 T152L    REPINS MVC,(T152V1,T152V2)     repeat: MVC T152V1,T152V2
          BCTR  R15,R11
          TSIMRET
 *
          DS    0F
-T152V1   DC    CL250' '
-T152V2   DC    CL250'0133456789'
-         TSIMEND
-*
-* Test 153 -- MVC m,m (250c,over1) -------------------------
-*
-         TSIMBEG T153,700,20,1,C'MVC m,m (250c,over1)'
-*
-T153L    REPINS MVC,(T153V2,T153V1)     repeat: MVC T152V2,T152V1
-         BCTR  R15,R11
-         TSIMRET
-*
-         DS    0F
-T153V1   DC    C' '                     byte to propagate
-T153V2   DC    CL250'0133456789'        into this target buffer
-         TSIMEND
-*
-* Test 154 -- MVC m,m (250c,over2) -------------------------
-*
-         TSIMBEG T154,7500,20,1,C'MVC m,m (250c,over2)'
-*
-T154L    REPINS MVC,(T154V1(250),T154V2) 
-         BCTR  R15,R11
-         TSIMRET
-*
-         DS    0F
-T154V1   DS    24C                      target
-T154V2   DC    CL250'0133456789'        source (1/10th overlap)
-         TSIMEND
-*
-* Test 156 -- MVCIN m,m (10c) ------------------------------
-*
-         TSIMBEG T156,3500,20,1,C'MVCIN m,m (10c)'
-*
-T156L    REPINS MVCIN,(T156V1,T156V2)   repeat: MVCIN T156V1,T156V2
-         BCTR  R15,R11
-         TSIMRET
-*
-         DS    0F
-T156V1   DC    CL10' '
-T156V2   DC    CL10'0123456789'
+T152V1   DC    CL15' '
+T152V2   DC    CL15'012345678901234'
          DS    0H
          TSIMEND
 *
-* Test 157 -- MVCIN m,m (30c) ------------------------------
+* Test 153 -- MVC m,m (30c) --------------------------------
 *
-         TSIMBEG T157,1200,20,1,C'MVCIN m,m (30c)'
+         TSIMBEG T153,5000,50,1,C'MVC m,m (30c)'
 *
-T157L    REPINS MVCIN,(T157V1,T157V2)   repeat: MVCIN T157V1,T157V2
+T153L    REPINS MVC,(T153V1,T153V2)     repeat: MVC T153V1,T153V2
          BCTR  R15,R11
          TSIMRET
 *
          DS    0F
-T157V1   DC    CL30' '
-T157V2   DC    CL30'01234567899876543210ABCDEFGHIJ'
+T153V1   DC    CL30' '
+T153V2   DC    CL30'012345678901234567890123456789'
+         DS    0H
          TSIMEND
 *
-* Test 158 -- MVCIN m,m (100c) -----------------------------
+* Test 154 -- MVC m,m (100c) -------------------------------
 *
-         TSIMBEG T158,350,20,1,C'MVCIN m,m (100c)'
+         TSIMBEG T154,4000,50,1,C'MVC m,m (100c)'
 *
-T158L    REPINS MVCIN,(T158V1,T158V2)   repeat: MVCIN T158V1,T158V2
+T154L    REPINS MVC,(T154V1,T154V2)     repeat: MVC T154V1,T154V2
          BCTR  R15,R11
          TSIMRET
 *
          DS    0F
-T158V1   DC    CL100' '
-T158V2   DC    CL100'0123456789'
+T154V1   DC    CL100' '
+T154V2   DC    CL100'0123456789'
          TSIMEND
 *
-* Test 16x -- MVI,MVN,MVZ ==================================
+* Test 155 -- MVC m,m (250c) -------------------------------
+*
+         TSIMBEG T155,7500,20,1,C'MVC m,m (250c)'
+*
+T155L    REPINS MVC,(T155V1,T155V2)     repeat: MVC T155V1,T155V2
+         BCTR  R15,R11
+         TSIMRET
+*
+         DS    0F
+T155V1   DC    CL250' '
+T155V2   DC    CL250'0123456789'
+         TSIMEND
+*
+* Test 156 -- MVC m,m (250c,over1) -------------------------
+*
+         TSIMBEG T156,700,20,1,C'MVC m,m (250c,over1)'
+*
+T156L    REPINS MVC,(T156V2,T156V1)     repeat: MVC T156V2,T156V1
+         BCTR  R15,R11
+         TSIMRET
+*
+         DS    0F
+T156V1   DC    C' '                     byte to propagate
+T156V2   DC    CL250'0123456789'        into this target buffer
+         TSIMEND
+*
+* Test 157 -- MVC m,m (250c,over2) -------------------------
+*
+         TSIMBEG T157,7500,20,1,C'MVC m,m (250c,over2)'
+*
+T157L    REPINS MVC,(T157V1(250),T157V2) 
+         BCTR  R15,R11
+         TSIMRET
+*
+         DS    0F
+T157V1   DS    24C                      target
+T157V2   DC    CL250'0133456789'        source (1/10th overlap)
+         TSIMEND
+*
+* Test 16x -- MVI,MVN,MVZ,MVCIN ============================
 *
 * Test 160 -- MVI m,i --------------------------------------
 *
@@ -1749,6 +1730,46 @@ T166V2   DC    CL30'012345678901234567890123456789'
          DS    0H
          TSIMEND
 *
+* Test 167 -- MVCIN m,m (10c) ------------------------------
+*
+         TSIMBEG T167,3500,20,1,C'MVCIN m,m (10c)'
+*
+T167L    REPINS MVCIN,(T167V1,T167V2)   repeat: MVCIN T167V1,T167V2
+         BCTR  R15,R11
+         TSIMRET
+*
+         DS    0F
+T167V1   DC    CL10' '
+T167V2   DC    CL10'0123456789'
+         DS    0H
+         TSIMEND
+*
+* Test 168 -- MVCIN m,m (30c) ------------------------------
+*
+         TSIMBEG T168,1200,20,1,C'MVCIN m,m (30c)'
+*
+T168L    REPINS MVCIN,(T168V1,T168V2)   repeat: MVCIN T168V1,T168V2
+         BCTR  R15,R11
+         TSIMRET
+*
+         DS    0F
+T168V1   DC    CL30' '
+T168V2   DC    CL30'01234567899876543210ABCDEFGHIJ'
+         TSIMEND
+*
+* Test 169 -- MVCIN m,m (100c) -----------------------------
+*
+         TSIMBEG T169,350,20,1,C'MVCIN m,m (100c)'
+*
+T169L    REPINS MVCIN,(T169V1,T169V2)   repeat: MVCIN T169V1,T169V2
+         BCTR  R15,R11
+         TSIMRET
+*
+         DS    0F
+T169V1   DC    CL100' '
+T169V2   DC    CL100'0123456789'
+         TSIMEND
+*
 * Test 17x -- MVCL =========================================
 *
 * Test 170 -- MVCL m,m (10b,copy) --------------------------
@@ -1766,7 +1787,7 @@ T166V2   DC    CL30'012345678901234567890123456789'
          L     R6,0(R6)                 get ptr to BUF4K1
          L     R8,=A(PBUF4K2)           get ptr to ptr
          L     R8,0(R8)                 get ptr to BUF4K2
-T170L    REPINS5 LR,(R2,R6),LA,(R3,10),                                X
+T170L    REPINSN LR,(R2,R6),LA,(R3,10),                                X
                LR,(R4,R8),LA,(R5,10),                                  X
                MVCL,(R2,R4)
          BCTR  R15,R11
@@ -1788,7 +1809,7 @@ T170L    REPINS5 LR,(R2,R6),LA,(R3,10),                                X
          L     R6,0(R6)                 get ptr to BUF4K1
          L     R8,=A(PBUF4K2)           get ptr to ptr
          L     R8,0(R8)                 get ptr to BUF4K2
-T171L    REPINS5 LR,(R2,R6),LA,(R3,100),                               X
+T171L    REPINSN LR,(R2,R6),LA,(R3,100),                               X
                LR,(R4,R8),LA,(R5,100),                                 X
                MVCL,(R2,R4)
          BCTR  R15,R11
@@ -1810,7 +1831,7 @@ T171L    REPINS5 LR,(R2,R6),LA,(R3,100),                               X
          L     R6,0(R6)                 get ptr to BUF4K1
          L     R8,=A(PBUF4K2)           get ptr to ptr
          L     R8,0(R8)                 get ptr to BUF4K2
-T172L    REPINS5 LR,(R2,R6),LA,(R3,250),                               X
+T172L    REPINSN LR,(R2,R6),LA,(R3,250),                               X
                LR,(R4,R8),LA,(R5,250),                                 X
                MVCL,(R2,R4)
          BCTR  R15,R11
@@ -1832,7 +1853,7 @@ T172L    REPINS5 LR,(R2,R6),LA,(R3,250),                               X
          L     R6,0(R6)                 get ptr to BUF4K1
          L     R8,=A(PBUF4K2)           get ptr to ptr
          L     R8,0(R8)                 get ptr to BUF4K2
-T173L    REPINS5 LR,(R2,R6),LA,(R3,1024),                              X
+T173L    REPINSN LR,(R2,R6),LA,(R3,1024),                              X
                LR,(R4,R8),LA,(R5,1024),                                X
                MVCL,(R2,R4)
          BCTR  R15,R11
@@ -1855,7 +1876,7 @@ T173L    REPINS5 LR,(R2,R6),LA,(R3,1024),                              X
          L     R8,=A(PBUF4K2)           get ptr to ptr
          L     R8,0(R8)                 get ptr to BUF4K2
          L     R7,=F'4096'              transfer length
-T174L    REPINS5 LR,(R2,R6),LR,(R3,R7),                                X
+T174L    REPINSN LR,(R2,R6),LR,(R3,R7),                                X
                LR,(R4,R8),LR,(R5,R7),                                  X
                MVCL,(R2,R4)
          BCTR  R15,R11
@@ -1876,7 +1897,7 @@ T174L    REPINS5 LR,(R2,R6),LR,(R3,R7),                                X
          L     R6,=A(PBUF4K1)           get ptr to ptr
          L     R6,0(R6)                 get ptr to BUF4K1
          L     R9,=X'FF000000'
-T175L    REPINS5 LR,(R2,R6),LA,(R3,100),                               X
+T175L    REPINSN LR,(R2,R6),LA,(R3,100),                               X
                LA,(R4,0),LR,(R5,R9),                                   X
                MVCL,(R2,R4)
          BCTR  R15,R11
@@ -1897,7 +1918,7 @@ T175L    REPINS5 LR,(R2,R6),LA,(R3,100),                               X
          L     R6,=A(PBUF4K1)           get ptr to ptr
          L     R6,0(R6)                 get ptr to BUF4K1
          L     R9,=X'FF000000'
-T176L    REPINS5 LR,(R2,R6),LA,(R3,1024),                              X
+T176L    REPINSN LR,(R2,R6),LA,(R3,1024),                              X
                LA,(R4,0),LR,(R5,R9),                                   X
                MVCL,(R2,R4)
          BCTR  R15,R11
@@ -1919,7 +1940,7 @@ T176L    REPINS5 LR,(R2,R6),LA,(R3,1024),                              X
          L     R6,0(R6)                 get ptr to BUF4K1
          L     R7,=F'4096'
          L     R9,=X'FF000000'
-T177L    REPINS5 LR,(R2,R6),LR,(R3,R7),                                X
+T177L    REPINSN LR,(R2,R6),LR,(R3,R7),                                X
                LA,(R4,0),LR,(R5,R9),                                   X
                MVCL,(R2,R4)
          BCTR  R15,R11
@@ -1937,7 +1958,7 @@ T177L    REPINS5 LR,(R2,R6),LR,(R3,R7),                                X
 *            LA    R5,1024        source length
 *            MVCL  R2,R4    
 *
-T178L    REPINS5 LA,(R2,T178V2),LA,(R3,1024),                          X
+T178L    REPINSN LA,(R2,T178V2),LA,(R3,1024),                          X
                LA,(R4,T178V1),LA,(R5,1024),                            X
                MVCL,(R2,R4)
          BCTR  R15,R11
@@ -1958,7 +1979,7 @@ T178V2   DS    1024C                    into this target buffer
 *            LA    R5,1024        source length
 *            MVCL  R2,R4    
 *
-T179L    REPINS5 LA,(R2,T179V1),LA,(R3,1024),                          X
+T179L    REPINSN LA,(R2,T179V1),LA,(R3,1024),                          X
                LA,(R4,T179V2),LA,(R5,1024),                            X
                MVCL,(R2,R4)
          BCTR  R15,R11
@@ -2076,6 +2097,57 @@ T204L    REPINS AL,(R2,=F'1')           repeat: AL R2,=F'1'
          TSIMRET
          TSIMEND
 *
+* Test 205 -- SR R,R ---------------------------------------
+*
+         TSIMBEG T205,14000,100,1,C'SR R,R'
+*
+         XR    R2,R2
+         LA    R3,1
+T205L    REPINS SR,(R2,R3)              repeat: SR R2,R3
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 206 -- S R,m ----------------------------------------
+*
+         TSIMBEG T206,10000,50,1,C'S R,m'
+*
+         XR    R2,R2
+T206L    REPINS S,(R2,=F'1')            repeat: S R2,=F'1'
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 207 -- SH R,m ---------------------------------------
+         TSIMBEG T207,10000,50,1,C'SH R,m'
+*
+         XR    R2,R2
+T207L    REPINS SH,(R2,=H'1')            repeat: SH R2,=H'1'
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 208 -- SLR R,R --------------------------------------
+*
+         TSIMBEG T208,17000,100,1,C'SLR R,R'
+*
+         XR    R2,R2
+         LA    R3,1
+T208L    REPINS SLR,(R2,R3)             repeat: SLR R2,R3
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 209 -- SL R,m ---------------------------------------
+*
+         TSIMBEG T209,10000,50,1,C'SL R,m'
+*
+         XR    R2,R2
+T209L    REPINS SL,(R2,=F'1')           repeat: SL R2,=F'1'
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
 * Test 21x -- arithmetic mul/div ===========================
 *
 * Test 210 -- MR R,R ---------------------------------------
@@ -2120,7 +2192,7 @@ T212L    LA    R3,1
          LA    R4,2
          L     R6,=F'123456789'
 T215L    LR    R3,R6                    setup initial divident
-         REPINS2 XR,(R2,R2),DR,(R2,R4)
+         REPINSN XR,(R2,R2),DR,(R2,R4)
          BCTR  R15,R11
          TSIMRET
          TSIMEND
@@ -2136,7 +2208,7 @@ T215L    LR    R3,R6                    setup initial divident
          LA    R4,2
          L     R6,=F'123456789'
 T216L    LR    R3,R6                    setup initial divident
-         REPINS2 XR,(R2,R2),D,(R2,=F'2')
+         REPINSN XR,(R2,R2),D,(R2,=F'2')
          BCTR  R15,R11
          TSIMRET
          TSIMEND
@@ -2705,7 +2777,7 @@ T277V2   DC    250C'Y'
          LR    R2,R6
          MVI   10(R6),X'FF'       and set src[10] to 0xff
 *
-T280L    REPINS5 LR,(R2,R6),LR,(R3,R7),                                X
+T280L    REPINSN LR,(R2,R6),LR,(R3,R7),                                X
                LR,(R4,R8),LR,(R5,R7),                                  X
                CLCL,(R2,R4)
          BCTR  R15,R11
@@ -2742,7 +2814,7 @@ T280L    REPINS5 LR,(R2,R6),LR,(R3,R7),                                X
          LR    R2,R6
          MVI   10(R6),X'FF'       and set src[10] to 0xff
 *
-T281L    REPINS5 LR,(R2,R6),LR,(R3,R7),                                X
+T281L    REPINSN LR,(R2,R6),LR,(R3,R7),                                X
                LR,(R4,R8),LR,(R5,R7),                                  X
                CLCL,(R2,R4)
          BCTR  R15,R11
@@ -2779,7 +2851,7 @@ T281L    REPINS5 LR,(R2,R6),LR,(R3,R7),                                X
          LR    R2,R6
          MVI   100(R6),X'FF'       and set src[100] to 0xff
 *
-T282L    REPINS5 LR,(R2,R6),LR,(R3,R7),                                X
+T282L    REPINSN LR,(R2,R6),LR,(R3,R7),                                X
                LR,(R4,R8),LR,(R5,R7),                                  X
                CLCL,(R2,R4)
          BCTR  R15,R11
@@ -2816,7 +2888,7 @@ T282L    REPINS5 LR,(R2,R6),LR,(R3,R7),                                X
          LR    R2,R6
          MVI   250(R6),X'FF'       and set src[250] to 0xff
 *
-T283L    REPINS5 LR,(R2,R6),LR,(R3,R7),                                X
+T283L    REPINSN LR,(R2,R6),LR,(R3,R7),                                X
                LR,(R4,R8),LR,(R5,R7),                                  X
                CLCL,(R2,R4)
          BCTR  R15,R11
@@ -2853,7 +2925,7 @@ T283L    REPINS5 LR,(R2,R6),LR,(R3,R7),                                X
          LR    R2,R6
          MVI   1024(R6),X'FF'     and set src[1024] to 0xff
 *
-T284L    REPINS5 LR,(R2,R6),LR,(R3,R7),                                X
+T284L    REPINSN LR,(R2,R6),LR,(R3,R7),                                X
                LR,(R4,R8),LR,(R5,R7),                                  X
                CLCL,(R2,R4)
          BCTR  R15,R11
@@ -2890,7 +2962,7 @@ T284L    REPINS5 LR,(R2,R6),LR,(R3,R7),                                X
          LR    R2,R6
 *                                 leave dst zero'ed !!
 *
-T285L    REPINS5 LR,(R2,R6),LR,(R3,R7),                                X
+T285L    REPINSN LR,(R2,R6),LR,(R3,R7),                                X
                LR,(R4,R8),LR,(R5,R7),                                  X
                CLCL,(R2,R4)
          BCTR  R15,R11
@@ -2910,7 +2982,7 @@ T285L    REPINS5 LR,(R2,R6),LR,(R3,R7),                                X
          ST    R2,T290V           init OP2, OP2==OP1
          LA    R4,1               init OP3, OP3==OP1
          LA    R6,1               restore OP1
-T290L    REPINS2 LR,(R2,R6),CS,(R2,R4,T290V)
+T290L    REPINSN LR,(R2,R6),CS,(R2,R4,T290V)
          BCTR  R15,R11
          TSIMRET
 *
@@ -2924,7 +2996,7 @@ T290V    DC    F'-1'              will be set
          LA    R2,0               init OP1
          ST    R2,T291V           init OP2, OP2==OP1
          LR    R4,R15             init OP3 (counter)
-T291L    REPINS2 CS,(R2,R4,T291V),LR,(R2,R4)
+T291L    REPINSN CS,(R2,R4,T291V),LR,(R2,R4)
          BCTR  R4,R11             counter is R4 here !!
          TSIMRET
 *
@@ -2938,7 +3010,7 @@ T291V    DC    F'-1'              will be setup
          LA    R2,100             init OP1, OP1!=OP2
          LA    R4,1               init OP3
          LA    R6,100             restore OP1
-T292L    REPINS2 LR,(R2,R6),CS,(R2,R4,T292V)
+T292L    REPINSN LR,(R2,R6),CS,(R2,R4,T292V)
          BCTR  R15,R11
          TSIMRET
 *
@@ -2959,7 +3031,7 @@ T292V    DC    F'1'               init OP2
          LA    R4,11             init OP3
          LA    R5,22               upper part
          LA    R6,11             restore OP1
-T295L    REPINS2 LR,(R2,R6),CDS,(R2,R4,T295V)
+T295L    REPINSN LR,(R2,R6),CDS,(R2,R4,T295V)
          BCTR  R15,R11
          TSIMRET
 *
@@ -2977,7 +3049,7 @@ T295V    DC    F'-1',F'-2'       will be set
          ST    R3,T296V+4           upper part
          LR    R4,R15             init OP3 (counter)
          LR    R5,R3                upper part
-T296L    REPINS2 CDS,(R2,R4,T296V),LR,(R2,R4)
+T296L    REPINSN CDS,(R2,R4,T296V),LR,(R2,R4)
          BCTR  R4,R11             counter is R4 here !!
          TSIMRET
 *
@@ -2994,7 +3066,7 @@ T296V    DC    F'-1',F'-2'         will be setup
          LA    R4,11              init OP3
          LA    R5,22                upper part
          LA    R6,110             restore OP1
-T297L    REPINS2 LR,(R2,R6),CDS,(R2,R4,T297V)
+T297L    REPINSN LR,(R2,R6),CDS,(R2,R4,T297V)
          BCTR  R15,R11
          TSIMRET
 *
@@ -3064,6 +3136,9 @@ T302U28  BNZ   T302D29                  57th branch
 T302U29  BNZ   T302D30                  59th branch
          ABEND 50
 *
+T302U30  BCTR  R15,R11                  inner loop closure
+         B     T302END                  before bottom half of maze
+*
 T302D01  BNZ   T302U01                  2nd branch
 T302D02  BNZ   T302U02                  4th branch
 T302D03  BNZ   T302U03
@@ -3093,10 +3168,10 @@ T302D26  BNZ   T302U26
 T302D27  BNZ   T302U27
 T302D28  BNZ   T302U28
 T302D29  BNZ   T302U29
-T302D30  BNZ   T302END                  60th branch
+T302D30  BNZ   T302U30                  60th branch
          ABEND 50
 *
-T302END  BCTR  R15,R11
+T302END  EQU   *
          TSIMRET
          TSIMEND
 *
@@ -3139,6 +3214,10 @@ T303U28  BNZ   T303D29                  57th branch
 T303U29  BNZ   T303D30                  59th branch
          ABEND 50
 *
+T303U30  BCTR  R15,R10                  R10 is loop target !!
+         B     T303END                  before bottom half of maze
+*                                       ensure that BCTR is not 'far'
+*
          DS    2048H                    force next page
 *
 T303D01  BNZ   T303U01                  2nd branch
@@ -3170,10 +3249,80 @@ T303D26  BNZ   T303U26
 T303D27  BNZ   T303U27
 T303D28  BNZ   T303U28
 T303D29  BNZ   T303U29
-T303D30  BNZ   T303END                  60th branch
+T303D30  BNZ   T303U30                  60th branch
          ABEND 50
 *
-T303END  BCTR  R15,R10                  R10 is loop target !!
+T303END  EQU   *
+         TSIMRET
+         TSIMEND
+*
+* Test 304 -- BR R -----------------------------------------
+*
+         TSIMBEG T304,70000,10,1,C'BR R'
+*
+         LA    R0,T304TR0
+         LA    R1,T304TR1
+         LA    R2,T304TR2
+         LA    R3,T304TR3
+         LA    R4,T304TR4
+         LA    R5,T304TR5
+         LA    R6,T304TR6
+         LA    R7,T304TR7
+         LA    R8,T304TR8
+         LA    R9,T304TR9
+*
+T304L    BR    R0                  1st branch
+T304TR5  BR    R1                  3rd branch
+T304TR6  BR    R2                  5th branch
+T304TR7  BR    R3                  7th branch
+T304TR8  BR    R4                  9th branch
+*
+T304TR9  BCTR  R15,R11
+         B     T304END
+*
+T304TR0  BR    R5                  2nd branch
+T304TR1  BR    R6                  4th branch
+T304TR2  BR    R7                  6th branch
+T304TR3  BR    R8                  8th branch
+T304TR4  BR    R9                  10st branch
+*
+T304END  EQU   *
+         TSIMRET
+         TSIMEND
+*
+* Test 305 -- BR R -----------------------------------------
+*
+         TSIMBEG T305,45000,10,1,C'BR R (far)',NBASE=2
+*
+         LA    R0,T305TR0
+         LA    R1,T305TR1
+         LA    R2,T305TR2
+         LA    R3,T305TR3
+         LA    R4,T305TR4
+         LA    R5,T305TR5
+         LA    R6,T305TR6
+         LA    R7,T305TR7
+         LA    R8,T305TR8
+         LA    R9,T305TR9
+*
+T305L    BR    R0                  1st branch
+T305TR5  BR    R1                  3rd branch
+T305TR6  BR    R2                  5th branch
+T305TR7  BR    R3                  7th branch
+T305TR8  BR    R4                  9th branch
+*
+T305TR9  BCTR  R15,R10             R10 is loop target !!
+         B     T305END
+*
+         DS    2048H                    force next page
+*
+T305TR0  BR    R5                  2nd branch
+T305TR1  BR    R6                  4th branch
+T305TR2  BR    R7                  6th branch
+T305TR3  BR    R8                  8th branch
+T305TR4  BR    R9                  10st branch
+*
+T305END  EQU   *
          TSIMRET
          TSIMEND
 *
@@ -3304,7 +3453,7 @@ T325R    BR    R14
 *            BALR  R14,R15          and call it
 *
          LR    R10,R15                   use R10 as repeat count
-T330L    REPINS2 L,(R15,=A(T330R)),BALR,(R14,R15)
+T330L    REPINSN L,(R15,=A(T330R)),BALR,(R14,R15)
          BCTR  R10,R11
          TSIMRET
          TSIMEND
@@ -3414,7 +3563,7 @@ T405V2   DC    PL8'123456789012345'
          CVD   R2,T410V1
          LA    R3,T410V2                points to edit position
 *
-T410L    REPINS2 MVC,(0(10,R3),T410V3),ED,(0(10,R3),T410V1+3)
+T410L    REPINSN MVC,(0(10,R3),T410V3),ED,(0(10,R3),T410V1+3)
          BCTR  R15,R11
          TSIMRET
 *
@@ -3433,7 +3582,7 @@ T410V3   DC    C' ',7X'20',X'21',X'20'
 *
          LA    R3,T411V2                points to edit position
 *
-T411L    REPINS2 MVC,(0(30,R3),T411V3),ED,(0(30,R3),T411V1)
+T411L    REPINSN MVC,(0(30,R3),T411V3),ED,(0(30,R3),T411V1)
          BCTR  R15,R11
          TSIMRET
 *
@@ -3454,7 +3603,7 @@ T411V3   DC    C' ',27X'20',X'21',X'20'
          CVD   R2,T415V1
          LA    R3,T415V2                points to edit position
 *
-T415L    REPINS2 MVC,(0(10,R3),T415V3),EDMK,(0(10,R3),T415V1+3)
+T415L    REPINSN MVC,(0(10,R3),T415V3),EDMK,(0(10,R3),T415V1+3)
          BCTR  R15,R11
          TSIMRET
 *
@@ -3495,32 +3644,144 @@ T421V2   DC    PL15'123456789012345678901234'      incr (24 sign.dig)
 T421V3   DC    PL15'1234567890123456789012345678'  init (28 sign.dig)
          TSIMEND
 *
-* Test 422 -- MP m,m (10d) ---------------------------------
+* Test 422 -- SP m,m (10d) ---------------------------------
 *
-         TSIMBEG T422,900,20,1,C'MP m,m (10d)'
+         TSIMBEG T422,700,30,1,C'SP m,m (10d)'
+*
+* value range *-999999999: start at +999999999, sub 66666660
 *
 T422L    MVC   T422V1,T422V3
-         REPINS MP,(T422V1,T422V2)      repeat: AP T422V1,T422V2
+         REPINS SP,(T422V1,T422V2)      repeat: SP T422V1,T422V2
          BCTR  R15,R11
          TSIMRET
 *
-T422V1   DC    PL5'0'
-T422V2   DC    PL1'2'
-T422V3   DC    PL5'1'
+T422V1   DC    PL5'0'                   accululator
+T422V2   DC    PL5'66666660'            increment value
+T422V3   DC    PL5'999999999'           initial value
          TSIMEND
 *
-* Test 423 -- MP m,m (30d) ---------------------------------
+* Test 423 -- SP m,m (30d) ---------------------------------
 *
-         TSIMBEG T423,900,20,1,C'MP m,m (30d)'
+         TSIMBEG T423,700,30,1,C'SP m,m (30d)'
 *
 T423L    MVC   T423V1,T423V3
-         REPINS MP,(T423V1,T423V2)      repeat: AP T423V1,T423V2
+         REPINS SP,(T423V1,T423V2)      repeat: SP T423V1,T423V2
          BCTR  R15,R11
          TSIMRET
 *
-T423V1   DC    PL15'0'
-T423V2   DC    PL1'-9'
-T423V3   DC    PL15'1'
+T423V1   DC    PL15'0'                             accululator
+T423V2   DC    PL15'123456789012345678901234'      decr (24 sign.dig)
+T423V3   DC    PL15'1234567890123456789012345678'  init (28 sign.dig)
+         TSIMEND
+*
+* Test 424 -- MP m,m (10d) ---------------------------------
+*
+         TSIMBEG T424,900,20,1,C'MP m,m (10d)'
+*
+T424L    MVC   T424V1,T424V3
+         REPINS MP,(T424V1,T424V2)      repeat: MP T424V1,T424V2
+         BCTR  R15,R11
+         TSIMRET
+*
+T424V1   DC    PL5'0'
+T424V2   DC    PL1'2'
+T424V3   DC    PL5'1'
+         TSIMEND
+*
+* Test 425 -- MP m,m (30d) ---------------------------------
+*
+         TSIMBEG T425,900,20,1,C'MP m,m (30d)'
+*
+T425L    MVC   T425V1,T425V3
+         REPINS MP,(T425V1,T425V2)      repeat: MP T425V1,T425V2
+         BCTR  R15,R11
+         TSIMRET
+*
+T425V1   DC    PL15'0'
+T425V2   DC    PL1'-9'
+T425V3   DC    PL15'1'
+         TSIMEND
+*
+* Test 426 -- DP m,m (10d) ---------------------------------
+*
+         TSIMBEG T426,1000,10,1,C'MVC;DP m,m (10d)'
+*
+T426L    MVC   T426V1,T426V10
+         DP    T426V1,T426V2
+         MVC   T426V1,T426V11
+         DP    T426V1,T426V2
+         MVC   T426V1,T426V12
+         DP    T426V1,T426V2
+         MVC   T426V1,T426V13
+         DP    T426V1,T426V2
+         MVC   T426V1,T426V14
+         DP    T426V1,T426V2
+         MVC   T426V1,T426V15
+         DP    T426V1,T426V2
+         MVC   T426V1,T426V16
+         DP    T426V1,T426V2
+         MVC   T426V1,T426V17
+         DP    T426V1,T426V2
+         MVC   T426V1,T426V18
+         DP    T426V1,T426V2
+         MVC   T426V1,T426V19
+         DP    T426V1,T426V2
+         BCTR  R15,R11
+         TSIMRET
+*
+T426V1   DC    PL5'0'
+T426V2   DC    PL2'17'
+T426V10  DC    PL5'987654'
+T426V11  DC    PL5'876543'
+T426V12  DC    PL5'765432'
+T426V13  DC    PL5'654321'
+T426V14  DC    PL5'543210'
+T426V15  DC    PL5'432109'
+T426V16  DC    PL5'321098'
+T426V17  DC    PL5'210987'
+T426V18  DC    PL5'109876'
+T426V19  DC    PL5'98765'
+         TSIMEND
+*
+* Test 427 -- DP m,m (30d) ---------------------------------
+*
+         TSIMBEG T427,500,10,1,C'MVC;DP m,m (30d)'
+*
+T427L    MVC   T427V1,T427V10
+         DP    T427V1,T427V2
+         MVC   T427V1,T427V11
+         DP    T427V1,T427V2
+         MVC   T427V1,T427V12
+         DP    T427V1,T427V2
+         MVC   T427V1,T427V13
+         DP    T427V1,T427V2
+         MVC   T427V1,T427V14
+         DP    T427V1,T427V2
+         MVC   T427V1,T427V15
+         DP    T427V1,T427V2
+         MVC   T427V1,T427V16
+         DP    T427V1,T427V2
+         MVC   T427V1,T427V17
+         DP    T427V1,T427V2
+         MVC   T427V1,T427V18
+         DP    T427V1,T427V2
+         MVC   T427V1,T427V19
+         DP    T427V1,T427V2
+         BCTR  R15,R11
+         TSIMRET
+*
+T427V1   DC    PL15'0'
+T427V2   DC    PL2'177'
+T427V10  DC    PL15'98765432109876543210987654'
+T427V11  DC    PL15'87654321098765432109876543'
+T427V12  DC    PL15'76543210987654321098765432'
+T427V13  DC    PL15'65432109876543210987654321'
+T427V14  DC    PL15'54321098765432109876543210'
+T427V15  DC    PL15'43210987654321098765432109'
+T427V16  DC    PL15'32109876543210987654321098'
+T427V17  DC    PL15'21098765432109876543210987'
+T427V18  DC    PL15'10987654321098765432109876'
+T427V19  DC    PL15'9876543210987654321098765'
          TSIMEND
 *
 * Test 43x -- decimal compare ==============================
@@ -3782,342 +4043,388 @@ T511L    SER   FR0,FR0
          TSIMRET
          TSIMEND
 *
-* Test 512 -- MER R,R --------------------------------------
+* Test 512 -- SER R,R --------------------------------------
 *
-         TSIMBEG T512,10000,50,1,C'MER R,R'
+         TSIMBEG T512,8000,50,1,C'SER R,R'
 *
          LE    FR2,=E'1.1'
-T512L    LE    FR0,=E'1.0'
+T512L    SER   FR0,FR0
+         REPINS SER,(FR0,FR2)           repeat: SER FR0,FR2
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 513 -- SE R,m ---------------------------------------
+*
+         TSIMBEG T513,6000,50,1,C'SE R,m'
+*
+T513L    SER   FR0,FR0
+         REPINS SE,(FR0,=E'1.1')        repeat: SE FR0,=E'1.1'
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 514 -- MER R,R --------------------------------------
+*
+         TSIMBEG T514,10000,50,1,C'MER R,R'
+*
+         LE    FR2,=E'1.1'
+T514L    LE    FR0,=E'1.0'
          REPINS MER,(FR0,FR2)           repeat: MER FR0,FR2
          BCTR  R15,R11
          TSIMRET
          TSIMEND
 *
-* Test 513 -- ME R,m --------------------------------------
+* Test 515 -- ME R,m --------------------------------------
 *
-         TSIMBEG T513,6500,50,1,C'ME R,m'
+         TSIMBEG T515,6500,50,1,C'ME R,m'
 *
-T513L    LE    FR0,=E'1.0'
+T515L    LE    FR0,=E'1.0'
          REPINS ME,(FR0,=E'1.1')        repeat: ME FR0,=E'1.1'
          BCTR  R15,R11
          TSIMRET
          TSIMEND
 *
-* Test 514 -- DER R,R --------------------------------------
+* Test 516 -- DER R,R --------------------------------------
 *
-         TSIMBEG T514,5000,50,1,C'DER R,R'
+         TSIMBEG T516,5000,50,1,C'DER R,R'
 *
          LE    FR2,=E'1.1'
-T514L    LE    FR0,=E'1.0'
+T516L    LE    FR0,=E'1.0'
          REPINS DER,(FR0,FR2)           repeat: DER FR0,FR2
          BCTR  R15,R11
          TSIMRET
          TSIMEND
 *
-* Test 515 -- DE R,m ---------------------------------------
+* Test 517 -- DE R,m ---------------------------------------
 *
-         TSIMBEG T515,4000,50,1,C'DE R,m'
+         TSIMBEG T517,4000,50,1,C'DE R,m'
 *
-T515L    LE    FR0,=E'1.0'
+T517L    LE    FR0,=E'1.0'
          REPINS DE,(FR0,=E'1.1')        repeat: DE FR0,=E'1.1'
          BCTR  R15,R11
          TSIMRET
          TSIMEND
 *
-* Test 516 -- CER R,R --------------------------------------
+* Test 52x -- short float auxiliary ========================
 *
-         TSIMBEG T516,10000,50,1,C'CER R,R'
+* Test 520 -- CER R,R --------------------------------------
+*
+         TSIMBEG T520,10000,50,1,C'CER R,R'
 *
          LE    FR0,=E'1.0'
          LE    FR2,=E'1.1'
-T516L    REPINS CER,(FR0,FR2)           repeat: CER FR0,FR2
+T520L    REPINS CER,(FR0,FR2)           repeat: CER FR0,FR2
          BCTR  R15,R11
          TSIMRET
          TSIMEND
 *
-* Test 517 -- CE R,m ---------------------------------------
+* Test 521 -- CE R,m ---------------------------------------
 *
-         TSIMBEG T517,6000,50,1,C'CE R,m'
+         TSIMBEG T521,6000,50,1,C'CE R,m'
 *
          LE    FR0,=E'1.0'
-T517L    REPINS CE,(FR0,=E'1.1')        repeat: CE FR0,=E'1.1'
+T521L    REPINS CE,(FR0,=E'1.1')        repeat: CE FR0,=E'1.1'
          BCTR  R15,R11
          TSIMRET
          TSIMEND
 *
-* Test 518 -- AUR R,R --------------------------------------
+* Test 522 -- AUR R,R --------------------------------------
 *
-         TSIMBEG T518,10000,50,1,C'AUR R,R'
+         TSIMBEG T522,10000,50,1,C'AUR R,R'
 *
-         LE    FR2,T518V
-T518L    LE    FR0,=E'1234.1'
+         LE    FR2,T522V
+T522L    LE    FR0,=E'1234.1'
          REPINS AUR,(FR0,FR2)           repeat: AUR FR0,FR2
          BCTR  R15,R11
          TSIMRET
 *
          DS    0E
-T518V    DS    X'4E000001'
+T522V    DS    X'4E000001'
          TSIMEND
 *
-* Test 519 -- HER R,R --------------------------------------
+* Test 523 -- HER R,R --------------------------------------
 *
-         TSIMBEG T519,16000,50,1,C'HER R,R'
+         TSIMBEG T523,16000,50,1,C'HER R,R'
 *
-T519L    LE    FR0,=E'1111111111.0'
+T523L    LE    FR0,=E'1111111111.0'
          REPINS HER,(FR0,FR0)           repeat: HER FR0,FR0
          BCTR  R15,R11
          TSIMRET
          TSIMEND
 *
-* Test 52x -- long float load/store ========================
+* Test 53x -- long float load/store ========================
 *
-* Test 520 -- LDR R,R --------------------------------------
+* Test 530 -- LDR R,R --------------------------------------
 *
-         TSIMBEG T520,9000,100,1,C'LDR R,R'
+         TSIMBEG T530,9000,100,1,C'LDR R,R'
 *
          LD    FR2,=D'1.1'
-T520L    REPINS LDR,(FR0,FR2)           repeat: LDR FR0,FR2
+T530L    REPINS LDR,(FR0,FR2)           repeat: LDR FR0,FR2
          BCTR  R15,R11
          TSIMRET
          TSIMEND
 *
-* Test 521 -- LD R,m ---------------------------------------
+* Test 531 -- LD R,m ---------------------------------------
 *
-         TSIMBEG T521,10000,50,1,C'LD R,m'
+         TSIMBEG T531,10000,50,1,C'LD R,m'
 *
-T521L    REPINS LD,(FR0,=D'1.0')        repeat: LD FR0,=D'1.0'
+T531L    REPINS LD,(FR0,=D'1.0')        repeat: LD FR0,=D'1.0'
          BCTR  R15,R11
          TSIMRET
          TSIMEND
 *
-* Test 522 -- LD R,m (unal) --------------------------------
+* Test 532 -- LD R,m (unal) --------------------------------
 *
-         TSIMBEG T522,10000,50,1,C'LD R,m (unal)'
+         TSIMBEG T532,10000,50,1,C'LD R,m (unal)'
 *
-         LA    R3,T522V
-T522L    REPINS LD,(FR0,1(R3))          repeat: LD FR0,1(R3)'
+         LA    R3,T532V
+T532L    REPINS LD,(FR0,1(R3))          repeat: LD FR0,1(R3)'
          BCTR  R15,R11
          TSIMRET
 *
          DS    0D
-T522V    DC    3X'4E4E4E4E'             target for unaligned load
+T532V    DC    3X'4E4E4E4E'             target for unaligned load
          TSIMEND
 *
-* Test 523 -- LTDR R,R -------------------------------------
+* Test 533 -- LTDR R,R -------------------------------------
 *
-         TSIMBEG T523,10000,100,1,C'LTDR R,R'
+         TSIMBEG T533,10000,100,1,C'LTDR R,R'
 *
          LD    FR2,=D'1.0'
-T523L    REPINS LTDR,(FR0,FR2)          repeat: LTDR FR0,FR2
+T533L    REPINS LTDR,(FR0,FR2)          repeat: LTDR FR0,FR2
          BCTR  R15,R11
          TSIMRET
          TSIMEND
 *
-* Test 524 -- LCDR R,R -------------------------------------
+* Test 534 -- LCDR R,R -------------------------------------
 *
-         TSIMBEG T524,10000,100,1,C'LCDR R,R'
+         TSIMBEG T534,10000,100,1,C'LCDR R,R'
 *
          LD    FR2,=D'1.0'
-T524L    REPINS LCDR,(FR0,FR2)          repeat: LCDR FR0,FR2
+T534L    REPINS LCDR,(FR0,FR2)          repeat: LCDR FR0,FR2
          BCTR  R15,R11
          TSIMRET
          TSIMEND
 *
-* Test 525 -- LNDR R,R -------------------------------------
+* Test 535 -- LNDR R,R -------------------------------------
 *
-         TSIMBEG T525,10000,100,1,C'LNDR R,R'
+         TSIMBEG T535,10000,100,1,C'LNDR R,R'
 *
          LD    FR2,=D'1.0'
-T525L    REPINS LNDR,(FR0,FR2)          repeat: LNDR FR0,FR2
+T535L    REPINS LNDR,(FR0,FR2)          repeat: LNDR FR0,FR2
          BCTR  R15,R11
          TSIMRET
          TSIMEND
 *
-* Test 526 -- LPDR R,R -------------------------------------
+* Test 536 -- LPDR R,R -------------------------------------
 *
-         TSIMBEG T526,10000,100,1,C'LPDR R,R'
+         TSIMBEG T536,10000,100,1,C'LPDR R,R'
 *
          LD    FR2,=D'-1.0'
-T526L    REPINS LPDR,(FR0,FR2)          repeat: LPDR FR0,FR2
+T536L    REPINS LPDR,(FR0,FR2)          repeat: LPDR FR0,FR2
          BCTR  R15,R11
          TSIMRET
          TSIMEND
 *
-* Test 527 -- LRDR R,R -------------------------------------
+* Test 537 -- LRDR R,R -------------------------------------
 *
-         TSIMBEG T527,7000,100,1,C'LRDR R,R'
+         TSIMBEG T537,7000,100,1,C'LRDR R,R'
 *
-         LD    FR4,T527V1
-         LD    FR6,T527V1+8
-T527L    REPINS LRDR,(FR0,FR4)          repeat: LRDR FR0,FR4
+         LD    FR4,T537V1
+         LD    FR6,T537V1+8
+T537L    REPINS LRDR,(FR0,FR4)          repeat: LRDR FR0,FR4
          BCTR  R15,R11
          TSIMRET
-T527V1   DC    L'1.1'
+T537V1   DC    L'1.1'
          TSIMEND
 *
-* Test 528 -- STD R,m --------------------------------------
+* Test 538 -- STD R,m --------------------------------------
 *
-         TSIMBEG T528,10000,50,1,C'STD R,m'
+         TSIMBEG T538,10000,50,1,C'STD R,m'
 *
-T528L    REPINS STD,(FR0,T528V)         repeat: STD FR0,T528V'
-         BCTR  R15,R11
-         TSIMRET
-*
-T528V    DS    1D
-         TSIMEND
-*
-* Test 529 -- STD R,m (unal) -------------------------------
-*
-         TSIMBEG T529,10000,50,1,C'STD R,m (unal)'
-*
-         LA    R3,T529V
-T529L    REPINS STD,(FR0,1(R3))         repeat: STD FR0,1(R3)'
+T538L    REPINS STD,(FR0,T538V)         repeat: STD FR0,T538V'
          BCTR  R15,R11
          TSIMRET
 *
-T529V    DS    2D
+T538V    DS    1D
          TSIMEND
 *
-* Test 53x -- long float arithmetic ========================
+* Test 539 -- STD R,m (unal) -------------------------------
 *
-* Test 530 -- ADR R,R --------------------------------------
+         TSIMBEG T539,10000,50,1,C'STD R,m (unal)'
 *
-         TSIMBEG T530,7000,50,1,C'ADR R,R'
+         LA    R3,T539V
+T539L    REPINS STD,(FR0,1(R3))         repeat: STD FR0,1(R3)'
+         BCTR  R15,R11
+         TSIMRET
+*
+T539V    DS    2D
+         TSIMEND
+*
+* Test 54x -- long float arithmetic ========================
+*
+* Test 540 -- ADR R,R --------------------------------------
+*
+         TSIMBEG T540,7000,50,1,C'ADR R,R'
 *
          LD    FR2,=D'1.1'
-T530L    SDR   FR0,FR0
+T540L    SDR   FR0,FR0
          REPINS ADR,(FR0,FR2)           repeat: ADR FR0,FR2
          BCTR  R15,R11
          TSIMRET
          TSIMEND
 *
-* Test 531 -- AD R,m ---------------------------------------
+* Test 541 -- AD R,m ---------------------------------------
 *
-         TSIMBEG T531,5500,50,1,C'AD R,m'
+         TSIMBEG T541,5500,50,1,C'AD R,m'
 *
-T531L    SDR   FR0,FR0
+T541L    SDR   FR0,FR0
          REPINS AD,(FR0,=D'1.1')        repeat: AD FR0,=D'1.1'
          BCTR  R15,R11
          TSIMRET
          TSIMEND
 *
-* Test 532 -- MDR R,R --------------------------------------
+* Test 542 -- SDR R,R --------------------------------------
 *
-         TSIMBEG T532,6000,50,1,C'MDR R,R'
+         TSIMBEG T542,7000,50,1,C'SDR R,R'
 *
          LD    FR2,=D'1.1'
-T532L    LD    FR0,=D'1.0'
+T542L    SDR   FR0,FR0
+         REPINS SDR,(FR0,FR2)           repeat: SDR FR0,FR2
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 543 -- SD R,m ---------------------------------------
+*
+         TSIMBEG T543,5500,50,1,C'SD R,m'
+*
+T543L    SDR   FR0,FR0
+         REPINS SD,(FR0,=D'1.1')        repeat: SD FR0,=D'1.1'
+         BCTR  R15,R11
+         TSIMRET
+         TSIMEND
+*
+* Test 544 -- MDR R,R --------------------------------------
+*
+         TSIMBEG T544,6000,50,1,C'MDR R,R'
+*
+         LD    FR2,=D'1.1'
+T544L    LD    FR0,=D'1.0'
          REPINS MDR,(FR0,FR2)           repeat: MDR FR0,FR2
          BCTR  R15,R11
          TSIMRET
          TSIMEND
 *
-* Test 533 -- MD R,m ---------------------------------------
+* Test 545 -- MD R,m ---------------------------------------
 *
-         TSIMBEG T533,4500,50,1,C'MD R,m'
+         TSIMBEG T545,4500,50,1,C'MD R,m'
 *
-T533L    LD    FR0,=D'1.0'
+T545L    LD    FR0,=D'1.0'
          REPINS MD,(FR0,=D'1.1')        repeat: MD FR0,=D'1.1'
          BCTR  R15,R11
          TSIMRET
          TSIMEND
 *
-* Test 534 -- DDR R,R --------------------------------------
+* Test 546 -- DDR R,R --------------------------------------
 *
-         TSIMBEG T534,700,50,1,C'DDR R,R'
+         TSIMBEG T546,700,50,1,C'DDR R,R'
 *
          LD    FR2,=D'1.1'
-T534L    LD    FR0,=D'1.0'
+T546L    LD    FR0,=D'1.0'
          REPINS DDR,(FR0,FR2)           repeat: DDR FR0,FR2
          BCTR  R15,R11
          TSIMRET
          TSIMEND
 *
-* Test 535 -- DD R,m ---------------------------------------
+* Test 547 -- DD R,m ---------------------------------------
 *
-         TSIMBEG T535,700,50,1,C'DD R,m'
+         TSIMBEG T547,700,50,1,C'DD R,m'
 *
-T535L    LD    FR0,=D'1.0'
+T547L    LD    FR0,=D'1.0'
          REPINS DD,(FR0,=D'1.1')        repeat: DD FR0,=D'1.1'
          BCTR  R15,R11
          TSIMRET
          TSIMEND
 *
-* Test 536 -- CDR R,R --------------------------------------
+* Test 55x -- long float auxiliary =========================
 *
-         TSIMBEG T536,8000,50,1,C'CDR R,R'
+* Test 550 -- CDR R,R --------------------------------------
+*
+         TSIMBEG T550,8000,50,1,C'CDR R,R'
 *
          LD    FR0,=D'1.0'
          LD    FR2,=D'1.1'
-T536L    REPINS CDR,(FR0,FR2)           repeat: CDR FR0,FR2
+T550L    REPINS CDR,(FR0,FR2)           repeat: CDR FR0,FR2
          BCTR  R15,R11
          TSIMRET
          TSIMEND
 *
-* Test 537 -- CD R,m ---------------------------------------
+* Test 551 -- CD R,m ---------------------------------------
 *
-         TSIMBEG T537,6000,50,1,C'CD R,m'
+         TSIMBEG T551,6000,50,1,C'CD R,m'
 *
          LE    FR0,=D'1.0'
-T537L    REPINS CD,(FR0,=D'1.1')        repeat: CD FR0,=D'1.1'
+T551L    REPINS CD,(FR0,=D'1.1')        repeat: CD FR0,=D'1.1'
          BCTR  R15,R11
          TSIMRET
          TSIMEND
 *
-* Test 538 -- AWR R,R --------------------------------------
+* Test 552 -- AWR R,R --------------------------------------
 *
-         TSIMBEG T538,8000,50,1,C'AWR R,R'
+         TSIMBEG T552,8000,50,1,C'AWR R,R'
 *
-         LD    FR2,T538V
-T538L    LD    FR0,=D'1234.1'
+         LD    FR2,T552V
+T552L    LD    FR0,=D'1234.1'
          REPINS AWR,(FR0,FR2)           repeat: AWR FR0,FR2
          BCTR  R15,R11
          TSIMRET
          DS    0D
-T538V    DS    X'4E000000',X'00000001'
+T552V    DS    X'4E000000',X'00000001'
          TSIMEND
 *
-* Test 539 -- HDR R,R --------------------------------------
+* Test 553 -- HDR R,R --------------------------------------
 *
-         TSIMBEG T539,13000,50,1,C'HDR R,R'
+         TSIMBEG T553,13000,50,1,C'HDR R,R'
 *
-T539L    LE    FR0,=D'1111111111.0'
+T553L    LE    FR0,=D'1111111111.0'
          REPINS HDR,(FR0,FR0)           repeat: HDR FR0,FR0
          BCTR  R15,R11
          TSIMRET
          TSIMEND
 *
-* Test 54x -- extended float arithmetic ====================
+* Test 56x -- extended float arithmetic ====================
 *
-* Test 540 -- AXR R,R --------------------------------------
+* Test 560 -- AXR R,R --------------------------------------
 *
-         TSIMBEG T540,4000,50,1,C'AXR R,R'
+         TSIMBEG T560,4000,50,1,C'AXR R,R'
 *
-         LD    FR4,T540V1
-         LD    FR6,T540V1+8
-T540L    SDR   FR0,FR0
+         LD    FR4,T560V1
+         LD    FR6,T560V1+8
+T560L    SDR   FR0,FR0
          SDR   FR2,FR2
          REPINS AXR,(FR0,FR4)           repeat: AXR FR0,FR4
          BCTR  R15,R11
          TSIMRET
 *
-T540V1   DC    L'1.1'
+T560V1   DC    L'1.1'
          TSIMEND
 *
-* Test 541 -- MXR R,R --------------------------------------
+* Test 561 -- MXR R,R --------------------------------------
 *
-         TSIMBEG T541,3300,50,1,C'MXR R,R'
+         TSIMBEG T561,3300,50,1,C'MXR R,R'
 *
-         LD    FR4,T541V2
-         LD    FR6,T541V2+8
-T541L    LD    FR0,T541V1
-         LD    FR2,T541V1+8
+         LD    FR4,T561V2
+         LD    FR6,T561V2+8
+T561L    LD    FR0,T561V1
+         LD    FR2,T561V1+8
          REPINS MXR,(FR0,FR4)           repeat: MXR FR0,FR4
          BCTR  R15,R11
          TSIMRET
 *
-T541V1   DC    L'1.0'
-T541V2   DC    L'1.1'
+T561V1   DC    L'1.0'
+T561V2   DC    L'1.1'
          TSIMEND
 *
 * Test 6xx -- miscellaneous instructions ========================
@@ -4178,7 +4485,7 @@ T611V    DC    X'F1'              target for XI instruction
 *            MVI   T620V,X'00'    set byte to all zeros
 *            TS    T620V          test and set
 *
-T620L    REPINS2 MVI,(T620V,X'00'),TS,(T620V)
+T620L    REPINSN MVI,(T620V,X'00'),TS,(T620V)
          BCTR  R15,R11
          TSIMRET
 *
@@ -4193,7 +4500,7 @@ T620V    DC    X'00'              target for TS instruction
 *            MVI   T621V,X'FF'    set byte to all zeros
 *            TS    T621V          test and set
 *
-T621L    REPINS2 MVI,(T621V,X'FF'),TS,(T621V)
+T621L    REPINSN MVI,(T621V,X'FF'),TS,(T621V)
          BCTR  R15,R11
          TSIMRET
 *

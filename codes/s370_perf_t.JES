@@ -4,6 +4,7 @@
 //** ##define  DDSRC  s370_perf.asm
 //** ##define  DDDAT  /dev/null
 //** ##define  SYSUT2SPA  (1700,(900,200))
-//** ##define  PARMC  'NOXREF,NORLD,NODECK,LOAD'
+//** ##define  PARMC  'NOXREF,NORLD,NODECK,LOAD,BUFSIZE(MAX)'
+//** ##define  PARML  'MAP,LIST,LET,NCAL,SIZE=(512000,122880)'
 //** ##define  PARMG  '/G001/OPTT'
 //** ##include ../jcl/job_asm_clg.JESI
