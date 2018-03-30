@@ -2,8 +2,8 @@
 
 ### Table of contents
 - Current [HEAD](#user-content-head)
-- Release [V0.50](#user-content-V0.50)
 - Release [V0.60](#user-content-V0.60)
+- Release [V0.50](#user-content-V0.50)
 
 <!-- --------------------------------------------------------------------- -->
 ---
@@ -15,8 +15,15 @@ the documentation is consistent.
 ### Summary
 - s370_perf_ana:
   - cleanup ^L handling; add -dt,-dl,-du,-nonrr
+  - re-organize code; use -w1 instead of -w2
+  - add -tcal; support lt>2 (extended loop overhead correction)
+  - add calculated tag lines (Dxxx)
+- s370_perf_sum
+  - add -ins (instruction name sorted output)
+- s370_perf_ins
+  - added, generates instruction name sorted s370_perf_sum listing
 - s370_perf
-  - use REPINSN instead of REPINS5 and REPINS2
+  - use `REPINSN` instead of `REPINS5` and `REPINS2`
   - add tests for subtract (don't assume add and sub have same timing)
   - add MVC length cases (5d,15d,30d) to loop overhead subtraction
   - add DP test (now AP,SP,MP and DP are covered)
@@ -50,9 +57,12 @@ the documentation is consistent.
     - ren T538->T552, T539->T553, T540->T560, T541->T561
     - add T542  SDR R,R
     - add T543  SD R,m
+  - move init code out of inner loop for T510-T513,T540-T543,T560
+  - fix minor issues in T551,T553
+  - add and use more ltype codes; add /TCOR
 - *.JES
-  - ASM step:  use BUFSIZE(MAX), reduces WORK file accesses, lowers CPU time
-  - LKED step: use SIZE=(512000,122880), required to avoid IEW0364 ERROR
+  - ASM step:  use `BUFSIZE(MAX)`, reduces WORK file accesses, lowers CPU time
+  - LKED step: use `SIZE=(512000,122880)`, required to avoid `IEW0364` error
 
 <!-- --------------------------------------------------------------------- -->
 ---
@@ -69,7 +79,7 @@ the documentation is consistent.
   - print essential options; print file stats, w50 ect
 - s370_perf
   - add T9**,T703; fix T232 text
-  - add /OPCF, enables print of config file entries
+  - add `/OPCF`, enables print of config file entries
   - re-organized PRAM and config file handling
   - add `STCK` time to `PERF003I` and `PERF004I` messages
   - add `PERF000I` version info message

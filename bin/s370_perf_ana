@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: s370_perf_ana 1000 2018-03-17 16:56:47Z mueller $
+# $Id: s370_perf_ana 1003 2018-03-30 19:05:29Z mueller $
 #
 # Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,8 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-03-30  1003   2.0    re-organize code; use -w1 instead of -w2; add -tcal;
+#                           support lt>2; add calculated tag lines (Dxxx)
 # 2018-03-17  1000   1.4    cleanup ^L handling; add -dt,-dl,-du,-nonrr
 # 2018-03-10   999   1.3.1  add -w2,-csv options; change -lrun to -nolrun
 # 2018-03-03   996   1.3    print s370_perf version; add -raw,-t311,-t312
@@ -31,16 +33,124 @@ use strict;                                 # require strict checking
 use Getopt::Long;
 
 my %opts = ();
-my %tags;
-my $s370_perf_vers;
 
 GetOptions(\%opts, 'help', 'ltpi', 'ldf',
-           'raw', 'csv', 'nolrun', 'nolcor', 'nonrr', 'ttim',
+           'raw', 'csv', 'nolrun', 'nolcor', 'nonrr', 'ttim','tcal',
            'dt=f','dl=f','du=f',
-           'd1', 'd3','w2','w3',
+           'd1', 'd3','w1','w3',
            't311=f','t312=f',
            'cf=f', 'cp=f', 'cn=i')
   or die "bad options";
+
+my %tags;
+my @tcortbl = ([],                                # lt=0  empty
+               [{tag=>'T311',ins=>'BCTR'}],       # lt=1  BCTR
+               [{tag=>'T312',ins=>'BCT'}],        # lt=2  BCT
+               [{tag=>'T100',ins=>'LR'},
+                {tag=>'T311',ins=>'BCTR'}],       # lt=3  LR,BCTR
+               [{tag=>'T101',ins=>'LA'},
+                {tag=>'T311',ins=>'BCTR'}],       # lt=4  LA,BCTR
+               [{tag=>'T101',ins=>'LA'},
+                {tag=>'T230',ins=>'XR'},
+                {tag=>'T311',ins=>'BCTR'}],       # lt=5  LA,XR,BCTR
+               [{tag=>'T101',ins=>'LA'},
+                {tag=>'T101',ins=>'LA'},
+                {tag=>'T101',ins=>'LA'},
+                {tag=>'T311',ins=>'BCTR'}],       # lt=6  3*LA,BCTR
+               [{tag=>'T150',ins=>'MVC'},
+                {tag=>'T311',ins=>'BCTR'}],       # lt=7  MVC(5c),BCTR
+               [{tag=>'T152',ins=>'MVC'},
+                {tag=>'T311',ins=>'BCTR'}],       # lt=8  MVC(15c),BCTR
+               [{tag=>'T501',ins=>'LE'},
+                {tag=>'T311',ins=>'BCTR'}],       # lt=9  LE,BCTR
+               [{tag=>'T531',ins=>'LD'},
+                {tag=>'T311',ins=>'BCTR'}],       # lt=10 LD,BCTR
+               [{tag=>'T531',ins=>'LD'},
+                {tag=>'T531',ins=>'LD'},
+                {tag=>'T311',ins=>'BCTR'}]        # lt=11 2*LD,BCTR
+              );
+my @dtagtbl = (
+               {tag=>'D170',txt=>'MVCL (10b)',
+                act=>[{m=>1.,t=>'T170'},{m=>-2.,t=>'T100'},{m=>-2.,t=>'T101'}]},
+               {tag=>'D171',txt=>'MVCL (100b)',
+                act=>[{m=>1.,t=>'T171'},{m=>-2.,t=>'T100'},{m=>-2.,t=>'T101'}]},
+               {tag=>'D172',txt=>'MVCL (250b)',
+                act=>[{m=>1.,t=>'T172'},{m=>-2.,t=>'T100'},{m=>-2.,t=>'T101'}]},
+               {tag=>'D173',txt=>'MVCL (1kb)',
+                act=>[{m=>1.,t=>'T173'},{m=>-2.,t=>'T100'},{m=>-2.,t=>'T101'}]},
+               {tag=>'D174',txt=>'MVCL (4kb)',
+                act=>[{m=>1.,t=>'T174'},{m=>-4.,t=>'T100'}]},
+               {tag=>'D175',txt=>'MVCL (100b,pad)',
+                act=>[{m=>1.,t=>'T175'},{m=>-2.,t=>'T100'},{m=>-2.,t=>'T101'}]},
+               {tag=>'D176',txt=>'MVCL (1kb,pad)',
+                act=>[{m=>1.,t=>'T176'},{m=>-2.,t=>'T100'},{m=>-2.,t=>'T101'}]},
+               {tag=>'D177',txt=>'MVCL (4kb,pad)',
+                act=>[{m=>1.,t=>'T177'},{m=>-3.,t=>'T100'},{m=>-1.,t=>'T101'}]},
+               {tag=>'D178',txt=>'MVCL (1kb,over1)',
+                act=>[{m=>1.,t=>'T178'},{m=>-4.,t=>'T101'}]},
+               {tag=>'D179',txt=>'MVCL (1kb,over2)',
+                act=>[{m=>1.,t=>'T179'},{m=>-4.,t=>'T101'}]},
+               {tag=>'D215',txt=>'DR R,R',
+                act=>[{m=>1.,t=>'T215'},{m=>-1.,t=>'T230'}]},
+               {tag=>'D216',txt=>'D R,R',
+                act=>[{m=>1.,t=>'T216'},{m=>-1.,t=>'T230'}]},
+               {tag=>'D280',txt=>'CLCL (100b,10b)',
+                act=>[{m=>1.,t=>'T280'},{m=>-4.,t=>'T100'}]},
+               {tag=>'D281',txt=>'CLCL (4kb,10b)',
+                act=>[{m=>1.,t=>'T281'},{m=>-4.,t=>'T100'}]},
+               {tag=>'D282',txt=>'CLCL (4kb,100b)',
+                act=>[{m=>1.,t=>'T282'},{m=>-4.,t=>'T100'}]},
+               {tag=>'D283',txt=>'CLCL (4kb,250b)',
+                act=>[{m=>1.,t=>'T283'},{m=>-4.,t=>'T100'}]},
+               {tag=>'D284',txt=>'CLCL (4kb,1kb)',
+                act=>[{m=>1.,t=>'T284'},{m=>-4.,t=>'T100'}]},
+               {tag=>'D285',txt=>'CLCL (4kb,4kb)',
+                act=>[{m=>1.,t=>'T285'},{m=>-4.,t=>'T100'}]},
+               {tag=>'D290',txt=>'CS R,R,m (eq,eq)',
+                act=>[{m=>1.,t=>'T290'},{m=>-1.,t=>'T100'}]},
+               {tag=>'D291',txt=>'CS R,R,m (eq,ne)',
+                act=>[{m=>1.,t=>'T291'},{m=>-1.,t=>'T100'}]},
+               {tag=>'D292',txt=>'CS R,R,m (ne)',
+                act=>[{m=>1.,t=>'T292'},{m=>-1.,t=>'T100'}]},
+               {tag=>'D295',txt=>'CDS R,R,m (eq,eq)',
+                act=>[{m=>1.,t=>'T295'},{m=>-1.,t=>'T100'}]},
+               {tag=>'D296',txt=>'CDS R,R,m (eq,ne)',
+                act=>[{m=>1.,t=>'T296'},{m=>-1.,t=>'T100'}]},
+               {tag=>'D297',txt=>'CDS R,R,m (ne)',
+                act=>[{m=>1.,t=>'T297'},{m=>-1.,t=>'T100'}]},
+               {tag=>'D320',txt=>'BALR R,R',
+                act=>[{m=>1.,t=>'T320'},{m=>-1.,t=>'T304'}]},
+               {tag=>'D321',txt=>'BALR R,R (far)',
+                act=>[{m=>1.,t=>'T321'},{m=>-1.,t=>'T305'}]},
+               {tag=>'D322',txt=>'BAL R,R',
+                act=>[{m=>1.,t=>'T322'},{m=>-1.,t=>'T304'}]},
+               {tag=>'D323',txt=>'BAL R,R (far)',
+                act=>[{m=>1.,t=>'T323'},{m=>-1.,t=>'T305'}]},
+               {tag=>'D324',txt=>'BASR R,R',
+                act=>[{m=>1.,t=>'T324'},{m=>-1.,t=>'T304'}]},
+               {tag=>'D325',txt=>'BAS R,R',
+                act=>[{m=>1.,t=>'T325'},{m=>-1.,t=>'T304'}]},
+               {tag=>'D410',txt=>'ED (10c)',
+                act=>[{m=>1.,t=>'T410'},{m=>-1.,t=>'T151'}]},
+               {tag=>'D411',txt=>'ED (30c)',
+                act=>[{m=>1.,t=>'T411'},{m=>-1.,t=>'T153'}]},
+               {tag=>'D415',txt=>'EDMK (10c)',
+                act=>[{m=>1.,t=>'T415'},{m=>-1.,t=>'T151'}]},
+               {tag=>'D426',txt=>'DP m,m (10d)',
+                act=>[{m=>1.,t=>'T426'},{m=>-1.,t=>'T150'}]},
+               {tag=>'D427',txt=>'DP m,m (30d)',
+                act=>[{m=>1.,t=>'T427'},{m=>-1.,t=>'T152'}]},
+               {tag=>'D610',txt=>'EX R,i (bare, via TM)',
+                act=>[{m=>1.,t=>'T610'},{m=>-1.,t=>'T250'}]},
+               {tag=>'D611',txt=>'EX R,i (bare, via XI)',
+                act=>[{m=>1.,t=>'T611'},{m=>-1.,t=>'T232'}]},
+               {tag=>'D620',txt=>'TS m (zero)',
+                act=>[{m=>1.,t=>'T620'},{m=>-1.,t=>'T160'}]},
+               {tag=>'D621',txt=>'TS m (ones)',
+                act=>[{m=>1.,t=>'T621'},{m=>-1.,t=>'T160'}]}
+              );
+
+my $s370_perf_vers;
 
 my $csv = $opts{csv};
 my $dolcor = not exists $opts{nolcor};
@@ -73,6 +183,30 @@ $du = $opts{du} if exists  $opts{du};
 if ($du <= $dl) {
   print "s370_perf_ana-E bad values, -du must be larger than -dl\n";
   exit 1;
+}
+
+#
+# setup formats
+#
+my $t_fmt1 = '%7.1f';
+my $t_fmt2 = '%8.2f';
+my $t_fmt3 = '%10.2f';
+if ($opts{d1}) {
+  $t_fmt1 = '%7.0f';
+  $t_fmt2 = '%8.1f';
+  $t_fmt3 = '%10.1f';
+}
+if ($opts{d3}) {
+  $t_fmt1 = '%7.2f';
+  $t_fmt2 = '%8.3f';
+  $t_fmt3 = '%10.3f';
+}
+my $w_fmt = '%5.2f';
+if ($opts{w1}) {
+  $w_fmt = '%5.1f';
+}
+if ($opts{w3}) {
+  $w_fmt = '%5.3f';
 }
 
 #
@@ -109,6 +243,7 @@ unless ($csv) {
 }
 
 do_anal();
+do_calc() unless $opts{raw};
 do_show();
 
 exit 0;
@@ -121,7 +256,7 @@ sub do_help {
   print "usage: s370_perf_ana [OPTIONS] [FILE]...\n";
   print "  -d1      decrease time field precision (for slow systems)\n";
   print "  -d3      increase time field precision (for fast systems)\n";
-  print "  -w2      increase w50 field precision\n";
+  print "  -w1      decrease w50 field precision\n";
   print "  -w3      increase w50 field precision\n";
   print "  -nolcor  no loop (bctr/bct) timing correction\n";
   print "  -nonrr   fill n-rr and n-rx with 0.0 dummy data\n";
@@ -139,6 +274,7 @@ sub do_help {
   print "  -cf=f    specify clock frequency (in MHz)\n";
   print "  -cn=n    number of clock phases (default = 1)\n";
   print "  -ttim    use test time field (instead of instruction time)\n";
+  print "  -tcal    trace calculation steps\n";
   print "  -help    help text\n";
   return;
 }
@@ -254,44 +390,112 @@ sub do_anal {
 
   return unless $dolcor;
 
-  my @lcor = (0.,0.,0.);
-  unless ($opts{t311}) {
-    return if chktag('T311','BCTR');
-    $lcor[1] = $tags{T311}{tpimed};
-  } else {
-    $lcor[1] = $opts{t311};
-  }
-  unless ($opts{t312}) {
-    return if chktag('T312','BCT');
-    $lcor[2] = $tags{T312}{tpimed};
-  } else {
-    $lcor[2] = $opts{t312};
-  }
-
+  my %ctagcnt;
   foreach my $tag (sort keys %tags) {
-    my $tpimed = $tags{$tag}{tpimed};
     my $ltype  = $tags{$tag}{ltype};
-    if ($ltype >= 0 && $ltype <= 2) {
-      $tags{$tag}{tpicor} = $tpimed - $lcor[$ltype] / $tags{$tag}{igcnt};
+    if ($ltype < 0 && $ltype > $#tcortbl) {
+      printf "s370_perf_ana-E: bad lt=%2d for tag %s\n", $ltype,$tag;
+      next;
+    }
+    foreach my $ltlst ($tcortbl[$ltype]) {
+      foreach my $ltdsc (@{$ltlst}) {
+        my $ctag = $ltdsc->{tag};
+        my $cins = $ltdsc->{ins};
+        next if chktag($ctag,$cins,$ltype);
+        push @{$tags{$tag}{caltags}},$ctag;
+        $ctagcnt{$ctag} += 1;
+      }
     }
   }
+
+  print "--- tpicor for tags used in corrections\n" if $opts{tcal};
+  do_anal_cor(\%ctagcnt,1);
+  print "\n--- tpicor for all tags\n" if $opts{tcal};
+  do_anal_cor(\%tags,0);
+  print "\n" if $opts{tcal};
+
   return;
 }
 
 #
-# -- df_lookup: lookup df ----------------------------------------------------
+# -- do_anal_cor: determine tpicor -------------------------------------------
 #
-sub df_lookup {
-  my ($df,$frac) = @_;
-  my $nval = scalar(@{$df});
-  return 0.        if $nval == 0;
-  return $df->[0]  if $nval == 1;
-  my $imax = $nval - 1;
-  my $rind = $frac * $imax;
-  my $ind  = int $rind;
-  return $df->[$ind] if $ind == $imax;
-  my $find = $rind - $ind;
-  return (1.-$find)*$df->[$ind] + $find*$df->[$ind+1];
+sub do_anal_cor {
+  my ($href,$prtcnt) = @_;
+  foreach my $tag (sort keys %{$href}) {
+    my $corsum = 0.;
+    my @corlst;
+    foreach my $ctag (@{$tags{$tag}{caltags}}) {
+      my $cor = get_tpimed($ctag);
+      push @corlst,sprt($cor,$t_fmt2) if $opts{tcal};
+      $corsum += $cor / $tags{$tag}{igcnt};
+    }
+    $tags{$tag}{tpicor} = $tags{$tag}{tpimed} - $corsum;
+
+    next unless $opts{tcal};
+
+    printf 'for %s %4.1f%%:',$tag, 100.*$corsum/$tags{$tag}{tpimed};
+    printf ' (%3d)',$href->{$tag} if $prtcnt;
+    printf ' %s = %s',
+      sprt($tags{$tag}{tpicor},$t_fmt2),
+      sprt($tags{$tag}{tpimed},$t_fmt2);
+    printf ' - (%s) /%3d ; %s',
+      join(' +',@corlst),
+      $tags{$tag}{igcnt},
+      join(',',@{$tags{$tag}{caltags}})
+      if scalar(@{$tags{$tag}{caltags}});
+    print "\n";
+  }
+}
+
+#
+# -- do_calc: determine calculated tags --------------------------------------
+#
+
+sub do_calc {
+  print "--- calculation of new tags\n" if $opts{tcal};
+  foreach my $cdsc (@dtagtbl) {
+    my $dtag = $cdsc->{tag};
+    my $dtxt = $cdsc->{txt};
+    my $dact = $cdsc->{act};
+    my $nact = scalar(@{$dact});
+    my $vsum = 0.;
+    my $esum = 0.;
+    my $rsum = 0;
+    my $cnt  = 0;
+    printf 'for %s: \'%s\' = ',$dtag,$dtxt if $opts{tcal};
+    foreach my $cele (@{$dact}) {
+      my $tag = $cele->{t};
+      my $fac = $cele->{m};
+      if ($opts{tcal}) {
+        printf '%s', (($cnt == 0) ? '' : ($fac < 0) ? ' - ' : ' + ');
+        printf '%3.1f * ', abs($fac) if abs($fac) != 1.;
+        if (exists $tags{$tag}) {
+          printf '\'%s\'', $tags{$tag}{txt};
+        } else {
+          printf '%s MISS -> ABORT', $tag;
+        }
+      }
+      last unless exists $tags{$tag};
+      my $dval = $fac * $tags{$tag}{tpicor};
+      my $derr = ($dval/$tags{$tag}{tpimed}) * $tags{$tag}{tpiw50};
+      $vsum += $dval;
+      $esum += $derr * $derr;
+      $rsum += $tags{$tag}{tpicnt};
+      $cnt  += 1;
+    }
+    printf "\n" if $opts{tcal};
+    next unless $cnt == $nact;
+    my $w50 = ($vsum > 0.) ? sqrt($esum) : 0.;
+    $tags{$dtag} = {txt=>$dtxt,
+                    tpicnt=>$rsum/$nact,
+                    tpimin=>undef,
+                    tpimax=>undef,
+                    tpimed=>$vsum,
+                    tpicor=>$vsum,
+                    tpiw50=>$w50};
+  }
+  print "\n" if $opts{tcal};
 }
 
 #
@@ -299,8 +503,8 @@ sub df_lookup {
 #
 
 sub do_show {
-  return if chktag('T100','LR');
-  return if chktag('T102','L');
+  $opts{nonrr} = 1 if chktag('T100','LR');  # assume -nonrr of T100 not found
+  $opts{nonrx} = 1 if chktag('T102','L');   # assume -nonrr of T102 not found
   my $norrr = $tags{T100}{tpicor};
   my $norrx = $tags{T102}{tpicor};
 
@@ -313,7 +517,7 @@ sub do_show {
   #
   printf 'Tag ';
   printf '%s Comment                ',$del;
-  printf '%s nt',$edel;
+  printf '%s nr',$edel;
   unless ($opts{raw}) {
     printf '%s    min', $del;
     printf '%s    max', $del;
@@ -337,33 +541,9 @@ sub do_show {
   printf "\n";
 
   #
-  # setup formats
-  #
-  my $fmt1 = '%7.1f';
-  my $fmt2 = '%8.2f';
-  my $fmt3 = '%10.2f';
-  if ($opts{d1}) {
-    $fmt1 = '%7.0f';
-    $fmt2 = '%8.1f';
-    $fmt3 = '%10.1f';
-  }
-  if ($opts{d3}) {
-    $fmt1 = '%7.2f';
-    $fmt2 = '%8.3f';
-    $fmt3 = '%10.3f';
-  }
-  my $fmtw1 = '%5.1f';
-  if ($opts{w2}) {
-    $fmtw1 = '%5.2f';
-  }
-  if ($opts{w3}) {
-    $fmtw1 = '%5.3f';
-  }
-
-  #
   # print test lines
   #
-  foreach my $tag (sort keys %tags) {
+  foreach my $tag (map {s/^Z/D/;$_} sort map {s/^D/Z/;$_} keys %tags) {
     my $w50pcent = 100.*$tags{$tag}{tpiw50}/$tags{$tag}{tpimed};
     my $nrr = (defined $opts{nonrr}) ? 0.0 : $tags{$tag}{tpicor}/$norrr;
     my $nrx = (defined $opts{nonrr}) ? 0.0 : $tags{$tag}{tpicor}/$norrx;
@@ -373,10 +553,10 @@ sub do_show {
     printf '%s%3d',     $edel, $tags{$tag}{tpicnt};
 
     unless ($opts{raw}) {
-      printf '%s%s',   $del,sprt($tags{$tag}{tpimin},$fmt1);
-      printf '%s%s',   $del,sprt($tags{$tag}{tpimax},$fmt1);
-      printf '%s%s',   $del,sprt($tags{$tag}{tpicor},$fmt2);
-      printf '%s%s%s', $del,sprt($w50pcent,$fmtw1), $psym;
+      printf '%s%s',   $del,sprt($tags{$tag}{tpimin},$t_fmt1);
+      printf '%s%s',   $del,sprt($tags{$tag}{tpimax},$t_fmt1);
+      printf '%s%s',   $del,sprt($tags{$tag}{tpicor},$t_fmt2);
+      printf '%s%s%s', $del,sprt($w50pcent,$w_fmt), $psym;
       printf '%s%s',   $del,sprt($nrr,'%7.2f');
       printf '%s%s',   $del,sprt($nrx,'%6.2f');
     } else {
@@ -384,8 +564,8 @@ sub do_show {
       printf '%s%7d',  $del,$tags{$tag}{lrcnt};
       printf '%s%3d',  $del,$tags{$tag}{igcnt};
       printf '%s%2d',  $del,$tags{$tag}{ltype};
-      printf '%s%s',   $del,sprt($totraw,$fmt3);
-      printf '%s%s%s', $del,sprt($w50pcent,$fmtw1), $psym;
+      printf '%s%s',   $del,sprt($totraw,$t_fmt3);
+      printf '%s%s%s', $del,sprt($w50pcent,$w_fmt), $psym;
     }
     if (exists $opts{cp}) {
       my $time = $opts{raw} ?
@@ -443,18 +623,47 @@ sub do_show {
 #
 
 sub chktag {
-  my ($tag,$inst) = @_;
+  my ($tag,$ins,$lt) = @_;
+  my $lttxt = (defined $lt) ? sprintf(" lt=%2d:",$lt) : '';
   if (not exists $tags{$tag}) {
-    printf STDERR "s370_perf_ana-E: tag %s not found\n", $tag;
+    printf "s370_perf_ana-W:%s tag %s not found\n", $lttxt,$tag;
     return 1;
   }
-  my ($taginst) = ($tags{$tag}{txt} =~ m/([A-Z]+)/);
-  if ($taginst ne $inst) {
-    printf STDERR "s370_perf_ana-E: instruction mismatch for %s,".
-                  " seen %s, expected %s\n", $tag,$taginst,$inst;
+  my ($tagins) = ($tags{$tag}{txt} =~ m/(^[A-Z]+)/);
+  if ($tagins ne $ins) {
+    printf "s370_perf_ana-E:%s instruction mismatch for %s,".
+           " seen %s, expected %s\n", $lttxt,$tag,$tagins,$ins;
     return 1;
   }
   return 0;
+}
+
+#
+# -- df_lookup: lookup df ----------------------------------------------------
+#
+sub df_lookup {
+  my ($df,$frac) = @_;
+  my $nval = scalar(@{$df});
+  return 0.        if $nval == 0;
+  return $df->[0]  if $nval == 1;
+  my $imax = $nval - 1;
+  my $rind = $frac * $imax;
+  my $ind  = int $rind;
+  return $df->[$ind] if $ind == $imax;
+  my $find = $rind - $ind;
+  return (1.-$find)*$df->[$ind] + $find*$df->[$ind+1];
+}
+
+#
+# -- get_tpimed : get tpimed or overide if option given ----------------------
+#
+
+sub get_tpimed {
+  my ($tag) = @_;
+  my $val = (exists $tags{$tag}{tpimed}) ? $tags{$tag}{tpimed} : 0.;
+  $val = $opts{t311} if $tag eq 'T311' && defined $opts{t311};
+  $val = $opts{t312} if $tag eq 'T312' && defined $opts{t312};
+  return $val;
 }
 
 #
@@ -464,7 +673,8 @@ sub chktag {
 sub sprt {
   my ($val,$fmt) = @_;
   my ($ndig,$prec) = ($fmt =~ m/^%(\d+)\.(\d+)f$/);
-  ## print "+++1 '$fmt': $ndig, $prec\n";
+  return ' 'x($ndig-1).'-' unless defined $val;
+
   my $str   = sprintf $fmt,$val;
   my $ntrim = length($str) - $ndig;
   if ($ntrim > 0) {

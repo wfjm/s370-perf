@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: s370_perf_sum 999 2018-03-11 19:48:53Z mueller $
+# $Id: s370_perf_sum 1002 2018-03-29 13:14:31Z mueller $
 #
 # Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-03-29  1002   1.0.8  add -ins (instruction name sorted output)
 # 2018-03-10   999   1.0.7  print essential options; print file stats, w50 ect
 # 2018-03-03   996   1.0.6  add -rat option
 # 2018-02-23   994   1.0.5  add -fmis and -fsig options
@@ -32,12 +33,13 @@ use Getopt::Long;
 my %opts = ();
 my %tag2txt;
 my %tag2val;
+my %tag2ins;
 my %ftbl;
 my $nfile = 0;
 
 GetOptions(\%opts,
-           'help', 'nrr', 'nrx', 'min', 'w50', 'rel','rat',
-           'fsig:1','fmis:1',
+           'help', 'nrr', 'nrx', 'min', 'w50', 'rel','rat','ins',
+           'fsig:1','fmis:1'
           )
   or die "bad options";
 
@@ -87,6 +89,7 @@ sub do_help {
   print "  -w50       use w50  (50% distribution width)\n";
   print "  -rel       show relative speed for each tag\n";
   print "  -rat       show in addition ratios relative to 1st file\n";
+  print "  -ins       sort by instruction name\n";
   print "  -fmis[=n]  drop test line when n values missing\n";
   print "  -fsig[=n]  show test line only when differing by n percent\n";
   print "  -help      help text\n";
@@ -106,11 +109,12 @@ sub do_file {
   my $w50sum = 0.;
   my $w50max = 0.;
   while (<IFILE>) {
-    if (m/^(T\d\d\d)\s+                     # tag
+    chomp;
+    if (m/^([DT]\d\d\d)\s+                  # tag
           (.*?)\s+:\s+                      # txt
           (\d+)\s+                          # nt
-          ([0-9.]+)\s+                      # min
-          ([0-9.]+)\s+                      # max
+          (-|[0-9.]+)\s+                    # min
+          (-|[0-9.]+)\s+                    # max
           (-?[0-9.]+)\s+                    # tpi
           ([0-9.]+)%\s+                     # w50
           (-?[0-9.]+)\s+                    # nrr
@@ -118,8 +122,8 @@ sub do_file {
       my $tag = $1;
       my $txt = $2;
       my $nt  = $3;
-      my $min = $4;
-      my $max = $5;
+      my $min = ($4 ne '-') ? $4 : undef;
+      my $max = ($5 ne '-') ? $5 : undef;
       my $tpi = $6;
       my $w50 = $7;
       my $nrr = $8;
@@ -143,6 +147,9 @@ sub do_file {
       }
       $tag2txt{$tag} = $txt;
       $tag2val{$tag}{$fnum} = $val;
+      if (($tag !~ m/^T9\d\d/ && $txt !~ m/;/) && $txt =~ m/(^[A-Z]+)/) {
+        $tag2ins{$tag} = $1;
+      }
     }
   }
 
@@ -188,7 +195,14 @@ sub do_show {
   }
   printf "\n";
 
-  foreach my $tag (sort keys %tag2txt) {
+  my @tlist;
+  if ($opts{ins}) {
+    @tlist = sort { $tag2ins{$a} cmp $tag2ins{$b} || $a cmp $b }  keys %tag2ins;
+  } else {
+    @tlist = map {s/^Z/D/;$_} sort map {s/^D/Z/;$_} keys %tag2txt;
+  }
+
+  foreach my $tag (@tlist) {
     my $line = sprintf "%s  %-22s :", $tag,$tag2txt{$tag};
     my @vals;
     foreach my $fnum (@fnums) {
