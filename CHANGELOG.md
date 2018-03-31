@@ -59,7 +59,8 @@ the documentation is consistent.
     - add T543  SD R,m
   - move init code out of inner loop for T510-T513,T540-T543,T560
   - fix minor issues in T551,T553
-  - add and use more ltype codes; add /TCOR
+  - add and use more ltype codes; add `/TCOR`
+  - rename summary files, use _and_ instead of _vs_ as separator
 - *.JES
   - ASM step:  use `BUFSIZE(MAX)`, reduces WORK file accesses, lowers CPU time
   - LKED step: use `SIZE=(512000,122880)`, required to avoid `IEW0364` error
