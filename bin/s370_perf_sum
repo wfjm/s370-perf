@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: s370_perf_sum 1002 2018-03-29 13:14:31Z mueller $
+# $Id: s370_perf_sum 1004 2018-03-31 12:20:15Z mueller $
 #
 # Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -57,6 +57,7 @@ $opttxt .= '  -min'                 if exists $opts{min};
 $opttxt .= '  -w50'                 if exists $opts{w50};
 $opttxt .= '  -rel'                 if exists $opts{rel};
 $opttxt .= '  -rat'                 if exists $opts{rat};
+$opttxt .= '  -ins'                 if exists $opts{ins};
 $opttxt .= '  -fsig ' . $opts{fsig} if exists $opts{fsig};
 $opttxt .= '  -fmis ' . $opts{fmis} if exists $opts{fmis};
 printf "s370_perf_sum%s\n\n",$opttxt if defined $opttxt;

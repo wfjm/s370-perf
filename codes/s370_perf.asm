@@ -1,6 +1,6 @@
 *        1         2         3         4         5         6         71
 *23456789*12345*789012345678901234*678901234567890123456789012345678901
-* $Id: s370_perf.asm 1003 2018-03-30 19:05:29Z mueller $
+* $Id: s370_perf.asm 1004 2018-03-31 12:20:15Z mueller $
 *
 * Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 *
