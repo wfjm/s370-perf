@@ -2,6 +2,7 @@
 
 ### Table of contents
 - Current [HEAD](#user-content-head)
+- Release [V0.80](#user-content-V0.80)
 - Release [V0.60](#user-content-V0.60)
 - Release [V0.50](#user-content-V0.50)
 
@@ -11,6 +12,12 @@
 ### General Proviso
 The HEAD version shows the current development. No guarantees that software or
 the documentation is consistent.
+
+### Summary
+
+<!-- --------------------------------------------------------------------- -->
+---
+## 2018-04-01: [V0.80](https://github.com/wfjm/s370-perf/releases/tag/V0.80) - rev 1005(wfjm) <a name="V0.80"></a>
 
 ### Summary
 - s370_perf_ana:

@@ -18,7 +18,8 @@ instructions in 24-bit mode. It
 - tests instructions with length fields (e.g. `MVC`) for several length
 - tests decimal instructions (e.g. `AP`) for two digit counts
 - tests conditional branches for _taken_ and _fall-through_ case
-- tests branches (e.g. `B`,`BAL`) for short (same 4k page) and far targets
+- tests branches (e.g. `B`,`BAL`) for short (same 4k page) and
+  _far_ (different page) targets
 - tests instructions with memory interlock (`CS`,`CDS`,`TS`) in the
   typical _lock taken_ and the _lock missed_ data configurations
 
@@ -29,7 +30,7 @@ It should work for CPU speeds from below 1 to well above 1000
 [MIPS](https://en.wikipedia.org/wiki/Instructions_per_second#MIPS), thus run
 without modifications on a wide range of platforms
 - older hardware implementations, like P/390 boards
-- Hercules on slow systems, like Raspberry Pi 2B
+- Hercules on slow systems, like Raspberry Pi
 - Hercules on contemporary PC processors
 - and even contemporary z Systems
 
@@ -67,6 +68,7 @@ options, each starting with a `/`. Valid options are:
 | [/Ennn](#user-content-par-ennn) | enable  test Tnnn |
 | [/Dnnn](#user-content-par-ennn) | disable test Tnnn |
 | [/Tnnn](#user-content-par-tnnn) | select  test Tnnn |
+| [/TCOR](#user-content-par-tcor) | select tests required for corrections |
 
 #### /OWTO <a name="par-owto"></a>
 Enables step by step MVS console messages, send with `WTO` as 'job status'
@@ -126,7 +128,7 @@ with the columns containing
 | tag    | name of the test. A disabled test is prefixed with `-` |
 | lr     | _local repeat count_, the loop count for the `BCTR` loop of the test |
 | ig     | _group count_, the number time the instruction under test is replicated in the body of the test loop |
-| lt     | _loop type_, is 1 for `BCTR` loops, 2 for `BCT` loops, and 0 for the tests of `BCTR` and `BCT` |
+| lt     | _loop type_, indicates the additional instructions used to close the loop around the instruction under test |
 | addr   | absolute address of the beginning of the test code |
 | length | length of the test code |
 
@@ -145,8 +147,14 @@ runs about 1 sec. Because the local repeat count of
 each test have been tuned to get about equal CPU time for all tests on the
 reference system this will result in about 1 sec CPU time for all tests
 for systems with simuilar characteristics.
-With about 200 tests currently available one gets about 3 minutes CPU time
-for a typical `s370_perf` run.
+Typical `GMUL` values resulting from `/GAUT` are
+
+| Host CPU | System | GMUL | Comment |
+| -------- | ------ | ---: | ------- |
+|                       | P/390        |   8 | CPU board |
+| ARMv7 - BCM2835       | Herc tk4- 08 |  11 | Raspberry Pi 2 Model B |
+| Intel Core2 Duo E8400 | Herc tk4- 08 | 118 | older desktop CPU |
+| Intel Xeon E5-1620    | Herc tk4- 08 | 190 | typical workstation |
 
 #### /Gnnn and /GnnK <a name="par-gnnn"></a>
 With `/Gnnn` or `GnnK`, where n are decimal digits, the global multiplier
@@ -177,11 +185,23 @@ Each `/Tnnn` re-enables than the test Tnnn. This allows to setup a run with
 only a few tests enabled. Wildcards are supported as described for
 [/Ennn](#user-content-par-ennn).
 
+#### /TCOR <a name="par-tcor"></a>
+Inspects all enabled tests and enables all tests required by
+[s370_perf_ana](s370_perf_ana.md)
+for corrections and normalizations:
+- all tests required by loop overhead corrections
+- T100 and T102 used in normalized instruction times
+
+`/TCOR` is handled as last step of test enable/disable processing, after
+the [configuration file](#user-content-config) and all
+[/Ennn,Dnnn](#user-content-par-ennn) and
+[/Tnnn](#user-content-par-tnnn) options.
+
 ### Configuration file <a name="config"></a>
 The local repeat counts for each test have been adjusted such that all
 tests consume roughly the same CPU time on a reference system, a Hercules
-emulator running on an up-to-date Intel CPU. For very environments
-environments, like z/PDT emulator or real hardware like a P/390 system,
+emulator running on an up-to-date Intel CPU. For very different
+environments, e.g. a z/PDT emulator or real hardware like a P/390 system,
 the relative CPU consumption can be very different. In those cases the
 local repeat counts can be redefined with a configuration file read from
 `SYSIN` in the format
@@ -228,18 +248,61 @@ with the columns containing
 | test(s)     | execution time of this test in sec |
 | lr          | _local repeat count_, the loop count for the `BCTR` loop of the test |
 | ig          | _group count_, the number time the instruction under test is replicated in the body of the test loop |
-| lt          | _loop type_, is 1 for `BCTR` loops, 2 for `BCT` loops, and 0 for the tests of `BCTR` and `BCT` |
+| lt          | _loop type_, indicates the additional instructions used to close the loop around the instruction under test, see section [Loop Types](#user-content-looptype). |
 | inst(usec)  | time per instruction in usec |
 
 Notes on the given instruction time:
 - the loop overhead is not subtracted, that will be done in post-processing
-  with `s370_perf_ana`. However, the loop overhead is typically a few % only,
-  so the numbers are a good quick estimate.
+  with [s370_perf_ana](s370_perf_ana.md). However, the loop overhead is
+  typically a few % only, so the numbers are a good quick estimate.
 - for instructions which can only be tested in context, like `BALR` or `MVCL`,
-  the time is for the whole bundle, which is usually given in the
-  description field.
+  the time is for the whole bundle, which is described in the
+  description field as a `;` separated list like `BALR R,R; BR R`.
+
+#### Loop Types <a name="looptype"></a>
+Most tests contain only the replicated instruction under test and a closing
+`BCTR`. In some cases additional initialization is needed for each inner
+loop iteration. The current code uses the following loop types
+
+| lt | Loop instructions | Comment |
+| -: | ----------------- | ------- |
+|  0 |                   | used for testing `BCTR` and `BCR` |
+|  1 | BCTR              | used for most tests |
+|  2 | BCT               | tests with 8k code |
+|  3 | LR, BCTR          | |
+|  4 | LA, BCTR          | |
+|  5 | LA, XR, BCTR      | |
+|  6 | LA, LA, LA, BCTR  | |
+|  7 | MVC (5c), BCTR    | |
+|  8 | MVC (15c), BCTR   | |
+|  9 | LE, BCTR          | |
+| 10 | LD, BCTR          | |
+| 11 | LD, LD, BCTR      | |
 
 ### Usage <a name="usage"></a>
-For normal production usage just start the code with
-[/GAUT](#user-content-par-gaut) as only option. That should give reasonable
-results in all environments.
+s370_perf is a fairly large assembler module, currently 6800+ lines of code
+with a lot of macro generated code. Both assembler nor linkage editor
+fail under MVS 3.8J and the defaults of the `ASMFCLG` procedure as
+provided in [tk4-](http://wotho.ethz.ch/tk4-/). The assembler needs
+increased allocations of the work files, and runs substantially faster
+with `BUFSIZE(MAX)`. The linkage editor needs an increased work area
+like `SIZE=(512000,122880)`. A well working JCL example is
+```
+//CLG EXEC ASMFCLG,
+//      MAC1='SYS2.MACLIB',
+//      PARM.ASM='NOLIST,NOXREF,NORLD,NODECK,LOAD,BUFSIZE(MAX)',
+//      PARM.LKED='MAP,LIST,LET,NCAL,SIZE=(512000,122880)',
+//      COND.LKED=(8,LE,ASM),
+//      PARM.GO='/GAUT/E9**',
+//      COND.GO=((8,LE,ASM),(4,LT,LKED))
+//ASM.SYSUT1 DD DSN=&&SYSUT1,UNIT=SYSDA,SPACE=(1700,(600,100))
+//ASM.SYSUT2 DD DSN=&&SYSUT2,UNIT=SYSDA,SPACE=(1700,(900,200))
+//ASM.SYSUT3 DD DSN=&&SYSUT3,UNIT=SYSDA,SPACE=(1700,(900,200))
+//ASM.SYSGO  DD DSN=&&OBJSET,UNIT=SYSDA,SPACE=(80,(2000,500))
+//ASM.SYSIN  DD *
+...
+```
+
+Job templates to be used with `hercjis` are provided in the
+[codes](../codes) directory and described in the
+[README](../codes/README.md).

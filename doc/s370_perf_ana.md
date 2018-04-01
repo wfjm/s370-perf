@@ -15,34 +15,54 @@
 ### Description <a name="description"></a>
 This script processes the output of a set of [s370_perf](s370_perf.md) runs and
 - extracts for each run the raw time for each test
-- calculates the [distribution function](https://en.wikipedia.org/wiki/Cumulative_distribution_function)
+- calculates the [cumulative distribution function](https://en.wikipedia.org/wiki/Cumulative_distribution_function)
   of raw times for each test
 - determines the [median](https://en.wikipedia.org/wiki/Median) and the
   width for each test from the distribution function
 - determines and subtracts a loop overhead correction
 
-to determine the _time per instruction_ for each test. Using the median is
-a good [robust estimator](https://en.wikipedia.org/wiki/Robust_statistics)
+to determine the _tpi_ or _'time per instruction'_ for each test.
+Using the median is a good
+[robust estimator](https://en.wikipedia.org/wiki/Robust_statistics)
 and insensitive to a small number of
 [outliers](https://en.wikipedia.org/wiki/Outlier). Doing the loop overhead
-subtraction based on the median values adds to the stability of the
-analysis. The output is a test-by-test listing of the format
+subtraction based on the median values gives very stable results.
+
+Some instructions can only be tested in a sequence with other instructions,
+an obvious example is `BALR` which requires an additional `BR`. For those
+cases the _tpi_ for a s370_perf test gives the time for the whole sequence,
+and the test description indicates that a bundle of instructions is used,
+e.g. `BALR R,R; BR R`.
+The _tpi_ for individual instructions is calculated in a final step by
+subtraction of suitable test data, e.g. `tpi(BALR) = tpi(BALR;BR) - tpi(BR)` .
+
+The output is a test-by-test listing of the format
 ```
 file name ----------------------------  GMUL  i-count  -- total time --   MIPS
-2018-03-04-10:46:16_J5598_PERF-ASM.prt   196 2.44e+10  258.52s  4m18.52   94.3
-2018-03-04-10:55:56_J5599_PERF-ASM.prt   196 2.44e+10  258.34s  4m18.34   94.4
-2018-03-04-11:00:25_J5600_PERF-ASM.prt   196 2.44e+10  258.39s  4m18.39   94.3
-2018-03-04-11:04:47_J5601_PERF-ASM.prt   193 2.40e+10  254.22s  4m14.22   94.4
+2018-03-30-15:42:10_J5958_PERF-ASM.prt   193 2.55e+10  271.97s  4m31.97   93.8
+2018-03-30-15:46:49_J5959_PERF-ASM.prt   193 2.55e+10  272.57s  4m32.57   93.6
+2018-03-30-15:51:37_J5960_PERF-ASM.prt   198 2.62e+10  278.29s  4m38.29   94.1
 ...
-Tag   Comment                : nt     min     max      cor   w50%    n-rr   n-rx
-T100  LR R,R                 : 20     2.1     2.3     2.09   1.7%    1.00   0.28
-T101  LA R,n                 : 20     2.8     2.9     2.76   0.6%    1.32   0.37
-T102  L R,m                  : 20     7.6     7.9     7.53   1.0%    3.59   1.00
-T103  L R,m (unal)           : 20     8.7     9.0     8.61   0.7%    4.11   1.14
-T104  LH R,m                 : 20     9.2     9.5     9.13   1.0%    4.36   1.21
-T105  LH R,m (unal3)         : 20     9.7    10.1     9.54   0.8%    4.56   1.27
+s370_perf version: s370_perf V0.9.7  rev 1003  2018-03-30
+
+Tag   Comment                : nr     min     max      tpi   w50%    n-rr   n-rx
+T100  LR R,R                 : 92     2.1     2.3     2.09  1.31%    1.00   0.28
+T101  LA R,n                 : 92     2.8     2.9     2.77  0.97%    1.32   0.37
+T102  L R,m                  : 92     7.6     8.0     7.47  0.93%    3.58   1.00
+T103  L R,m (unal)           : 92     8.7     9.0     8.60  0.86%    4.12   1.15
+T104  LH R,m                 : 92     9.2     9.6     9.09  1.05%    4.35   1.22
+T105  LH R,m (unal3)         : 92     9.6     9.9     9.48  0.96%    4.54   1.27
+T106  LTR R,R                : 92     3.6     3.7     3.52  0.78%    1.68   0.47
+...
+T320  BALR R,R; BR R         : 92    13.4    13.8    13.32  1.01%    6.37   1.78
+T321  BALR R,R; BR R (far)   : 92    39.6    42.4    39.74  0.88%   19.03   5.32
+...
+D320  BALR R,R               : 92       -       -     6.61  2.25%    3.17   0.89
+D321  BALR R,R (far)         : 92       -       -    29.02  1.25%   13.89   3.88
+D322  BAL R,R                : 92       -       -     8.62  2.02%    4.13   1.15
 ...
 ```
+
 The header section lists the processed runs with the columns
 - **file name**: If multiple s370_perf runs are found in one file the file name
   is repeated several times.
@@ -61,12 +81,13 @@ The header section lists the processed runs with the columns
   instruction mixes which give less weight to slow instructions.
 
 The main body has the columns
-- **Tag**: the s370_perf test name
-- **Comment**: text describing this test
-- **nt**: number of runs found in the input files
-- **min**: the minimal raw time per instruction in ns
-- **max**: the maximal raw time per instruction in ns
-- **cor**: the time per instruction after subtracting the loop overhead, in ns
+- **Tag**: the s370_perf test id (Tnnn) or calculation id (Dnnn)
+- **Comment**: text describing this test. If a bundle is tested the
+  instructions are given as a `;` separated list.
+- **nr**: number of runs found in the input files
+- **min**: the minimal raw time in ns (before loop overhead correction)
+- **max**: the maximal raw time in ns
+- **tpi**: the time per instruction after subtracting the loop overhead, in ns
 - **w50**: the 50% width of the raw time distribution in %
 - **n-rr**: the time per instruction normalized to the `LR` instruction time
   (from T100)
@@ -90,7 +111,7 @@ For more in-depth and especially cross-system analysis use the
 | ------ | :---------- |
 | [-d1](#user-content-opt-d1)        | decrease time field precision |
 | [-d3](#user-content-opt-d3)        | increase time field precision |
-| [-w2](#user-content-opt-w2)        | increase w50 field precision (2 digit) |
+| [-w1](#user-content-opt-w1)        | decrease w50 field precision (1 digit) |
 | [-w3](#user-content-opt-w3)        | increase w50 field precision (3 digit) |
 | [-nolcor](#user-content-opt-nolcor) | no loop (bctr/bct) timing correction |
 | [-t311=t](#user-content-opt-t311)  | override time used for bctr loop correction |
@@ -103,7 +124,8 @@ For more in-depth and especially cross-system analysis use the
 | [-cp=p](#user-content-opt-cp)      | specify clock period (in ns) |
 | [-cf=f](#user-content-opt-cf)      | specify clock frequency (in MHz) |
 | [-cn=n](#user-content-opt-cn)      | number of clock phases |
-| [-ttim](#user-content-opt-ttim)    | use test time field (instead of instruction time)
+| [-ttim](#user-content-opt-ttim)    | use test time field (instead of instruction time) |
+| [-tcal](#user-content-opt-tcal)    | trace calculation steps |
 | [-help](#user-content-opt-help)    | print help text and quit |
 
 #### -d1 <a name="opt-d1"></a>
@@ -114,9 +136,9 @@ helpful for slow systems.
 Increase the precision of the instruction time field from 2 to 3 decimal places,
 helpful for fast systems.
 
-#### -w2 <a name="opt-w2"></a>
-Increase the precision of the `w50` field from 1 to 2 decimal places,
-helpful for systems with little run-to-run variation.
+#### -w2 <a name="opt-w1"></a>
+Decrease the precision of the `w50` field from 2 to 1 decimal places,
+helpful for systems with large run-to-run variation.
 
 #### -w3 <a name="opt-w3"></a>
 Increase the precision of the `w50` field from 1 to 3 decimal places,
@@ -125,8 +147,6 @@ helpful for very deterministic systems like a P/390.
 #### -nolcor <a name="opt-nolcor"></a>
 Disable correction of loop overhead, the instruction time is simply
 calculated by dividing the test time by the number of instructions.
-The output listing contains a `med` field with the plain median
-values instead of the `cor` field.
 
 #### -t311=t <a name="opt-t311"></a>
 Specifies the instruction time for `BCTR` in ns, this value is used for
@@ -181,20 +201,21 @@ the values are in input file order, while they are sorted for `-ldf`.
 #### -raw <a name="opt-raw"></a>
 Lists the raw input data instead of analyzed data in the format
 ```
-Tag   Comment                : nt      lr  ig lt        raw   w50%
-T100  LR R,R                 : 20   22000 100  1     216.45   1.7%
-T101  LA R,n                 : 20   17000 100  1     283.50   0.6%
-T102  L R,m                  : 20   13000  50  1     383.38   1.0%
-T103  L R,m (unal)           : 20   12000  50  1     437.38   0.7%
-T104  LH R,m                 : 20   10000  50  1     463.53   1.0%
+Tag   Comment                : nr      lr  ig lt        raw   w50%
+T100  LR R,R                 : 75   22000 100  1     216.15  1.48%
+T101  LA R,n                 : 75   17000 100  1     283.80  0.99%
+T102  L R,m                  : 75   13000  50  1     381.05  0.94%
+T103  L R,m (unal)           : 75   12000  50  1     437.77  0.89%
+T104  LH R,m                 : 75   10000  50  1     461.15  0.96%
 ...
 ```
 
 with the columns
-- **nt**: number of runs found in input files
+- **nr**: number of runs found in input files
 - **lr**: _local repeat count_ of this test
 - **ig**: _group count_ of this test
-- **lt**: loop type of this test
+- **lt**: loop type of this test (see
+  [s370_perf documentation](s370_perf.md#user-content-looptype) for details)
 - **raw**: the time per inner loop in ns, including the time of the
   loop closing `BCTR` or `BCT` instruction
 - **w50**: 50% width of time distribution
@@ -203,28 +224,27 @@ The `lr`, `ig` and `lt` fields are taken 1-to-1 from the
 [s370_perf output](s370_perf.md#user-content-output).
 The `raw` time is calculated by `inst(usec)` field multiplying with `ig`.
 
-
 #### -csv <a name="opt-csv"></a>
 Output in [csv](https://en.wikipedia.org/wiki/Comma-separated_values) format
 for [spreadsheet](https://en.wikipedia.org/wiki/Spreadsheet) import.
 The fields are delimted by a '|' character instead of blanks or ':', like
 ```
-Tag | Comment                | nt|    min|    max|     cor|  w50%|   n-rr|  n-rx
-T100| LR R,R                 | 20|    2.1|    2.3|    2.09|  1.7%|   1.00|  0.28
-T101| LA R,n                 | 20|    2.8|    2.9|    2.76|  0.6%|   1.32|  0.37
-T102| L R,m                  | 20|    7.6|    7.9|    7.53|  1.0%|   3.59|  1.00
-T103| L R,m (unal)           | 20|    8.7|    9.0|    8.61|  0.7%|   4.11|  1.14
+Tag | Comment                | nr|    min|    max|     tpi|  w50%|   n-rr|  n-rx
+T100| LR R,R                 | 75|    2.1|    2.3|    2.09| 1.48%|   1.00|  0.28
+T101| LA R,n                 | 75|    2.8|    2.9|    2.77| 0.99%|   1.32|  0.37
+T102| L R,m                  | 75|    7.6|    8.0|    7.48| 0.94%|   3.58|  1.00
+T103| L R,m (unal)           | 75|    8.7|    9.0|    8.61| 0.89%|   4.12|  1.15
 ...
 ```
 
 instead of the default
 
 ```
-Tag   Comment                : nt     min     max      cor   w50%    n-rr   n-rx
-T100  LR R,R                 : 20     2.1     2.3     2.09   1.7%    1.00   0.28
-T101  LA R,n                 : 20     2.8     2.9     2.76   0.6%    1.32   0.37
-T102  L R,m                  : 20     7.6     7.9     7.53   1.0%    3.59   1.00
-T103  L R,m (unal)           : 20     8.7     9.0     8.61   0.7%    4.11   1.14
+Tag   Comment                : nr     min     max      tpi   w50%    n-rr   n-rx
+T100  LR R,R                 : 75     2.1     2.3     2.09  1.48%    1.00   0.28
+T101  LA R,n                 : 75     2.8     2.9     2.77  0.99%    1.32   0.37
+T102  L R,m                  : 75     7.6     8.0     7.48  0.94%    3.58   1.00
+T103  L R,m (unal)           : 75     8.7     9.0     8.61  0.90%    4.12   1.15
 ...
 ```
 
@@ -239,7 +259,7 @@ P/390 which have a well defined and known cycle time. When a clock period
 is specified via `-cp` or `-cf` the number of clock cycles are determined
 for each instruction. The output format is extended to
 ```
-Tag   Comment                : nt     min     max      cor   w50%    n-rr   n-rx    n-cp  e-cp%   mcc
+Tag   Comment                : nr     min     max      tpi   w50%    n-rr   n-rx    n-cp  e-cp%   mcc
 T100  LR R,R                 : 10    58.9    59.0    57.15 0.174%    1.00   0.33    1.00     0%     1
 T101  LA R,n                 : 10    60.0    60.3    58.54 0.038%    1.02   0.34    1.02     2%     1
 T102  L R,m                  : 10   178.0   178.2   174.70 0.027%    3.06   1.00    3.06     5%     3
@@ -249,7 +269,7 @@ T103  L R,m (unal)           : 10   236.1   237.6   232.78 0.044%    4.07   1.33
 
 with three additional columns
 - **n-cp**: number of clock cycles, calculated dividing the instruction time
-  shown in the `cor` column by the clock period.
+  shown in the `tpi` column by the clock period.
 - **e-cp**: show how much of the clock cycle number is from an integer value,
   given in percent of the clock period.
 - **mcc**: the `n-cp` value rounded to the nearest integer.
@@ -267,7 +287,7 @@ clock. The analysis calculates now
 
 The output format further is extended to
 ```
-Tag   Comment                : nt     min     max      cor   w50%    n-rr   n-rx    n-cp  e-cp%   mcc   scc
+Tag   Comment                : nr     min     max      tpi   w50%    n-rr   n-rx    n-cp  e-cp%   mcc   scc
 T100  LR R,R                 : 10    58.9    59.0    57.72 0.174%    1.00   0.33    4.05     4%     1     0
 T101  LA R,n                 : 10    60.0    60.3    59.11 0.038%    1.02   0.34    4.15    14%     1     0
 T102  L R,m                  : 10   178.0   178.2   175.84 0.027%    3.05   1.00   12.33    33%     3     0
@@ -275,12 +295,53 @@ T103  L R,m (unal)           : 10   236.1   237.6   233.93 0.044%    4.05   1.33
 ```
 
 This option was introduced when analyzing data from a P/390 system, which has
-a four phase clock, but turned out not to be useful. 
+a four phase clock, but turned out not to be useful in practice.
 
 #### -ttim <a name="opt-ttim"></a>
 Use the `test(s)` field instead of the `inst(usec)` field of the
 [s370_perf output](s370_perf.md#user-content-output).
 Useful for debugging.
+
+#### -tcal <a name="opt-tcal"></a>
+Useful to debug the calculation of loop overhead corrections and Dxxx tags.
+Adds to the output a section describing the loop correction, like
+```
+--- tpicor for tags used in corrections
+for T100  3.3%: (  2)     2.09 =     2.16 - (    7.11) /100 ; T311
+for T101  2.5%: ( 18)     2.77 =     2.84 - (    7.11) /100 ; T311
+for T150  0.8%: (  3)    17.66 =    17.80 - (    7.11) / 50 ; T311
+for T152  0.7%: (  5)    19.17 =    19.31 - (    7.11) / 50 ; T311
+for T230  2.2%: (  6)     3.19 =     3.26 - (    7.11) /100 ; T311
+for T311  0.0%: (290)     7.11 =     7.11
+for T312  0.0%: (  1)     8.41 =     8.41
+for T501  1.5%: (  6)     9.21 =     9.35 - (    7.11) / 50 ; T311
+for T531  1.4%: (  8)     9.99 =    10.13 - (    7.11) / 50 ; T311
+
+--- tpicor for all tags
+for T100  3.3%:     2.09 =     2.16 - (    7.11) /100 ; T311
+for T101  2.5%:     2.77 =     2.84 - (    7.11) /100 ; T311
+for T102  1.9%:     7.47 =     7.61 - (    7.11) / 50 ; T311
+for T103  1.6%:     8.61 =     8.76 - (    7.11) / 50 ; T311
+...
+for T209  1.3%:    10.60 =    10.74 - (    7.11) / 50 ; T311
+for T210  5.4%:     5.75 =     6.08 - (    2.84 +    7.11) / 30 ; T101,T311
+for T211  3.2%:     9.93 =    10.27 - (    2.84 +    7.11) / 30 ; T101,T311
+...
+```
+
+and a section describing the calculation of Dxxx tags, like
+```
+for D170: 'MVCL (10b)' = '4*Lx;MVCL (10b)' - 2.0 * 'LR R,R' - 2.0 * 'LA R,n'
+...
+for D174: 'MVCL (4kb)' = '4*LR;MVCL (4kb)' - 4.0 * 'LR R,R'
+...
+for D320: 'BALR R,R' = 'BALR R,R; BR R' - 'BR R'
+for D321: 'BALR R,R (far)' = 'BALR R,R; BR R (far)' - 'BR R (far)'
+...
+for D410: 'ED (10c)' = 'MVC;ED (10c)' - 'MVC m,m (10c)'
+for D411: 'ED (30c)' = 'MVC;ED (30c)' - 'MVC m,m (30c)'
+...
+```
 
 #### -help <a name="opt-help"></a>
 Print help text and quit.
