@@ -1,6 +1,6 @@
 ## Host Info: sys2
 
-`sys2` is a Dell Precision T3600 workstation
+**sys2** is a Dell Precision T3600 workstation
 
 ### CPU Info
 

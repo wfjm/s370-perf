@@ -1,6 +1,6 @@
 ## Host Info: sys1
 
-`sys1` is a vintage 2009 custom build desktop system.
+**sys1** is a vintage 2009 custom build desktop system.
 
 ### System Info
 
@@ -38,3 +38,4 @@
 | Host kernel  | 4.4.0-98-generic (on 2017-11-17) |
 |              | 4.4.0-104-generic #127-Ubuntu (on 2018-01-14-a) |
 |              | 4.4.0-109-generic #132-Ubuntu (on 2018-01-14-b) |
+|              | 4.4.0-116-generic #140-Ubuntu (on 2018-03-31) |

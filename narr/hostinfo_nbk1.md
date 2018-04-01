@@ -1,6 +1,6 @@
 ## Host Info: nbk1
 
-`nbk1` is a Lenovo ThinkPad T530 Notebook (vintage 2012)
+**nbk1** is a Lenovo ThinkPad T530 Notebook (vintage 2012)
 
 ### CPU Info
 

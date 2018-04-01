@@ -1,6 +1,6 @@
 ## Host Info: nbk2
 
-`nbk2` is a Dell Lattitude E4310 Notebook (vintage 2011)
+**nbk2** is a Dell Lattitude E4310 Notebook (vintage 2011)
 
 ### CPU Info
 
@@ -29,3 +29,4 @@
 | Guest kernel | 3.13.0-133-generic (on 2017-11-12) |
 |              | 3.13.0-137-generic #186-Ubuntu  (on 2018-01-21-a) |
 |              | 3.13.0-139-generic #188-Ubuntu  (on 2018-01-21-b) |
+|              | 3.13.0-143-generic #192-Ubuntu  (on 2018-04-01) |

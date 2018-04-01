@@ -1,6 +1,6 @@
 ## Host Info: rasp2b
 
-`rasp2b` is a [Raspberry Pi 2 Model B](https://www.raspberrypi.org/products/raspberry-pi-2-model-b/) based system.
+**rasp2b** is a [Raspberry Pi 2 Model B](https://www.raspberrypi.org/products/raspberry-pi-2-model-b/) based system.
 
 ### CPU Info
 
