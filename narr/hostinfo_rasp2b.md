@@ -16,11 +16,13 @@
 | Revision         | a01041 |
 | cores            | 4 |
 | threads/core     | 1 |
+| CPU min MHz      | 600.0 |
+| CPU max MHz      | 900.0 |
 | bogomips         | 57.60 |
 
 ### OS Info
 
 | Attribute | Value |
 | --------- | ----- |
-| Host OS      | t.b.d. |
-| Host kernel  | t.b.d. |
+| Host OS      | Raspbian GNU/Linux 8 |
+| Host kernel  | 4.9.35-v7+ (dated 2017-06-30) |

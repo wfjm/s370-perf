@@ -19,4 +19,7 @@ tbe currently available test cases are
 | 2018-03-31 | [sys1](hostinfo_sys1.md) | Herc tk4- | [2018-03-31_sys1-3g](2018-03-31_sys1-3g.md) | with cpufreq-set 3GHz |
 | 2018-03-31 | [sys1](hostinfo_sys1.md) | Herc tk4- | [2018-03-31_sys1-od](2018-03-31_sys1-od.md) | with cpufreq-set ondemand |
 | 2018-04-01 | [sys1](hostinfo_sys1.md) | Herc tk4- | [2018-04-01_sys1-08](2018-04-01_sys1-08.md) | with tk4- 08 |
-| 2018-04-01 | [nbk2](hostinfo_nbk2.md) | Herc tk4- | [2018-04-01_nbk2-08](2018-04-01_nbk2.md) | |
+| 2018-04-01 | [nbk1](hostinfo_nbk1.md) | Herc tk4- | [2018-04-01_nbk1](2018-04-01_nbk1.md) | |
+| 2018-04-01 | [nbk2](hostinfo_nbk2.md) | Herc tk4- | [2018-04-01_nbk2](2018-04-01_nbk2.md) | |
+| 2018-04-01 | [sys3](hostinfo_sys3.md) | Herc tk4- | [2018-04-01_sys3](2018-04-01_sys3.md) | |
+| 2018-04-02 | [rasp2b](hostinfo_rasp2b.md) | Herc tk4- | [2018-04-02_rasp2b](2018-04-02_rasp2b.md) | |
