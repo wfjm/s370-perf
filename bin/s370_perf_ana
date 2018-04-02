@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: s370_perf_ana 1004 2018-03-31 12:20:15Z mueller $
+# $Id: s370_perf_ana 1006 2018-04-02 11:47:50Z mueller $
 #
 # Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-04-01  1006   2.0.1  fix bug in -ldf and -ltpi handling of Dxxx tags
 # 2018-03-31  1004   2.0    re-organize code; use -w1 instead of -w2; add -tcal;
 #                           support lt>2; add calculated tag lines (Dxxx)
 # 2018-03-17  1000   1.4    cleanup ^L handling; add -dt,-dl,-du,-nonrr
@@ -588,6 +589,7 @@ sub do_show {
     print "\n";
 
     if ($opts{ltpi} && not $csv) {
+      next unless exists $tags{$tag}{tpival};
       my $ival = 0;
       my $nval = scalar(@{$tags{$tag}{tpival}});
       foreach my $val (@{$tags{$tag}{tpival}}) {
@@ -599,6 +601,7 @@ sub do_show {
       print "\n" unless $ival%5 == 0;
     }
     if ($opts{ldf} && not $csv) {
+      next unless exists $tags{$tag}{tpival};
       my @tpisort = sort { $a <=> $b } @{$tags{$tag}{tpival}};
       my $ival = 0;
       my $nval = scalar(@tpisort);
