@@ -1,6 +1,6 @@
 *        1         2         3         4         5         6         71
 *23456789*12345*789012345678901234*678901234567890123456789012345678901
-* $Id: s370_perf.asm 1004 2018-03-31 12:20:15Z mueller $
+* $Id: s370_perf.asm 1008 2018-04-07 15:52:03Z mueller $
 *
 * Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 *
@@ -1591,7 +1591,7 @@ T115L    REPINS STC,(R2,T115V)          repeat: STC R2,T115V
 T115V    DS    1H
          TSIMEND
 *
-* Test 116 -- STCM R,i,m (1c) -------------------------------
+* Test 116 -- STCM R,i,m (1c) ------------------------------
 *
          TSIMBEG T116,8000,50,1,C'STCM R,i,m (0010)'
 *
@@ -1602,7 +1602,7 @@ T116L    REPINS STCM,(R2,B'0010',T116V) repeat: STCM R2,B'0010',T116V
 T116V    DS    1F
          TSIMEND
 *
-* Test 117 -- STCM R,i,m (2c) -------------------------------
+* Test 117 -- STCM R,i,m (2c) ------------------------------
 *
          TSIMBEG T117,7000,50,1,C'STCM R,i,m (1100)'
 *
@@ -1613,7 +1613,7 @@ T117L    REPINS STCM,(R2,B'1100',T117V) repeat: STCM R2,B'1100',T117V
 T117V    DS    1F
          TSIMEND
 *
-* Test 118 -- STCM R,i,m (3c) -------------------------------
+* Test 118 -- STCM R,i,m (3c) ------------------------------
 *
          TSIMBEG T118,10000,50,1,C'STCM R,i,m (0111)'
 *
@@ -2195,7 +2195,7 @@ T193V1   DC    C'123'
 *
 * Test 2xx -- binary/logical ====================================
 *
-* Test 20x -- arithmetic/logical add/sub ========================
+* Test 20x -- arithmetic/logical add/sub ===================
 *
 * Test 200 -- AR R,R ---------------------------------------
 *
@@ -2608,7 +2608,7 @@ T245L    XR    R2,R2
          TSIMRET
          TSIMEND
 *
-* Test 25x -- misc TM,TR,TRT ==================================
+* Test 25x -- misc TM,TR,TRT ===============================
 *
 * Test 250 -- TM m,i ---------------------------------------
 *
@@ -2744,7 +2744,7 @@ T259L    REPINS TRT,(0(250,R4),0(R5))   repeat: TRT 0(250,R4),0(R5)
 T259V    DC    256X'00'
          TSIMEND
 *
-* Test 26x -- compare ===========================================
+* Test 26x -- compare ======================================
 *
 * Test 260 -- CR R,R ---------------------------------------
 *
@@ -2821,9 +2821,9 @@ T266L    REPINS CLM,(R2,X'7',T266V)     repeat: CLM R2,X'7',T266V
 T266V    DC    X'010203FF'
          TSIMEND
 *
-* Test 27x -- CLC ===============================================
+* Test 27x -- CLC ==========================================
 *
-* Test 270 -- CLC m,m (10c,eq)-----------------------------------
+* Test 270 -- CLC m,m (10c,eq)------------------------------
 *
          TSIMBEG T270,7000,20,1,C'CLC m,m (10c,eq)'
 *
@@ -2834,7 +2834,7 @@ T270L    REPINS CLC,(T270V1,T270V1)     repeat: CLC T270V1,T270V1
 T270V1   DC    C'1234567890'
          TSIMEND
 *
-* Test 271 -- CLC m,m (10c,ne)-----------------------------------
+* Test 271 -- CLC m,m (10c,ne)------------------------------
 *
          TSIMBEG T271,8000,20,1,C'CLC m,m (10c,ne)'
 *
@@ -2846,7 +2846,7 @@ T271V1   DC    C'1234567890'
 T271V2   DC    C'2345678901'
          TSIMEND
 *
-* Test 272 -- CLC m,m (30c,eq)-----------------------------------
+* Test 272 -- CLC m,m (30c,eq)------------------------------
 *
          TSIMBEG T272,5000,20,1,C'CLC m,m (30c,eq)'
 *
@@ -2857,7 +2857,7 @@ T272L    REPINS CLC,(T272V1,T272V1)     repeat: CLC T272V1,T272V1
 T272V1   DC    C'123456789012345678901234567890'
          TSIMEND
 *
-* Test 273 -- CLC m,m (30c,ne)-----------------------------------
+* Test 273 -- CLC m,m (30c,ne)------------------------------
 *
          TSIMBEG T273,8000,20,1,C'CLC m,m (30c,ne)'
 *
@@ -2869,7 +2869,7 @@ T273V1   DC    C'123456789012345678901234567890'
 T273V2   DC    C'234567890123456789012345678901'
          TSIMEND
 *
-* Test 274 -- CLC m,m (100c,eq)----------------------------------
+* Test 274 -- CLC m,m (100c,eq)-----------------------------
 *
          TSIMBEG T274,2900,20,1,C'CLC m,m (100c,eq)'
 *
@@ -2881,7 +2881,7 @@ T274V1   DC    100C'X'
 T274V2   DC    100C'X'
          TSIMEND
 *
-* Test 275 -- CLC m,m (100c,ne)----------------------------------
+* Test 275 -- CLC m,m (100c,ne)-----------------------------
 *
          TSIMBEG T275,8000,20,1,C'CLC m,m (100c,ne)'
 *
@@ -2893,7 +2893,7 @@ T275V1   DC    100C'X'
 T275V2   DC    100C'Y'
          TSIMEND
 *
-* Test 276 -- CLC m,m (250c,eq)----------------------------------
+* Test 276 -- CLC m,m (250c,eq)-----------------------------
 *
          TSIMBEG T276,1500,20,1,C'CLC m,m (250c,eq)'
 *
@@ -2905,7 +2905,7 @@ T276V1   DC    250C'X'
 T276V2   DC    250C'X'
          TSIMEND
 *
-* Test 277 -- CLC m,m (250c,ne)----------------------------------
+* Test 277 -- CLC m,m (250c,ne)-----------------------------
 *
          TSIMBEG T277,8000,20,1,C'CLC m,m (250c,ne)'
 *
@@ -2917,9 +2917,9 @@ T277V1   DC    250C'X'
 T277V2   DC    250C'Y'
          TSIMEND
 *
-* Test 28x -- CLCL ==============================================
+* Test 28x -- CLCL =========================================
 *
-* Test 280 -- CLCL m,m (100b,10b) -------------------------------
+* Test 280 -- CLCL m,m (100b,10b) --------------------------
 *
          TSIMBEG T280,4500,10,1,C'4*LR;CLCL (100b,10b)'
 *
@@ -2956,7 +2956,7 @@ T280L    REPINSN LR,(R2,R6),LR,(R3,R7),                                X
          TSIMRET
          TSIMEND
 *
-* Test 281 -- CLCL m,m (4kb,10b) --------------------------------
+* Test 281 -- CLCL m,m (4kb,10b) ---------------------------
 *
          TSIMBEG T281,4500,10,1,C'4*LR;CLCL (4kb,10b)'
 *
@@ -2993,7 +2993,7 @@ T281L    REPINSN LR,(R2,R6),LR,(R3,R7),                                X
          TSIMRET
          TSIMEND
 *
-* Test 282 -- CLCL m,m (4kb,100b) -------------------------------
+* Test 282 -- CLCL m,m (4kb,100b) --------------------------
 *
          TSIMBEG T282,600,10,1,C'4*LR;CLCL (4kb,100b)'
 *
@@ -3030,7 +3030,7 @@ T282L    REPINSN LR,(R2,R6),LR,(R3,R7),                                X
          TSIMRET
          TSIMEND
 *
-* Test 283 -- CLCL m,m (4kb,250b) -------------------------------
+* Test 283 -- CLCL m,m (4kb,250b) --------------------------
 *
          TSIMBEG T283,220,10,1,C'4*LR;CLCL (4kb,250b)'
 *
@@ -3067,7 +3067,7 @@ T283L    REPINSN LR,(R2,R6),LR,(R3,R7),                                X
          TSIMRET
          TSIMEND
 *
-* Test 284 -- CLCL m,m (4kb,1kb) --------------------------------
+* Test 284 -- CLCL m,m (4kb,1kb) ---------------------------
 *
          TSIMBEG T284,80,10,1,C'4*LR;CLCL (4kb,1kb)',DIS=1
 *
@@ -3104,7 +3104,7 @@ T284L    REPINSN LR,(R2,R6),LR,(R3,R7),                                X
          TSIMRET
          TSIMEND
 *
-* Test 285 -- CLCL m,m (4kb,16kb) -------------------------------
+* Test 285 -- CLCL m,m (4kb,4kb) ---------------------------
 *
          TSIMBEG T285,5,10,1,C'4*LR;CLCL (4kb,4kb)',DIS=1
 *
@@ -3141,7 +3141,7 @@ T285L    REPINSN LR,(R2,R6),LR,(R3,R7),                                X
          TSIMRET
          TSIMEND
 *
-* Test 29x -- CS,CDS ============================================
+* Test 29x -- CS,CDS =======================================
 *
 * Test 290 -- CS R,R,m (eq,eq) -----------------------------
 *
@@ -3189,7 +3189,7 @@ T292L    REPINSN LR,(R2,R6),CS,(R2,R4,T292V)
 T292V    DC    F'1'               init OP2
          TSIMEND
 *
-* Test 295 -- CDS R,R,m (eq,eq) -----------------------------
+* Test 295 -- CDS R,R,m (eq,eq) ----------------------------
 *
          TSIMBEG T295,6000,20,1,C'LR;CDS R,R,m (eq,eq)'
 *
@@ -3552,7 +3552,7 @@ T320L    REPINS BALR,(R14,R2)           repeat: BALR R14,R2
 T320R    BR    R14
          TSIMEND
 *
-* Test 321 -- BALR R,R; BR R (far) -------------------------------
+* Test 321 -- BALR R,R; BR R (far) -------------------------
 *
          TSIMBEG T321,2500,50,1,C'BALR R,R; BR R (far)'
 *
@@ -3709,7 +3709,7 @@ T404V1   DC    ZL6'0'
 T404V2   DC    PL3'12345'
          TSIMEND
 *
-* Test 405 -- UNPK m,m (15d) --------------------------------
+* Test 405 -- UNPK m,m (15d) -------------------------------
 *
          TSIMBEG T405,2500,20,1,C'UNPK m,m (15d)'
 *
@@ -3723,7 +3723,7 @@ T405V2   DC    PL8'123456789012345'
 *
 * Test 41x -- edit =========================================
 *
-* Test 410 -- MVC;ED (10c) ----------------------------------
+* Test 410 -- MVC;ED (10c) ---------------------------------
 *
          TSIMBEG T410,3300,10,1,C'MVC;ED (10c)'
 *
@@ -3744,7 +3744,7 @@ T410V2   DS    10C
 T410V3   DC    C' ',7X'20',X'21',X'20'
          TSIMEND
 *
-* Test 411 -- MVC;ED (30c) ----------------------------------
+* Test 411 -- MVC;ED (30c) ---------------------------------
 *
          TSIMBEG T411,1200,10,1,C'MVC;ED (30c)'
 *
@@ -3763,7 +3763,7 @@ T411V2   DS    30C
 T411V3   DC    C' ',27X'20',X'21',X'20'
          TSIMEND
 *
-* Test 415 -- MVC;EDMK (10c) --------------------------------
+* Test 415 -- MVC;EDMK (10c) -------------------------------
 *
          TSIMBEG T415,3300,10,1,C'MVC;EDMK (10c)'
 *
@@ -4711,7 +4711,7 @@ T621V    DC    X'FF'              target for TS instruction
 *
 * Test 7xx -- mix sequence ======================================
 *
-* Test 700 -- Mix Int RR basic -----------------------------------
+* Test 700 -- Mix Int RR basic -----------------------------
 *
          TSIMBEG T700,20000,40,1,C'mix int RR basic'
 *
