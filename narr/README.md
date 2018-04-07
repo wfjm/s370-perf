@@ -12,7 +12,7 @@ tbe currently available test cases are
 | 2018-01-21 | [nbk2](hostinfo_nbk2.md) | Herc tk4- | [2018-01-21_nbk2-b](2018-01-21_nbk2-b.md) | after Meltdown kernel patch |
 | 2018-02-14 | n/a  | [P/390](sysinfo_p390.md) | [2018-02-14_p390](2018-02-14_p390.md) | first complete P/390 data |
 | 2018-03-04 | [sys2](hostinfo_sys2.md) | Herc tk4- | [2018-03-04_sys2](2018-03-04_sys2.md) | data with close-to-final s370_perf |
-| 2018-03-31 | [sys2](hostinfo_sys2.md) | Herc tk4- | [2018-03-31_sys2](2018-03-31_sys2.md) | reference data with final s370_perf |
+| 2018-03-31 | [sys2](hostinfo_sys2.md) | Herc tk4- | [2018-03-31_sys2](2018-03-31_sys2.md) | **reference data** with final s370_perf |
 | 2018-03-31 | [sys2](hostinfo_sys2.md) | Herc tk4- | [2018-03-31_sys2-1cpu](2018-03-31_sys2-1cpu.md) | with NUMCPU=1 MAXCPU=1 |
 | 2018-03-31 | [sys2](hostinfo_sys2.md) | Herc tk4- | [2018-03-31_sys2-g001](2018-03-31_sys2-g001.md) | with /G001 |
 | 2018-03-31 | [sys2](hostinfo_sys2.md) | Herc tk4- | [2018-03-31_sys2-orip](2018-03-31_sys2-orip.md) | with /ORIP |
@@ -23,3 +23,5 @@ tbe currently available test cases are
 | 2018-04-01 | [nbk2](hostinfo_nbk2.md) | Herc tk4- | [2018-04-01_nbk2](2018-04-01_nbk2.md) | |
 | 2018-04-01 | [sys3](hostinfo_sys3.md) | Herc tk4- | [2018-04-01_sys3](2018-04-01_sys3.md) | |
 | 2018-04-02 | [rasp2b](hostinfo_rasp2b.md) | Herc tk4- | [2018-04-02_rasp2b](2018-04-02_rasp2b.md) | |
+| 2018-04-07 | [sys3](hostinfo_sys3.md) | Herc tk4- | [2018-04-07_sys3-od](2018-04-07_sys3-od.md) | with governor = ondemand |
+| 2018-04-07 | [sys3](hostinfo_sys3.md) | Herc tk4- | [2018-04-07_sys3-pf](2018-04-07_sys3-pf.md) | with governor = performance |
