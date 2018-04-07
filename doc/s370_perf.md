@@ -151,10 +151,13 @@ Typical `GMUL` values resulting from `/GAUT` are
 
 | Host CPU | System | GMUL | Comment |
 | -------- | ------ | ---: | ------- |
-|                       | P/390        |   8 | CPU board |
-| ARMv7 - BCM2835       | Herc tk4- 08 |  11 | Raspberry Pi 2 Model B |
-| Intel Core2 Duo E8400 | Herc tk4- 08 | 118 | older desktop CPU |
-| Intel Xeon E5-1620    | Herc tk4- 08 | 190 | typical workstation |
+| ARMv5te               | Herc tk3         |   4 | Pogoplug v2 |
+|                       | P/390            |   8 | CPU board |
+| ARMv7 - BCM2835       | Herc tk4- 08     |  11 | Raspberry Pi 2 Model B |
+| AMD Opteron 6238      | Herc tk4- 08     | 100 | older 2*12 core server |
+| Intel Core2 Duo E8400 | Herc tk4- 09 rc2 | 118 | older desktop CPU |
+| Intel Xeon E5-1620    | Herc tk4- 08     | 195 | typical 4 core  workstation |
+| Intel Core i7-3520M   | Herc tk4- 08     | 202 | mid-end notebook |
 
 #### /Gnnn and /GnnK <a name="par-gnnn"></a>
 With `/Gnnn` or `GnnK`, where n are decimal digits, the global multiplier
@@ -303,6 +306,8 @@ like `SIZE=(512000,122880)`. A well working JCL example is
 ...
 ```
 
-Job templates to be used with `hercjis` are provided in the
+Job templates to be used with
+[hercjis](https://github.com/wfjm/herc-tools/blob/master/doc/hercjis.md)
+are provided in the
 [codes](../codes) directory and described in the
 [README](../codes/README.md).

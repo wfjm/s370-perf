@@ -15,17 +15,19 @@
 | sockets      | 2 |
 | cores per socket | 12 |
 | CPU MHz       | 2600.0 |
-| max Turbo MHz | 3200.0 (not enabled on test system) |
+| max Turbo MHz | 3200.0 (see Notes) |
 | bogomips     | 5199.92 |
 | datasheet    | [at cpu-world.com](http://www.cpu-world.com/CPUs/Bulldozer/AMD-Opteron%206238.html) |
 | microarchitecture | [Bulldozer-Interlagos](https://en.wikipedia.org/wiki/Bulldozer_(microarchitecture)) |
 
 **Note**:
-`lscpu` shows _6 cores_ and _2 thread/core_ because the `ht` flag is set.
-`lstopo` shows a total of 12 cores per socket, each core with a single `PU`.
-The AMD Opteron architecture shares much less resources per core that Intel
-style hyperthreading, so for most practical purposes one can consider this as a
-12 cores per socket system.
+- `lscpu` shows _6 cores_ and _2 thread/core_ because the `ht` flag is set.
+  `lstopo` shows a total of 12 cores per socket, each core with a single `PU`.
+  The AMD Opteron architecture shares much less resources per core that Intel
+  style hyperthreading, so for most practical purposes one can consider this as a
+  12 cores per socket system.
+- the `max Turbo` is specified with 3200 MHz, but the tested system was
+  configured with a maximal turbo setting of 2900 MHz.
 
 ### OS Info
 
