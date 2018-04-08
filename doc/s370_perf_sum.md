@@ -13,7 +13,7 @@
 ```
 
 ### Description <a name="description"></a>
-This script reads multiple [s370_perf_ana](s370_perf_ana.md) output files
+s370_perf_sum reads multiple [s370_perf_ana](s370_perf_ana.md) output files
 and allows to a create compact, one line per [s370_perf](s370_perf.md) test,
 listing summarizing and comparing the benchmark cases.
 The output format is, for an example with three input files and using

@@ -12,7 +12,7 @@
 ```
 
 ### Description <a name="description"></a>
-This script reads a [s370_perf_ana](s370_perf_ana.md) output file, which
+s370_perf_ins reads a [s370_perf_ana](s370_perf_ana.md) output file, which
 is ordered by tag names, selects only lines which give the timing of a
 single instruction, and prints these lines ordered by instruction
 mnemonic. A typical output looks like
