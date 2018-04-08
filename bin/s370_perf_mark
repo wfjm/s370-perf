@@ -1,0 +1,288 @@
+#!/usr/bin/perl -w
+# $Id: s370_perf_mark 1009 2018-04-08 12:44:49Z mueller $
+#
+# Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+#
+# This program is free software; you may redistribute and/or modify it under
+# the terms of the GNU General Public License as published by the Free
+# Software Foundation, either version 3, or at your option any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+# for complete details.
+#
+#  Revision History:
+# Date         Rev Version  Comment
+# 2018-04-08  1008   1.0    Initial version
+#
+
+use 5.14.0;                                 # require Perl 5.14 or higher
+use strict;                                 # require strict checking
+use Getopt::Long;
+
+my %opts = ();
+
+GetOptions(\%opts, 'help', 'mix=s', 'v', 'sf', 'l' )
+  or die "bad options";
+
+#
+my %mtbl =
+  (lmix => [{i=>'BC n', w=>0.0875, t=>'T301', ie=>'BNZ', c=>'no br'},
+            {i=>'BC y', w=>0.0875, t=>'T302', ie=>'BNZ', c=>'do br'},
+            {i=>'L',    w=>0.0648, t=>'T102'},
+            {i=>'TM',   w=>0.0610, t=>'T250'},
+            {i=>'LA',   w=>0.0498, t=>'T101'},
+            {i=>'CLI',  w=>0.0424, t=>'T265'},
+            {i=>'MVC',  w=>0.0418, t=>'T151',            c=>'10c'},
+            {i=>'CLC',  w=>0.0342, t=>'T270',            c=>'10c,eq'},
+            {i=>'BCR n',w=>0.0328, t=>'T300'},
+            {i=>'BCR y',w=>0.0328, t=>'T304', ie=>'BR'},
+            {i=>'ST',   w=>0.0306, t=>'T110'},
+            {i=>'BALR', w=>0.0278, t=>'D320'},
+            {i=>'LH',   w=>0.0257, t=>'T104'},
+            {i=>'BAL',  w=>0.0240, t=>'D322'},
+            {i=>'LR',   w=>0.0234, t=>'T100'},
+            {i=>'LM',   w=>0.0220, t=>'T124',            c=>'6r'},
+            {i=>'STH',  w=>0.0214, t=>'T112'},
+            {i=>'IC',   w=>0.0206, t=>'T190'},
+            {i=>'BCT',  w=>0.0187, t=>'T312'},
+            {i=>'SR',   w=>0.0177, t=>'T205'},
+            {i=>'MVI',  w=>0.0174, t=>'T160'},
+            {i=>'AH',   w=>0.0165, t=>'T202'},
+            {i=>'AR',   w=>0.0156, t=>'T200'},
+            {i=>'STM',  w=>0.0132, t=>'T121',            c=>'6r'},
+            {i=>'C',    w=>0.0122, t=>'T261'},
+            {i=>'CR',   w=>0.0107, t=>'T260'},
+            {i=>'LTR',  w=>0.0098, t=>'T106'},
+            {i=>'BCTR', w=>0.0090, t=>'T311'},
+            {i=>'LPR',  w=>0.0079, t=>'T109'},
+            {i=>'EX',   w=>0.0076, t=>'T610',            c=>'with TM'},
+            {i=>'SH',   w=>0.0075, t=>'T207'},
+            {i=>'SLL',  w=>0.0074, t=>'T240'},
+            {i=>'STC',  w=>0.0072, t=>'T115'},
+            {i=>'CL',   w=>0.0063, t=>'T264'},
+            {i=>'NI',   w=>0.0062, t=>'T232', ie=>'XI'},
+            {i=>'OI',   w=>0.0060, t=>'T232', ie=>'XI'},
+            {i=>'N',    w=>0.0058, t=>'T231', ie=>'X'},
+            {i=>'AL',   w=>0.0057, t=>'T204'},
+            {i=>'CH',   w=>0.0052, t=>'T262'},
+            {i=>'SRL',  w=>0.0048, t=>'T242'},
+            {i=>'D',    w=>0.0038, t=>'D216'},
+            {i=>'S',    w=>0.0033, t=>'T206'},
+            {i=>'SLA',  w=>0.0022, t=>'T220'},
+            {i=>'LNR',  w=>0.0021, t=>'T108'},
+            {i=>'XR',   w=>0.0020, t=>'T230'},
+            {i=>'A',    w=>0.0020, t=>'T201'},
+            {i=>'MVZ',  w=>0.0020, t=>'T165',            c=>'10c'},
+            {i=>'M',    w=>0.0018, t=>'T211'},
+            {i=>'TRT',  w=>0.0017, t=>'T255',            c=>'10c,zero'},
+            {i=>'STD',  w=>0.0016, t=>'T538'},
+            {i=>'LD',   w=>0.0016, t=>'T531'},
+            {i=>'CLR',  w=>0.0015, t=>'T263'},
+            {i=>'CVD',  w=>0.0013, t=>'T401'},
+            {i=>'SLR',  w=>0.0011, t=>'T208'},
+            {i=>'LDR',  w=>0.0010, t=>'T530'},
+            {i=>'TR',   w=>0.0010, t=>'T252',            c=>'10c'},
+            {i=>'SRA',  w=>0.0010, t=>'T222'},
+            {i=>'XC',   w=>0.0008, t=>'T235',            c=>'10c'},
+            {i=>'SRDL', w=>0.0006, t=>'T243'},
+            {i=>'OC',   w=>0.0006, t=>'T235', ie=>'XC',  c=>'10c'},
+            {i=>'BXLE', w=>0.0005, t=>'T315'},
+            {i=>'MH',   w=>0.0005, t=>'T212'},
+            {i=>'LCR',  w=>0.0005, t=>'T107'},
+            {i=>'ZAP',  w=>0.0003, t=>'T440',            c=>'10d,10d'},
+            {i=>'PACK', w=>0.0003, t=>'T402',            c=>'5d'},
+            {i=>'SLDL', w=>0.0003, t=>'T241'},
+            {i=>'MVN',  w=>0.0003, t=>'T161',            c=>'10c'},
+            {i=>'CDR',  w=>0.0002, t=>'T550'},
+            {i=>'LTDR', w=>0.0002, t=>'T533'},
+            {i=>'BXH',  w=>0.0002, t=>'T315', ie=>'BXLE'},
+            {i=>'XI',   w=>0.0002, t=>'T232'},
+            {i=>'X',    w=>0.0002, t=>'T231'},
+            {i=>'SDR',  w=>0.0001, t=>'T542'},
+            {i=>'LPDR', w=>0.0001, t=>'T536'},
+            {i=>'CP',   w=>0.0001, t=>'T430',            c=>'10d'},
+            {i=>'UNPK', w=>0.0001, t=>'T404',            c=>'5d'},
+            {i=>'CVB',  w=>0.0001, t=>'T400'},
+            {i=>'O',    w=>0.0001, t=>'T231',ie=>'X'}
+           ]
+  );
+
+# handle help
+if (defined $opts{help}) { do_help();  exit 0; }
+
+# check mix choice validity
+my $mix = defined $opts{mix} ? $opts{mix} : 'lmix';
+unless (exists $mtbl{$mix}) {
+  print  "s370_perf_mark-E mix '$mix' not available\n";
+  printf "                 choices are: %s\n", join ',',keys %mtbl;
+  exit 1;
+
+}
+
+# handle -l option
+if ($opts{l}) {
+  printf "Instruction frequencies for mix '$mix'\n";
+  printf "   fi  inst      fwt     cwt   tag  map    comment\n";
+  my $fi  = 0;
+  my $cwt = 0.;
+  foreach my $rdsc (@{$mtbl{lmix}}) {
+    $cwt += $rdsc->{w};
+    printf "  %3d  %-5s  %6.4f  %6.4f  %s  %-5s  %s\n",
+      $fi,
+      $rdsc->{i},
+      $rdsc->{w},
+      $cwt,
+      $rdsc->{t},
+      (defined $rdsc->{ie} ? $rdsc->{ie} : ''),
+      (defined $rdsc->{c} ? '('.$rdsc->{c}.')' : '');
+    $fi += 1;
+  }
+  exit 0;
+}
+
+# handle input files
+
+my @flst;
+foreach my $fname (@ARGV) {
+  do_file($fname);
+}
+
+# print results
+print "\n" if $opts{v};
+print "file name                           #i     wsum      tavr      MIPS\n";
+foreach my $fdsc (@flst) {
+  printf "%-32s   %3d %8.4f  %8.2f  %8.2f\n",
+    $fdsc->{fname},$fdsc->{mcnt},$fdsc->{wsum},$fdsc->{tnor},$fdsc->{mips};
+}
+
+exit 0;
+
+#
+# -- do_help: print help text ------------------------------------------------
+#
+
+sub do_help {
+  print "usage: s370_perf_mark [OPTIONS] [FILE]...\n";
+  print "  -mix=m   specify mix to be used (default: lmix)\n";
+  print "  -v       verbose, print detailed info\n";
+  print "  -sf      sort detailed info by instruction frequency\n";
+  print "  -l       list instruction mix\n";
+  print "  -help    help text\n";
+  return;
+}
+
+#
+# -- do_file: handle input file ----------------------------------------------
+#
+
+sub do_file {
+  my ($fname) = @_;
+  open IFILE,"<$fname" or die "failed to open $fname";
+
+  my %dtbl;
+
+  while (<IFILE>) {
+    chomp;
+    if (m/^([DT]\d\d\d)\s+                  # tag
+          (.*?)\s+:\s+                      # txt
+          (\d+)\s+                          # nt
+          (-|[0-9.]+)\s+                    # min
+          (-|[0-9.]+)\s+                    # max
+          (-?[0-9.]+)\s+                    # tpi
+          ([0-9.]+)%\s+                     # w50
+          (-?[0-9.]+)\s+                    # nrr
+          (-?[0-9.]+)/x) {                  # nrx
+      my $tag = $1;
+      my $txt = $2;
+      my $tpi = $6;
+      $dtbl{$tag} = {txt=>$txt, tpi=>$tpi};
+    }
+  }
+
+  close IFILE;
+
+  #
+  # evaluate
+  #
+
+  my @rlst;
+  my $wtot = 0.;
+  my $wsum = 0.;
+  my $tavr = 0.;
+  my $mcnt = 0;
+  my $fi   = 0;
+
+  foreach my $rdsc (@{$mtbl{lmix}}) {
+    my $ct  = $rdsc->{t};
+    my $cw  = $rdsc->{w};
+    my $tpi = $dtbl{$ct}{tpi};
+    my $txt = $dtbl{$ct}{txt};
+    my $tco = defined $tpi ? $cw * $tpi : 0.;
+    $wtot += $cw;
+    if (defined $tpi) {
+      $wsum += $cw;
+      $tavr += $tco;
+      $mcnt += 1;
+    }
+    push @rlst, {i   => $rdsc->{i},
+                 w   => $cw,
+                 t   => $ct,
+                 ie  => $rdsc->{ie},
+                 c   => $rdsc->{c},
+                 tpi => $tpi,
+                 tco => $tco,
+                 txt => $dtbl{$ct}{txt},
+                 fi  => $fi
+                };
+    $fi += 1;
+  }
+
+  # determine time weight order
+  my $ti = 0;
+  foreach my $rdsc (sort {$b->{tco} <=> $a->{tco}} @rlst) {
+    $rdsc->{ti} = $ti;
+    $ti += 1;
+  }
+
+  return unless $tavr > 0.;                 # quit if bad file
+  return unless $wsum > 0.5;                # quit if too small coverage
+
+  #
+  # determine and store result
+  #
+
+  push @flst, {fname => $fname,
+               mcnt  => $mcnt,
+               wsum  => $wsum,
+               tnor  => $tavr/$wsum,
+               mips  => 1000.*$wsum/$tavr
+              };
+  #
+  # print
+  #
+  return unless $opts{'v'};
+  my $si = $opts{sf} ? 'fi' : 'ti';
+  my $tcum = 0.;
+
+  printf "%s\n", $fname;
+  printf "   fi  ti inst       fwt      tpi     twt     cwt   tag m comment\n";
+  foreach my $rdsc (sort {$a->{$si} <=> $b->{$si}} @rlst) {
+    $tcum += $rdsc->{tco};
+    printf "  %3d %3d  %-5s  %6.4f %s  %6.4f  %6.4f  %4s %1s %s\n",
+      $rdsc->{fi},
+      $rdsc->{ti},
+      $rdsc->{i},
+      $rdsc->{w},
+      (defined $rdsc->{tpi} ? sprintf('%8.2f',$rdsc->{tpi}) : '       -'),
+      $rdsc->{tco}/$tavr,
+      $tcum/$tavr,
+      $rdsc->{t},
+      (defined $rdsc->{ie}) ? '*' : ' ',
+      (defined $rdsc->{txt}) ? $rdsc->{txt} : '-- n/a'
+  }
+
+  return;
+}
+

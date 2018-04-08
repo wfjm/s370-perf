@@ -14,6 +14,7 @@ The HEAD version shows the current development. No guarantees that software or
 the documentation is consistent.
 
 ### Summary
+- s370_perf_mark: added, a script to derive MIPS ratings
 
 <!-- --------------------------------------------------------------------- -->
 ---

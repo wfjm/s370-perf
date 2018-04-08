@@ -79,6 +79,8 @@ The header section lists the processed runs with the columns
   The MIPS value shown in this analysis is usually significantly lower
   than the usually advertised values, which are based on _typical_
   instruction mixes which give less weight to slow instructions.
+  Use [s370_perf_mark](s370_perf_mark.md) to determine more realistic
+  MIPS ratings.
 
 The main body has the columns
 - **Tag**: the s370_perf test id (Tnnn) or calculation id (Dnnn)
