@@ -4,13 +4,14 @@
 
 - [Overview](#user-content-overview)
 - [Description](#user-content-description)
+- [Tests](#user-content-tests)
 - [Parameters](#user-content-parameters)
 - [Configuration file](#user-content-config)
 - [Output](#user-content-output)
 - [Usage](#user-content-usage)
 
 ### Overview <a name="overview"></a>
-This code determines the _time per instruction_ of
+s370_perf determines the _time per instruction_ of
 [IBM System/370](https://en.wikipedia.org/wiki/IBM_System/370)
 instructions in 24-bit mode. It
 - covers almost all non-privileged instructions
@@ -18,7 +19,7 @@ instructions in 24-bit mode. It
 - tests instructions with length fields (e.g. `MVC`) for several length
 - tests decimal instructions (e.g. `AP`) for two digit counts
 - tests conditional branches for _taken_ and _fall-through_ case
-- tests branches (e.g. `B`,`BAL`) for short (same 4k page) and
+- tests branches (e.g. `BC`,`BAL`) for short (same 4k page) and
   _far_ (different page) targets
 - tests instructions with memory interlock (`CS`,`CDS`,`TS`) in the
   typical _lock taken_ and the _lock missed_ data configurations
@@ -35,18 +36,211 @@ without modifications on a wide range of platforms
 - and even contemporary z Systems
 
 ### Description <a name="description"></a>
-The basic test building block used in `s370_perf` looks like
-
-``` asm
+s370_perf contains about 220 test routines, each targeting one S/370
+instruction, plus about 80 additional tests to verify the consistency of
+the measured instruction times. The core of an instruction test looks like
+```asm
 T100L   LR  R2,R1
         LR  R2,R1
         LR  R2,R1
-        ... total of 50 repeats ...
+        ... total of 100 repeats ...
         BCTR  R15,R11
 ```
 
 The instruction under test is repeated, usually 50 times for fast instructions,
-and that sequence is wrapped in `BCTR` loop.
+and that sequence is wrapped in `BCTR` loop. The instruction repeat count is
+called _group count_ and listed in the `ig` column of the
+[output](#user-content-output).
+
+The repeat count of the `BCTR` loop is called _local repeat count_ and listed
+in the `lr` column of the [output](#user-content-output).
+The default values are chosen such that all
+test routines have roughly the same execution time of about 5 msec on a
+reference system. They can be changed via a
+[configuration file](#user-content-config).
+
+The s370_perf main program executes each test `GMUL` times. This
+_global multiplier_ is common for all tests and typically chosen such
+that a test runs about one second for a benchmark run, either explicitly via
+[/Gnnn](#user-content-par-gnnn) or automatically via
+[/GAUT](#user-content-par-gaut) option.
+
+In some cases a register used in the inner loop must be re-initialized for
+each loop iteration to avoid arithmetic overflows, like
+```asm
+T220L   LA    R2,1
+        SLA   R2,1
+        SLA   R2,1
+        SLA   R2,1
+        ... total of 30 repeats ...
+        BCTR  R15,R11
+```
+
+The loop overhead will be subtracted later by the analysis tool
+[s370_perf_ana](s370_perf_ana.md), based on the
+[loop type](#user-content-looptype)
+listed in the `lt` column of the [output](#user-content-output).
+
+Some instructions modify registers or memory such that a setup is needed for
+each invocation of this instruction, e.g. `ED` requires a `MVC` to setup the
+edit pattern which is overwritten by the edit result. In those cases the test
+loop looks like
+```asm
+T410L   MVC   0(10,R3),T410V3
+        ED    0(10,R3),T410V1+3
+        MVC   0(10,R3),T410V3
+        ED    0(10,R3),T410V1+3
+        ... total of 10 repeats sequence ...
+        BCTR  R15,R11
+```
+
+In those cases the test gives the time for the instruction sequence. The
+time for the targeted instruction, `ED` in the example, is again determined
+by the analysis tool [s370_perf_ana](s370_perf_ana.md) by subtracting the
+independently measured instruction time(s) of the additional instructions,
+`MVC` in the example.
+
+Last but not least allows the s370_perf main program to enable or disable
+the execution of tests via the
+[/Ennn](#user-content-par-ennn),
+[/Dnnn](#user-content-par-ennn) and
+[/Tnnn](#user-content-par-tnnn) options.
+Almost all of the instruction tests are enabled by default, most of the
+auxiliary tests T9xx are disabled by default. The configuration of all
+available tests can be listed with the [/OPTT](#user-content-par-optt) option.
+
+### Tests <a name="tests"></a>
+Each test has a unique identifier, usually called _tag_, of the form `Tddd`.
+The tests are grouped into classes
+- Test 1xx -- load/store/move
+- Test 2xx -- binary/logical
+- Test 3xx -- flow control
+- Test 4xx -- packed/decimal
+- Test 5xx -- floating point
+- Test 6xx -- miscellaneous instructions
+- Test 7xx -- mix sequence
+- Test 9xx -- auxiliary tests
+
+Most tests are self-explanatory and target a single instruction, but some
+deserve some commentary
+- [T113+T114 - STH unaligned](#user-content-tests-sth-unal)
+- [T15x - MVC](#user-content-tests-mvc)
+- [T17x - MVCL](#user-content-tests-mvcl)
+- [T27x - CLC](#user-content-tests-clc)
+- [T28x - CLCL](#user-content-tests-clcl)
+- [T301+T302 - BC branch taken / not taken](#user-content-tests-bc)
+- [T303 - BC far](#user-content-tests-bc-far)
+- [T320+T321 - BALR close and far](#user-content-tests-balr)
+- [T330 - BALR;SAVE;RETURN](#user-content-tests-calret)
+- [T700 - mix int RR](#user-content-tests-t700)
+- [T701+T702 - mix int RX](#user-content-tests-t701)
+- [T703 - mix int RR noopt](#user-content-tests-t703)
+- [T90x - LR R,R count tests](#user-content-tests-t90x)
+- [T92x - L R,R count tests](#user-content-tests-t92x)
+- [T95x - T700 size tests](#user-content-tests-t95x)
+
+#### T113+T114 - STH unaligned <a name="tests-sth-unal"></a>
+In test T113 `STH` does a write across a halfword border, while in test
+T114 `STH` does a write across a word border. In T114 the access can even
+cross a page border, so the two cases might exhibit quite different
+performance characteristics.
+
+#### T15x - MVC <a name="tests-mvc"></a>
+The `MVC` instruction is tested for a wide range of transfer sizes between
+5 and 250 characters, and also for two scenarios with overlapping
+source and destination areas:
+- in T156 the destination buffer is offset by + 1 byte to the source buffer.
+  This is sometimes used to fill buffer with a character.
+- in T157 the destination buffer is offset by -24 bytes to the source buffer,
+  effectively shifting the buffer 24 bytes to the left.
+
+#### T17x - MVCL <a name="tests-mvcl"></a>
+The `MVCL` instruction is tested, like `MVC` in [T15x](#user-content-tests-mvc),
+for a wide range of copy transfer sizes between 10 and 4096 bytes,
+for three zero-fill padding cases, and also for two scenarios with overlapping
+source and destination areas:
+- in T178 the destination buffer is offset by + 1 byte to the source buffer.
+  Like [T156](#user-content-tests-mvc) for `MVC`, can be used to fill an area,
+  but padding is likely more efficient.
+- in T179 the destination buffer is offset by -100 bytes to the source buffer,
+  effectively shifting the buffer 100 bytes to the left.
+  
+#### T27x - CLC <a name="tests-clc"></a>
+The `CLC` instruction is tested for a range of buffer sizes (10 to 250)
+and also for fully matching `eq` and completely different `ne` buffers.
+Because the `ne` case can be detected at the very first byte comparison
+it's natural to expect that the `ne` tests have the same instruction time
+for all sizes, while the `eq` tests show a time which increases with
+buffer size.
+
+#### T28x - CLCL <a name="tests-clcl"></a>
+The `CLCL` instruction is tested for two buffer sizes (10 and 4096)
+and different locations of the first non-matching byte (10, 100, 250,
+1024 and 4096). Like for `CLC` in [T27x](#user-content-tests-clc) it
+is natural to assume that the instruction time mainly depends on the
+number of bytes to test before a mismatch is detected. The tests
+T284 and T285 are disabled by default because they are very slow on
+Hercules.
+
+#### T301+T302 - BC branch taken / not taken <a name="tests-bc"></a>
+The `BC` instruction is tested in both the
+- branch not taken (T301)
+- branch taken (T302)
+case. The later is implemented as branch maze. In most implementations
+the branch taken case will have a significantly larger instruction time
+the the not taken (or fall through) case.
+
+#### T303 - BC far <a name="tests-bc-far"></a>
+The T303 is similar to T302, but the branch maze is setup such that each
+branch crosses a page border. 
+
+#### T320+T321 - BALR close and far <a name="tests-balr"></a>
+The `BALR` instruction can only be tested together with a `BR`. T321 is
+setup such that each branch crosses a page border.
+
+#### T330 - BALR;SAVE;RETURN <a name="tests-calret"></a>
+This test covers the standard MVS calling sequence, starting with a `L` and
+`BALR` on the caller side and standard save area handling with a full
+`(14,12)` save and restore and save area linkage update at the callee
+side. The test returns the time for the full sequence of 11 instructions.
+
+#### T700 - mix int RR <a name="tests-t700"></a>
+The test T700 contains a sequence of 38 integer RR type instructions plus
+two `BC` where the branch isn't taken. The test returns the _average_
+execution time of the involved instructions. This test allows to check whether
+the instruction times are additive on a given system, simply compare the
+T700 time with the average of the involved instructions.
+
+#### T701+T702 - mix int RX <a name="tests-t701"></a>
+Similar goal as [T700](#user-content-tests-t700), using a sequence of
+21 integer RX type instructions. In T701 the accessed operands are in
+the same page as the code, while in T702 the accessed operands are in
+a different page than the code.
+
+#### T703 - mix int RR noopt <a name="tests-t703"></a>
+Similar goal as [T700](#user-content-tests-t700), now with an instruction
+sequence where each calculated values is used. This prevents that emulators
+using an optimizing binary translator will remove part of the code.
+
+#### T90x - LR R,R count tests <a name="tests-t90x"></a>
+The tests T900 to T915 are similar to the T100 test, but use different repeat
+counts of the `LR R,R` instruction, with `ig` ranging from 1 to 72 (T100
+uses 100). These tests report the time for the bundle `ig` `LR` instructions
+and not time for a single instruction as T100. The measured time should
+increase in proportion to the `ig` count if instruction times are additive,
+so this can be used to check whether the loop overhead is subtracted correctly.
+
+#### T92x - L R,R count tests <a name="tests-t92x"></a>
+Similar goal as [T90x](#user-content-tests-t90x), using `L R,m`. To be compared
+with T102.
+
+#### T95x - T700 size tests <a name="tests-t95x"></a>
+The tests T952 to T990 contain the first 2,3,...,40 instructions of the
+[T700](#user-content-tests-t700) test, they are therefore truncated versions
+of T700. The tests report the time for whole sequence and not the average
+as T700. The measured time should continuously increase if instruction
+times are additive, so this sequence of tests can be used to check whether
+this is actually true for a given system.
 
 ### Parameters <a name="parameters"></a>
 The run time behavior of `s370_perf` is controlled by options passed with
@@ -146,7 +340,7 @@ count such that the `T102` test or the one selected with a
 runs about 1 sec. Because the local repeat count of
 each test have been tuned to get about equal CPU time for all tests on the
 reference system this will result in about 1 sec CPU time for all tests
-for systems with simuilar characteristics.
+for systems with similar characteristics.
 Typical `GMUL` values resulting from `/GAUT` are
 
 | Host CPU | System | GMUL | Comment |
@@ -172,7 +366,7 @@ code must match one of the test numbers. By default `T102` is used.
 Allow to enable or disable the test Tnnn.
 The three characters after the leading `/T` or `/D` can be either a number
 `0` - `9` or a wildcard character `*`, which will match any number in that
-postion. This allows to handle groups of tests, e.g. `/E1**` will enable all
+position. This allows to handle groups of tests, e.g. `/E1**` will enable all
 tests in the 100 to 199 range, `/D5**` will disable all test in the range
 500 to 599 (the floating point group).
 By default all tests are enabled with the exception of T284 and T285
@@ -182,7 +376,7 @@ To setup a run with only a few tests use the
 [/Tnnn](#user-content-par-tnnn) option.
 
 #### /Tnnn <a name="par-tnnn"></a>
-When the first `/Tnnn` option is detcted in the PARM list all tests will
+When the first `/Tnnn` option is detected in the PARM list all tests will
 be disabled.
 Each `/Tnnn` re-enables than the test Tnnn. This allows to setup a run with
 only a few tests enabled. Wildcards are supported as described for

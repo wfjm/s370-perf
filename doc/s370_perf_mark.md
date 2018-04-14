@@ -147,6 +147,29 @@ The distribution was extracted from the very comprehensive report
 >  
 > http://i.stanford.edu/pub/cstr/reports/csl/tr/74/66/CSL-TR-74-66.pdf
 
+The paper gives the normalized instruction frequencies. However, in
+several important cases the instruction time depends on environment or
+operands, the time of a `BC` can be much different for branch taken or
+fall through, and the time for `MVC`, `CLC` and the like depend on
+buffer size and match length. s370_perf tests all these cases, so some
+assumptions had to be made for the weighting of these cases:
+- all memory accesses are taken as aligned and same page
+- `BC` and `BCR` are assumed to be 50% branch taken and 50% fall through
+- `MVC`, `MVZ`, `MVN`, `TR`, `XC`, and `OC` act on 10 byte operands
+- `CLC` acts on a 10 byte `eq` operands
+- `LM` and `STM` act on a set of 6 registers
+- `EX` has `TM` as target instruction
+- `ZAP` and `TRT` act on 10 byte buffers
+- `CP` acts on a 10 digit number
+- `PACK` and `UNPK` act on a 5 digit number
+
+s370_perf doesn't cover all S/370 non-privileged instructions,
+it is assumed that
+- `NI` and `OI` have the same timing as `XI`
+- `N` and `O` have the same timing as `X`
+- `OC` has the same timing as `XC`
+- `BXH` has the same timing as `BXLE`
+
 ### Usage <a name="usage"></a>
 
 To get a summary of cases simply
