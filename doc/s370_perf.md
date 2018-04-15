@@ -130,14 +130,15 @@ deserve some commentary
 - [T28x - CLCL](#user-content-tests-clcl)
 - [T301+T302 - BC branch taken / not taken](#user-content-tests-bc)
 - [T303 - BC far](#user-content-tests-bc-far)
+- [T311,T312,T315 - BCT,BCTR,BXLE](#user-content-tests-bloop)
 - [T320+T321 - BALR close and far](#user-content-tests-balr)
 - [T330 - BALR;SAVE;RETURN](#user-content-tests-calret)
 - [T700 - mix int RR](#user-content-tests-t700)
 - [T701+T702 - mix int RX](#user-content-tests-t701)
 - [T703 - mix int RR noopt](#user-content-tests-t703)
 - [T90x - LR R,R count tests](#user-content-tests-t90x)
-- [T92x - L R,R count tests](#user-content-tests-t92x)
-- [T95x - T700 size tests](#user-content-tests-t95x)
+- [T92x - L R,m count tests](#user-content-tests-t92x)
+- [T95x - T700 partial sequence tests](#user-content-tests-t95x)
 
 #### T113+T114 - STH unaligned <a name="tests-sth-unal"></a>
 In test T113 `STH` does a write across a halfword border, while in test
@@ -194,6 +195,19 @@ the the not taken (or fall through) case.
 The T303 is similar to T302, but the branch maze is setup such that each
 branch crosses a page border. 
 
+#### T311,T312,T315 - BCT,BCTR,BXLE <a name="tests-bloop"></a>
+The loop instructions `BCT`, `BCTR` and `BXLE` are tested with empty
+loop bodies, like
+```asm
+T315L    LA    R3,0               index begin
+         LA    R4,1               index increment
+         LA    R5,99              index end
+T315LL   EQU   *                  no inner loop body
+         BXLE  R3,R4,T315LL       will be executed 100 times
+```
+As in real applications is the branch taken case much more frequent than the
+fall through case at end of loop.
+
 #### T320+T321 - BALR close and far <a name="tests-balr"></a>
 The `BALR` instruction can only be tested together with a `BR`. T321 is
 setup such that each branch crosses a page border.
@@ -230,11 +244,11 @@ and not time for a single instruction as T100. The measured time should
 increase in proportion to the `ig` count if instruction times are additive,
 so this can be used to check whether the loop overhead is subtracted correctly.
 
-#### T92x - L R,R count tests <a name="tests-t92x"></a>
+#### T92x - L R,m count tests <a name="tests-t92x"></a>
 Similar goal as [T90x](#user-content-tests-t90x), using `L R,m`. To be compared
 with T102.
 
-#### T95x - T700 size tests <a name="tests-t95x"></a>
+#### T95x - T700 partial sequence tests <a name="tests-t95x"></a>
 The tests T952 to T990 contain the first 2,3,...,40 instructions of the
 [T700](#user-content-tests-t700) test, they are therefore truncated versions
 of T700. The tests report the time for whole sequence and not the average
