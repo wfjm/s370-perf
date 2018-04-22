@@ -21,7 +21,7 @@ tbe currently available test cases are
 | 2018-04-01 | [sys1](hostinfo_sys1.md) | Herc tk4- | [2018-04-01_sys1-08](2018-04-01_sys1-08.md) | with tk4- 08 |
 | 2018-04-01 | [nbk1](hostinfo_nbk1.md) | Herc tk4- | [2018-04-01_nbk1](2018-04-01_nbk1.md) | |
 | 2018-04-01 | [nbk2](hostinfo_nbk2.md) | Herc tk4- | [2018-04-01_nbk2](2018-04-01_nbk2.md) | |
-| 2018-04-01 | [sys3](hostinfo_sys3.md) | Herc tk4- | [2018-04-01_sys3](2018-04-01_sys3.md) | |
+| 2018-04-01 | [srv1](hostinfo_srv1.md) | Herc tk4- | [2018-04-01_srv1](2018-04-01_srv1.md) | |
 | 2018-04-02 | [rasp2b](hostinfo_rasp2b.md) | Herc tk4- | [2018-04-02_rasp2b](2018-04-02_rasp2b.md) | |
-| 2018-04-07 | [sys3](hostinfo_sys3.md) | Herc tk4- | [2018-04-07_sys3-od](2018-04-07_sys3-od.md) | with governor = ondemand |
-| 2018-04-07 | [sys3](hostinfo_sys3.md) | Herc tk4- | [2018-04-07_sys3-pf](2018-04-07_sys3-pf.md) | with governor = performance |
+| 2018-04-07 | [srv1](hostinfo_srv1.md) | Herc tk4- | [2018-04-07_srv1-od](2018-04-07_srv1-od.md) | with governor = ondemand |
+| 2018-04-07 | [srv1](hostinfo_srv1.md) | Herc tk4- | [2018-04-07_srv1-pf](2018-04-07_srv1-pf.md) | with governor = performance |

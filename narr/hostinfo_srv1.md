@@ -1,6 +1,6 @@
-## Host Info: sys3
+## Host Info: srv1
 
-**sys3** is an AMD Opteron 6238 based dual socket server system
+**srv1** is an AMD Opteron 6238 based dual socket server system
 
 ### CPU Info
 
