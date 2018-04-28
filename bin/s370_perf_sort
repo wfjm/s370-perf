@@ -1,0 +1,174 @@
+#!/usr/bin/perl -w
+# $Id: s370_perf_sort 1013 2018-04-28 16:07:34Z mueller $
+#
+# Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+#
+# This program is free software; you may redistribute and/or modify it under
+# the terms of the GNU General Public License as published by the Free
+# Software Foundation, either version 3, or at your option any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+# for complete details.
+#
+#  Revision History:
+# Date         Rev Version  Comment
+# 2018-04-28  1013   1.0    Initial version
+# 2018-03-29  1002   0.1    First draft (as s370_perf_ins)
+#
+
+use 5.14.0;                                 # require Perl 5.14 or higher
+use strict;                                 # require strict checking
+use Getopt::Long;
+
+my %opts = ();
+
+GetOptions(\%opts, 'k=s', "r", "i", 'help')
+  or die "bad options";
+
+my %ktyp = (tag => 's',
+            ins => 's',
+            min => 'n',
+            max => 'n',
+            tpi => 'n',
+            w50 => 'n',
+            nrr => 'n',
+            nrx => 'n',
+            ncp => 'n',
+            ecp => 'n',
+            mcc => 'n');
+
+my %tags;
+my $head_ver;
+my $head_tbl;
+
+# handle help
+if (defined $opts{help}) { do_help();  exit 0; }
+
+my $k1 = $opts{k} || 'tag';                 # primary sort key
+my $k2 = $opts{i} ? 'ins' : 'tag';          # secondary sort key
+
+# check key validity
+unless (defined $ktyp{$k1}) {
+  printf "s370_perf_sort-E bad key '%s', allowed are '%s'\n",
+    $k1, join(',',sort keys %ktyp);
+  exit 1;
+}
+
+# ensure not more than one file specified
+if (scalar @ARGV > 1) {
+  print "s370_perf_sort-E only one file allowed\n";
+  exit 1;
+
+}
+
+while (<>) {
+  chomp;
+  $head_ver = $_ if m/^s370_perf version:/;
+  $head_tbl = $_ if m/^Tag   Comment/;
+
+  if (m/^([DT]\d\d\d)\s+                  # tag
+        (.*?)\s+:\s*                      # txt
+        (\d+)\s+                          # nt
+        (-|[0-9.]+)\s+                    # min
+        (-|[0-9.]+)\s+                    # max
+        (-?[0-9.]+)\s+                    # tpi
+        ([0-9.]+)%\s+                     # w50
+        (-?[0-9.]+)\s+                    # nrr
+        (-?[0-9.]+)\s*                    # nrx
+        (.*)$/x) {                        # opt
+    my $tag = $1;
+    my $txt = $2;
+    my $min = ($4 ne '-') ? $4 : undef;
+    my $max = ($5 ne '-') ? $5 : undef;
+    my $tpi = $6;
+    my $w50 = $7;
+    my $nrr = $8;
+    my $nrx = $9;
+    my $opt = $10;
+
+    $tag =~ s/^D/Z/;                        # map Dxxx to Zxxx
+
+    $tags{$tag}{line} = $_;
+    $tags{$tag}{tag}  = $tag;
+    $tags{$tag}{min}  = $min;
+    $tags{$tag}{max}  = $max;
+    $tags{$tag}{tpi}  = $tpi;
+    $tags{$tag}{w50}  = $w50;
+    $tags{$tag}{nrr}  = $nrr;
+    $tags{$tag}{nrx}  = $nrx;
+
+    # handle optional values
+    if (defined $opt) {
+      $opt =~ s/^\s+//;
+      $opt =~ s/\s+$//;
+      my @olist = split /\s+/,$opt;
+      $tags{$tag}{ncp} = $olist[0] if scalar @olist >= 1;
+      $tags{$tag}{ecp} = $olist[1] if scalar @olist >= 2;
+      $tags{$tag}{mcc} = $olist[2] if scalar @olist >= 3;
+    }
+
+    # handle instruction name sort
+    if (($tag !~ m/^T9\d\d/ && $txt !~ m/;/) && $txt =~ m/(^[A-Z]+)/) {
+      $tags{$tag}{ins} = $1;
+    }
+  }
+}
+
+# ensure sort key present
+my @tlist = grep {defined $tags{$_}{$k1}} keys %tags;
+
+# select instruction time lines if -i given
+@tlist = grep {defined $tags{$_}{ins}} @tlist if $opts{i};
+
+# finally do sort
+unless ($opts{r}) {
+  if ($ktyp{$k1} eq 's') {
+    @tlist = sort { $tags{$a}{$k1} cmp $tags{$b}{$k1} ||
+                    $tags{$a}{$k2} cmp $tags{$b}{$k2} }  @tlist;
+  } else {
+    @tlist = sort { $tags{$a}{$k1} <=> $tags{$b}{$k1} ||
+                    $tags{$a}{$k2} cmp $tags{$b}{$k2}}  @tlist;
+  }
+} else {
+  if ($ktyp{$k1} eq 's') {
+    @tlist = sort { $tags{$b}{$k1} cmp $tags{$a}{$k1} ||
+                    $tags{$a}{$k2} cmp $tags{$b}{$k2} }  @tlist;
+  } else {
+    @tlist = sort { $tags{$b}{$k1} <=> $tags{$a}{$k1} ||
+                    $tags{$a}{$k2} cmp $tags{$b}{$k2}}  @tlist;
+  }
+}
+
+if (scalar @tlist == 0) {
+  printf "s370_perf_sort-W key '%s' gives empty selection\n", $k1;
+  exit 0;
+}
+
+printf "%s\n\n",$head_ver if defined $head_ver;
+printf "%s\n"  ,$head_tbl if defined $head_tbl;
+
+foreach my $tag (@tlist) {
+  printf "%s\n", $tags{$tag}{line};
+}
+
+exit 0;
+
+#
+# -- do_help: print help text ------------------------------------------------
+#
+
+sub do_help {
+  print "usage: s370_perf_sort [OPTIONS] [FILE]\n";
+  print "  -k key  select key to sort for\n";
+  print "  -r      reverse sorting order\n";
+  print "  -i      select instruction time lines\n";
+  print "  -help   help text\n";
+  print "supported keys:\n";
+  print "   tag    test tag, usually the input order of files\n";
+  print "   ins    instruction code\n";
+  print "   min,max,tpi,w50,nrr,nrx,ncp,ecp,mcc column value\n";
+  return;
+}
+
