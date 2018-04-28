@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: s370_perf_sum 1004 2018-03-31 12:20:15Z mueller $
+# $Id: s370_perf_sum 1013 2018-04-28 16:07:34Z mueller $
 #
 # Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,8 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-04-28  1013   1.1    drop -ins; add -k, -r, -i;
+# 2018-04-22  1012   1.0.9  allow 3 digit nt count
 # 2018-03-29  1002   1.0.8  add -ins (instruction name sorted output)
 # 2018-03-10   999   1.0.7  print essential options; print file stats, w50 ect
 # 2018-03-03   996   1.0.6  add -rat option
@@ -31,21 +33,52 @@ use strict;                                 # require strict checking
 use Getopt::Long;
 
 my %opts = ();
-my %tag2txt;
-my %tag2val;
-my %tag2ins;
+my %tags;
 my %ftbl;
 my $nfile = 0;
 
 GetOptions(\%opts,
-           'help', 'nrr', 'nrx', 'min', 'w50', 'rel','rat','ins',
-           'fsig:1','fmis:1'
+           'help', 'nrr', 'nrx', 'min', 'w50', 'rel','rat',
+           'fsig:1','fmis:1',
+           'k=s','r','i'
           )
   or die "bad options";
 
 
 # handle help
 if (defined $opts{help}) { do_help();  exit 0; }
+
+# check key validity
+my $key = $opts{k} || 'tag';
+if ($key eq 'tag' || $key eq 'ins') {
+  if ($opts{r}) {
+    printf "s370_perf_sum-E -r only supported for -k vN or -k RN\n";
+    exit 1;
+  }
+} else {
+  if ($key =~ m/([vr])(\d+)/) {
+    my $typ = $1;
+    my $num = $2;
+    $key = sprintf '%s%02d',$typ,$num;
+    if ($typ eq 'r' and not $opts{rat}) {
+      printf "s370_perf_sum-E bad key '%s', works only with -rat\n", $opts{k};
+      exit 1;
+    }
+    if ($num > scalar @ARGV) {
+      printf "s370_perf_sum-E bad key '%s', only %d files\n",
+        $opts{k}, scalar @ARGV;
+      exit 1;
+    }
+    if ($typ eq 'r' && $num == 1) {
+      printf "s370_perf_sum-E bad key '%s', must be 'r2' or higher\n",$opts{k};
+      exit 1;
+    }
+  } else {
+    printf "s370_perf_sum-E bad key '%s', use tag,ins,vN,rN (N=integer)\n",
+      $opts{k};
+    exit 1;
+  }
+}
 
 #
 # print essential options
@@ -57,7 +90,9 @@ $opttxt .= '  -min'                 if exists $opts{min};
 $opttxt .= '  -w50'                 if exists $opts{w50};
 $opttxt .= '  -rel'                 if exists $opts{rel};
 $opttxt .= '  -rat'                 if exists $opts{rat};
-$opttxt .= '  -ins'                 if exists $opts{ins};
+$opttxt .= '  -k '    . $opts{k}    if exists $opts{k};
+$opttxt .= '  -r '                  if exists $opts{r};
+$opttxt .= '  -i '                  if exists $opts{i};
 $opttxt .= '  -fsig ' . $opts{fsig} if exists $opts{fsig};
 $opttxt .= '  -fmis ' . $opts{fmis} if exists $opts{fmis};
 printf "s370_perf_sum%s\n\n",$opttxt if defined $opttxt;
@@ -74,6 +109,7 @@ foreach my $fname (@ARGV) {
 
 my @fnums = sort keys %ftbl;
 
+do_anal();
 do_show();
 
 exit 0;
@@ -93,7 +129,15 @@ sub do_help {
   print "  -ins       sort by instruction name\n";
   print "  -fmis[=n]  drop test line when n values missing\n";
   print "  -fsig[=n]  show test line only when differing by n percent\n";
+  print "  -k key     select sort criterion\n";
+  print "  -r         reverse sorting order\n";
+  print "  -i         select instruction time lines\n";
   print "  -help      help text\n";
+  print "supported keys:\n";
+  print "   tag       test tag, usually the input order of files\n";
+  print "   ins       instruction code\n";
+  print "   vN        value  of N'th file, e.g. v1,v2,...\n";
+  print "   rN        ratio for N'th file, e.g. r2,...\n";
   return;
 }
 
@@ -112,7 +156,7 @@ sub do_file {
   while (<IFILE>) {
     chomp;
     if (m/^([DT]\d\d\d)\s+                  # tag
-          (.*?)\s+:\s+                      # txt
+          (.*?)\s+:\s*                      # txt
           (\d+)\s+                          # nt
           (-|[0-9.]+)\s+                    # min
           (-|[0-9.]+)\s+                    # max
@@ -140,16 +184,17 @@ sub do_file {
       $w50sum += $tpi*$w50;
       $w50max  = $w50 if $w50 > $w50max;
       #
-      if (exists $tag2txt{$tag} && $tag2txt{$tag} ne $txt) {
+      if (exists $tags{$tag}{txt} && $tags{$tag}{txt} ne $txt) {
         printf STDERR "s370_perf_sum-W file '%s' overwrites text for tag '%s'\n",
           $fnum, $tag;
-        printf STDERR "  old: %s\n", $tag2txt{$tag};
+        printf STDERR "  old: %s\n", $tags{$tag}{txt};
         printf STDERR "  new: %s\n", $txt;
       }
-      $tag2txt{$tag} = $txt;
-      $tag2val{$tag}{$fnum} = $val;
+      $tags{$tag}{tag} = $tag;
+      $tags{$tag}{txt} = $txt;
+      $tags{$tag}{'v'.$fnum} = $val;
       if (($tag !~ m/^T9\d\d/ && $txt !~ m/;/) && $txt =~ m/(^[A-Z]+)/) {
-        $tag2ins{$tag} = $1;
+        $tags{$tag}{ins} = $1;
       }
     }
   }
@@ -162,7 +207,71 @@ sub do_file {
 }
 
 #
-# -- do_show: show analysis---------------------------------------------------
+# -- do_anal: analyse data ---------------------------------------------------
+#
+
+sub do_anal {
+  foreach my $tag (keys %tags) {
+    my @vals;
+    foreach my $fnum (@fnums) {
+      push @vals, $tags{$tag}{'v'.$fnum};
+    }
+
+    # determine minimal value
+    my $vmin = 1.e20;
+    foreach my $fnum (@fnums) {
+      my $val = $tags{$tag}{'v'.$fnum};
+      $vmin = $val if defined $val && $val > 0. && $val < $vmin;
+    }
+
+    # normalized (if -rel); check fsig
+    my $nmis = 0;
+    my $nsig = 0;
+    my $vtxt = '';
+    foreach my $fnum (@fnums) {
+      my $val = $tags{$tag}{'v'.$fnum};
+      if (defined $val) {
+        if ($val > 0.) {
+          my $vnor = $val/$vmin;
+          $nsig += 1 if defined $opts{fsig} && $vnor >= 1. + 0.01 * $opts{fsig};
+          $vtxt .= sprintf ' %9.2f', ($opts{rel} ? $vnor : $val);
+        } else {
+          $vtxt .= '       <=0';
+        }
+      } else {
+        $nmis += 1;
+        $vtxt .= '         -';
+      }
+    }
+    $tags{$tag}{vtxt} = $vtxt;
+    $tags{$tag}{nmis} = $nmis;
+    $tags{$tag}{nsig} = $nsig;
+
+    # determine ratios (if -rat)
+    if ($opts{rat}) {
+      my $rtxt = '';
+      my $val0 = $tags{$tag}{'v'.$fnums[0]};
+      foreach my $fnum (@fnums[1..$#fnums]) {
+        my $val = $tags{$tag}{'v'.$fnum};
+        if (defined $val0 && defined $val) {
+          if ($val0 > 0. && $val > 0.) {
+            my $rat = $val/$val0;
+            $tags{$tag}{'r'.$fnum} = $rat;
+            $rtxt .= sprintf ' %8.3f', $rat;
+          } else {
+            $rtxt .= '      <=0';
+          }
+        } else {
+          $rtxt .= '        -';
+        }
+      }
+      $tags{$tag}{rtxt} = $rtxt;
+    }
+  }
+}
+
+#
+# -- do_show: print output ---------------------------------------------------
 #
 
 sub do_show {
@@ -185,67 +294,45 @@ sub do_show {
   $vnam = 'w50_' if $opts{w50};
   printf "Tag   Comment                :";
   foreach my $fnum (@fnums) {
-    printf "  %s%s%s", ($opts{rel}?'r-':'  '),$vnam,$fnum;
+    printf '  %s%s%s', ($opts{rel}?'r-':'  '),$vnam,$fnum;
   }
   if ($opts{rat}) {
-    printf " :";
-    foreach my $fnum (@fnums) {
-      next if $fnum eq '01';
-      printf "  t%s/t01",$fnum;
+    printf ' :';
+    foreach my $fnum (@fnums[1..$#fnums]) {
+      printf '  t%s/t01',$fnum;
     }
   }
   printf "\n";
 
-  my @tlist;
-  if ($opts{ins}) {
-    @tlist = sort { $tag2ins{$a} cmp $tag2ins{$b} || $a cmp $b }  keys %tag2ins;
-  } else {
-    @tlist = map {s/^Z/D/;$_} sort map {s/^D/Z/;$_} keys %tag2txt;
+  # ensure sort key present and presort in tag
+  my @tlist = map {s/^Z/D/;$_} sort map {s/^D/Z/;$_}
+              grep {defined $tags{$_}{$key}} keys %tags;
+
+  # select instruction time lines if -i given
+  @tlist = grep {defined $tags{$_}{ins}} @tlist if $opts{i};
+
+  # handle -k=ins
+  if ($key eq 'ins') {
+    @tlist = sort { $tags{$a}{$key} cmp $tags{$b}{$key} } @tlist;
+
+  # handle -k=vnn or -k=rnn
+  } elsif (defined $opts{k} && $opts{k} =~ m/[vr]\d+/) {
+    unless ($opts{r}) {
+      @tlist = sort { $tags{$a}{$key} <=> $tags{$b}{$key} ||
+                      $tags{$a}{tag}  cmp $tags{$b}{tag}  }  @tlist;
+    } else {
+      @tlist = sort { $tags{$b}{$key} <=> $tags{$a}{$key} ||
+                      $tags{$a}{tag}  cmp $tags{$b}{tag}  } @tlist;
+    }
   }
 
   foreach my $tag (@tlist) {
-    my $line = sprintf "%s  %-22s :", $tag,$tag2txt{$tag};
-    my @vals;
-    foreach my $fnum (@fnums) {
-      push @vals, $tag2val{$tag}{$fnum};
-    }
-    my $vmin = 1.e20;
-    foreach my $val (@vals) {
-      $vmin = $val if defined $val && $val > 0. && $val < $vmin;
-    }
-    my $nmis = 0;
-    my $nsig = 0;
-    foreach my $val (@vals) {
-      if (defined $val) {
-        if ($val > 0.) {
-          my $vnor = $val/$vmin;
-          $nsig += 1 if defined $opts{fsig} && $vnor >= 1. + 0.01 * $opts{fsig};
-          $line .= sprintf " %9.2f", ($opts{rel} ? $vnor : $val);
-        } else {
-          $line .= sprintf "       <=0";
-        }
-      } else {
-        $nmis += 1;
-        $line .= sprintf "         -";
-      }
-    }
-    if ($opts{rat}) {
-      $line .= ' :';
-      foreach my $val (@vals[1..$#vals]) {
-        if (defined $vals[0] && defined $val) {
-          if ( $vals[0] > 0. && $val > 0.) {
-            $line .= sprintf " %8.3f", $val/$vals[0];
-          } else {
-            $line .= '      <=0';
-          }
-        } else {
-          $line .= '        -';
-        }
-      }
-    }
-    next if defined $opts{fmis} && $nmis >= $opts{fmis};
-    next if defined $opts{fsig} && $nsig == 0;
-    print "$line\n";
+    next if defined $opts{fmis} && $tags{$tag}{nmis} >= $opts{fmis};
+    next if defined $opts{fsig} && $tags{$tag}{nsig} == 0;
+
+    printf '%s  %-22s :%s', $tag,$tags{$tag}{txt},$tags{$tag}{vtxt};
+    printf ' :%s',$tags{$tag}{rtxt} if defined $tags{$tag}{rtxt};
+    print "\n";
   }
   return;
 }

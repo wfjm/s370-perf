@@ -42,19 +42,23 @@ The header section lists the input files plus some statistics
 The main body has the columns
 - **Tag**: the s370_perf test name
 - **Comment**: text describing this test
-- **tpinn**: instruction time from case nn
+- **tpi..**: instruction time from case nn
 - **t../t01**: relative time, case nn normalized by the first case 01
 
 See the description of
 [-nrr](#user-content-opt-nrr),
 [-nrx](#user-content-opt-nrx),
-[-min](#user-content-opt-min),
-[-w50](#user-content-opt-w50),
+[-min](#user-content-opt-min), and
+[-w50](#user-content-opt-w50) 
 for options which allow to display other data fields,
-and the description of
+the description of
 [-fmis](#user-content-opt-fmis) and
 [-fsig](#user-content-opt-fsig)
-for options to filter output lines.
+for options to filter output lines, and the description of
+[-k](#user-content-opt-k),
+[-r](#user-content-opt-r), and
+[-i](#user-content-opt-i) for options to sort the output.
+
 
 ### Options <a name="options"></a> 
 
@@ -68,6 +72,9 @@ for options to filter output lines.
 | [-rat](#user-content-opt-rat)      | show in addition ratios relative to 1st file |
 | [-fmis[=n]](#user-content-opt-fmis) | drop test line when n values missing |
 | [-fsig[=n]](#user-content-opt-fsig) | show test line only when differing by n percent |
+| [-k=key](#user-content-opt-k)      | select sort criterion |
+| [-r](#user-content-opt-r)          | reverse sorting order |
+| [-i](#user-content-opt-i)          | select instruction time lines |
 | [-help](#user-content-opt-help)    | print help text and quit |
 
 #### -nrr <a name="opt-nrr"></a>
@@ -76,6 +83,7 @@ Instead of the absolute instruction time in ns the `LR` instruction normalized
 relative time is used. This way the absolute speed of the hardware
 is normalized out and systematic differences can be studied.
 The output columns are labeled `nrr**` instead of `tpi**`.
+See [example](#user-content-exa-nrr) for usage of `-nrr`.
 
 #### -nrx <a name="opt-nrx"></a>
 Use the `n-rx` field instead of the `cor` field from the input data.
@@ -122,25 +130,50 @@ very helpful when comparing two test campaigns on the same system to verify
 the reproducibility. With `-fsig=1`, which can be abbreviated to `-fsig`,
 only tests where one case differs by at least 1 percent are listed.
 
+#### -k=key <a name="opt-k"></a>
+Selects the sorting criterion, if no `-k` option is given `-k=tag` is assumed.
+Supported `key` values are
+- **tag** - the s370_perf test id (Tnnn) or calculation id (Dnnn). In most
+  cases this simply reproduces the input file because  normal s370_perf_ana
+  output is sorted by test id.
+- **ins** - selects only tests which give the timing of a single instruction,
+  and prints these tests ordered by instruction mnemonic.
+- **vN** - sort by value of N'th file, e.g. v1,v2,...
+- **rN** - sort by ratio for N'th file, e.g. r2,...
+
+See [example](#user-content-exa-k) for usage of `-k=r2`.
+
+#### -r <a name="opt-r"></a>
+The default sorting order is ascending, this option reverses the sorting order
+to descending. Supported only for value (like `-k=v1`) and ratio sorts
+(line `-k=r2`).
+
+#### -i <a name="opt-i"></a>
+Selects only tests which give the timing of a single instruction. All composite
+and auxiliary tests are removed. 
+
 #### -help <a name="opt-help"></a>
 Print help text and quit.
 
 ### Usage <a name="usage"></a>
 
-#### Compare absolute instruction times
-To list the instruction times of test cases plus in addition the
-time rations relative to the first case use
+#### Compare absolute instruction times <a name="exa-rat"></a>
+To list the instruction times of test cases plus the time rations relative
+to the first case use
 ```
   s370_perf_sum -rat <file1> <file2> ...
 ```
 
-#### Compare datasets from different systems
+An example output is shown in the
+[description section](#user-content-description).
+
+#### Compare datasets from different systems - use -nrr  <a name="exa-nrr"></a>
 When comparing data from different systems it is interesting to check
 whether the different instructions all show the same speed ratio or
 whether there are significant differences. Relative speed differences
 can be seen best when the absolute speed of the underlying hardware
 normalized out by dividing all instruction times by the time for `LR`
-with [-nrr](#user-content-opt-nrr) like in
+with the [-nrr option](#user-content-opt-nrr), like in
 ```
   s370_perf_sum -nrr -rat <file1> <file2> ...
 ```
@@ -159,5 +192,70 @@ which indicates the variation of the relative speed difference.
 A practical example is given in the narrative for dataset
 [2018-01-03_rasp2b](../narr/2018-01-03_rasp2b.md).
 
+The body of the output looks like (same data as shown in
+[description section](#user-content-description))
+```
+Tag   Comment                :     nrr01     nrr02     nrr03 :  t02/t01  t03/t01
+T100  LR R,R                 :      1.00      1.00      1.00 :    1.000    1.000
+T101  LA R,n                 :      1.32      1.15      1.72 :    0.871    1.303
+T102  L R,m                  :      3.59      3.35      4.52 :    0.933    1.259
+T103  L R,m (unal)           :      4.11      4.22      4.77 :    1.027    1.161
+T104  LH R,m                 :      4.36      4.27      4.90 :    0.979    1.124
+T105  LH R,m (unal3)         :      4.56      4.44      5.04 :    0.974    1.105
+T106  LTR R,R                :      1.68      1.47      1.31 :    0.875    0.780
+T107  LCR R,R                :      1.73      1.46      1.50 :    0.844    0.867
+...
+```
+
 This analysis can also be done with a normalization on the `L`
-instruction time with the [-nrx](#user-content-opt-nrx) option.
+instruction time with the [-nrx option](#user-content-opt-nrx).
+
+#### Compare datasets from different systems - use -k  <a name="exa-k"></a>
+For a quick overview of what is faster or slower it helps to sort the output
+by the speed ratio with the [-k option](#user-content-opt-k), like in
+```
+  s370_perf_sum -rat -k r2 <file1> <file2> ...
+```
+
+which gives an output like
+```
+File num: name ----------------------------------- #test w50-avr  w50-max
+      01: 2018-03-31_sys2.dat                        330   0.83%     4.5%
+      02: 2018-04-02_rasp2b.dat                      330   0.69%    15.8%
+
+Tag   Comment                :     tpi01     tpi02 :  t02/t01
+T156  MVC m,m (250c,over1)   :    351.62   1140.12 :    3.242
+T276  CLC m,m (250c,eq)      :    165.90    667.73 :    4.025
+T274  CLC m,m (100c,eq)      :     83.62    431.75 :    5.163
+D610  EX R,i (bare, via TM)  :     21.75    133.29 :    6.128
+D611  EX R,i (bare, via XI)  :     20.85    132.73 :    6.366
+...
+D215  DR R,R                 :     14.72    498.06 :   33.836
+T600  STCK m                 :     65.48   2838.00 :   43.341
+T547  DD R,m                 :    156.37   7336.85 :   46.920
+T546  DDR R,R                :    152.40   7254.83 :   47.604
+T401  CVD R,m                :     36.04   6177.14 :  171.397
+```
+
+Using in addition the [-nrr option](#user-content-opt-nrr) helps to see
+the relative trends better, and the [-i option](#user-content-opt-i) helps
+to focus in the instruction timings, like in
+```
+  s370_perf_sum -nrr -rat -i -k r2 <file1> <file2> ...
+```
+
+which gives an output like (same files as above)
+```
+Tag   Comment                :     nrr01     nrr02 :  t02/t01
+T156  MVC m,m (250c,over1)   :    168.33     39.42 :    0.234
+T276  CLC m,m (250c,eq)      :     79.42     23.09 :    0.291
+T274  CLC m,m (100c,eq)      :     40.03     14.93 :    0.373
+D610  EX R,i (bare, via TM)  :     10.41      4.61 :    0.443
+D611  EX R,i (bare, via XI)  :      9.98      4.59 :    0.460
+T304  BR R                   :      3.21      1.67 :    0.520
+...
+T600  STCK m                 :     31.35     98.12 :    3.130
+T547  DD R,m                 :     74.86    253.67 :    3.389
+T546  DDR R,R                :     72.95    250.83 :    3.438
+T401  CVD R,m                :     17.25    213.57 :   12.381
+```
