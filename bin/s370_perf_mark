@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: s370_perf_mark 1009 2018-04-08 12:44:49Z mueller $
+# $Id: s370_perf_mark 1013 2018-04-28 16:07:34Z mueller $
 #
 # Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,8 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-04-28  1013   1.0.2  protect truncate long file names in listing
+# 2018-04-22  1012   1.0.1  allow 3 digit nt count
 # 2018-04-08  1008   1.0    Initial version
 #
 
@@ -154,7 +156,8 @@ print "\n" if $opts{v};
 print "file name                           #i     wsum      tavr      MIPS\n";
 foreach my $fdsc (@flst) {
   printf "%-32s   %3d %8.4f  %8.2f  %8.2f\n",
-    $fdsc->{fname},$fdsc->{mcnt},$fdsc->{wsum},$fdsc->{tnor},$fdsc->{mips};
+    substr($fdsc->{fname},-32),
+    $fdsc->{mcnt},$fdsc->{wsum},$fdsc->{tnor},$fdsc->{mips};
 }
 
 exit 0;
@@ -186,7 +189,7 @@ sub do_file {
   while (<IFILE>) {
     chomp;
     if (m/^([DT]\d\d\d)\s+                  # tag
-          (.*?)\s+:\s+                      # txt
+          (.*?)\s+:\s*                      # txt
           (\d+)\s+                          # nt
           (-|[0-9.]+)\s+                    # min
           (-|[0-9.]+)\s+                    # max
