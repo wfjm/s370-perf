@@ -9,6 +9,7 @@
 - [Configuration file](#user-content-config)
 - [Output](#user-content-output)
 - [Usage](#user-content-usage)
+- [See also](#user-content-also)
 
 ### Overview <a name="overview"></a>
 s370_perf determines the _time per instruction_ of
@@ -519,3 +520,9 @@ Job templates to be used with
 are provided in the
 [codes](../codes) directory and described in the
 [README](../codes/README.md).
+
+### See also <a name="also"></a>
+- [s370_perf_ana](s370_perf_ana.md) - analyze s370_perf data
+- [s370_perf_sum](s370_perf_sum.md) - summarize s370_perf data
+- [s370_perf_sort](s370_perf_sort.md) - generate a sorted s370_perf data listing
+- [s370_perf_mark](s370_perf_mark.md) - derive MIPS ratings from s370_perf data

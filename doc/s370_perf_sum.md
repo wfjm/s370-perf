@@ -6,6 +6,7 @@
 - [Description](#user-content-description)
 - [Options](#user-content-options)
 - [Usage](#user-content-usage)
+- [See also](#user-content-also)
 
 ### Synopsis <a name="synopsis"></a>
 ```
@@ -259,3 +260,9 @@ T547  DD R,m                 :     74.86    253.67 :    3.389
 T546  DDR R,R                :     72.95    250.83 :    3.438
 T401  CVD R,m                :     17.25    213.57 :   12.381
 ```
+### See also <a name="also"></a>
+- [s370_perf](s370_perf.md) - IBM System/370 Instruction Timing Benchmark
+- [s370_perf_ana](s370_perf_ana.md) - analyze s370_perf data
+- [s370_perf_sort](s370_perf_sort.md) - generate a sorted s370_perf data listing
+- [s370_perf_mark](s370_perf_mark.md) - derive MIPS ratings from s370_perf data
+

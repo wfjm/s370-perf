@@ -7,6 +7,7 @@
 - [Options](#user-content-options)
 - [Available Mixes](#user-content-mix)
 - [Usage](#user-content-usage)
+- [See also](#user-content-also)
 
 ### Synopsis <a name="synopsis"></a>
 ```
@@ -177,3 +178,9 @@ To get a summary of cases simply
 cd s370_perf/data
 s370_perf_mark *.dat
 ```
+
+### See also <a name="also"></a>
+- [s370_perf](s370_perf.md) - IBM System/370 Instruction Timing Benchmark
+- [s370_perf_ana](s370_perf_ana.md) - analyze s370_perf data
+- [s370_perf_sum](s370_perf_sum.md) - summarize s370_perf data
+- [s370_perf_sort](s370_perf_sort.md) - generate a sorted s370_perf data listing

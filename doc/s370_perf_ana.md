@@ -6,6 +6,7 @@
 - [Description](#user-content-description)
 - [Options](#user-content-options)
 - [Usage](#user-content-usage)
+- [See also](#user-content-also)
 
 ### Synopsis <a name="synopsis"></a>
 ```
@@ -356,3 +357,9 @@ To analyze a set of s370_perf job print output files simply use
 ```
   s370_perf_ana *PERF*.prt
 ```
+
+### See also <a name="also"></a>
+- [s370_perf](s370_perf.md) - IBM System/370 Instruction Timing Benchmark
+- [s370_perf_sum](s370_perf_sum.md) - summarize s370_perf data
+- [s370_perf_sort](s370_perf_sort.md) - generate a sorted s370_perf data listing
+- [s370_perf_mark](s370_perf_mark.md) - derive MIPS ratings from s370_perf data
