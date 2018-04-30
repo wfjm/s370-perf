@@ -25,3 +25,4 @@ tbe currently available test cases are
 | 2018-04-02 | [rasp2b](hostinfo_rasp2b.md) | Herc tk4- | [2018-04-02_rasp2b](2018-04-02_rasp2b.md) | |
 | 2018-04-07 | [srv1](hostinfo_srv1.md) | Herc tk4- | [2018-04-07_srv1-od](2018-04-07_srv1-od.md) | with governor = ondemand |
 | 2018-04-07 | [srv1](hostinfo_srv1.md) | Herc tk4- | [2018-04-07_srv1-pf](2018-04-07_srv1-pf.md) | with governor = performance |
+| 2018-04-16 | [pogoe2](hostinfo_pogoe2.md) | Herc tk3 | [2018-04-16_pogoe2](2018-04-16_pogoe2.md) | |
