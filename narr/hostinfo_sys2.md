@@ -14,11 +14,13 @@
 | microcode    | 0x70d (on 2017-11-15) |
 | cores        | 4 |
 | threads/core | 2 |
-| CPU min MHz  | 1200.0 |
-| CPU max MHz  | 3600.0 |
+| cpu min clock   | 1200.0 MHz |
+| cpu base clock  | 3600.0 MHz |
+| cpu max Turbo   | 3800.0 MHz |
 | bogomips     | 7181.45 |
 | datasheet    | [at ark.intel](https://ark.intel.com/en/products/64621) |
 | microarchitecture | [Sandy Bridge](https://en.wikipedia.org/wiki/Sandy_Bridge) |
+| technology   | 32 nm; lauchned Q1'12 |
 
 ### OS Info
 

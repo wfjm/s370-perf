@@ -14,11 +14,15 @@
 | microcode    | 0x6000624 |
 | sockets      | 2 |
 | cores per socket | 12 |
-| CPU MHz       | 2600.0 |
-| max Turbo MHz | 3200.0 (see Notes) |
+| cpu min clock   | 1400.0 MHz |
+| cpu base clock  | 2600.0 MHz |
+| cpu all core Turbo | 2900.0 MHz |
+| cpu max Turbo | 3200.0 MHz (see Notes) |
 | bogomips     | 5199.92 |
 | datasheet    | [at cpu-world.com](http://www.cpu-world.com/CPUs/Bulldozer/AMD-Opteron%206238.html) |
 | microarchitecture | [Bulldozer-Interlagos](https://en.wikipedia.org/wiki/Bulldozer_(microarchitecture)) |
+| technology   | 32 nm; lauchned Q4'11 |
+
 
 **Note**:
 - `lscpu` shows _6 cores_ and _2 thread/core_ because the `ht` flag is set.

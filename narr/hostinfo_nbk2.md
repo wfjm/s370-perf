@@ -15,9 +15,12 @@
 | cores        | 2 |
 | threads/core | 1 |
 | cores in VM  | 2 |
+| cpu base clock  | 2400.0 MHz |
+| cpu max Turbo   | 2930.0 MHz |
 | bogomips     | 4904.26 |
 | datasheet    | [at ark.intel](https://ark.intel.com/en/products/47341) |
 | microarchitecture | [Westmere-Arrandale](https://en.wikipedia.org/wiki/Westmere_(microarchitecture)) |
+| technology   | 32 nm; lauchned Q1'10 |
 
 ### OS Info
 

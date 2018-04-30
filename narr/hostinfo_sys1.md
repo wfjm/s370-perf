@@ -24,11 +24,12 @@
 | microcode    | 0xa07 (on 2017-11-17) |
 | cores        | 2 |
 | threads/core | 1 |
-| CPU min MHz  | 2000.0 |
-| CPU max MHz  | 3000.0 |
+| cpu min clock   | 2000.0 MHz |
+| cpu base clock  | 3000.0 MHz |
 | bogomips     | 5999.84 |
 | datasheet    | [at ark.intel](https://ark.intel.com/en/products/33910) |
 | microarchitecture | [Core-Wolfdale](https://en.wikipedia.org/wiki/Intel_Core_(microarchitecture)) |
+| technology   | 45 nm; lauchned Q1'08 |
 
 ### OS Info
 

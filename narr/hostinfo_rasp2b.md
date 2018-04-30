@@ -1,6 +1,6 @@
 ## Host Info: rasp2b
 
-**rasp2b** is a [Raspberry Pi 2 Model B](https://www.raspberrypi.org/products/raspberry-pi-2-model-b/) based system.
+**rasp2b** is a [Raspberry Pi 2 Model B](https://www.raspberrypi.org/products/raspberry-pi-2-model-b/) system based on an ARMv7 CPU.
 
 ### CPU Info
 
@@ -16,8 +16,8 @@
 | Revision         | a01041 |
 | cores            | 4 |
 | threads/core     | 1 |
-| CPU min MHz      | 600.0 |
-| CPU max MHz      | 900.0 |
+| cpu min clock    | 600.0 MHz |
+| cpu max clock    | 900.0 MHz |
 | bogomips         | 57.60 |
 
 ### OS Info

@@ -15,9 +15,12 @@
 | cores        | 2 |
 | threads/core | 2 |
 | cores in VM  | 2 |
+| cpu base clock  | 2900.0 MHz |
+| cpu max Turbo   | 3600.0 MHz |
 | bogomips     | 5801.07 |
-| datasheet    | [at ark.intel](https://ark.intel.com/de/products/64893) |
+| datasheet    | [at ark.intel](https://ark.intel.com/en/products/64893) |
 | microarchitecture | [Ivy Bridge](https://en.wikipedia.org/wiki/Ivy_Bridge_(microarchitecture)) |
+| technology   | 22 nm; lauchned Q2'12 |
 
 ### OS Info
 
