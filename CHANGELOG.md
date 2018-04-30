@@ -21,7 +21,7 @@ the documentation is consistent.
 ## 2018-04-01: [V0.80](https://github.com/wfjm/s370-perf/releases/tag/V0.80) - rev 1005(wfjm) <a name="V0.80"></a>
 
 ### Summary
-- s370_perf_sum: drop -ins; add -k, -r, -i (generalized sort capavility)
+- s370_perf_sum: drop -ins; add -k, -r, -i (generalized sort capability)
 - s370_perf_mark: protect truncate long file names in listing
 - s370_perf_sort: added, much enhanced replacement for s370_perf_ins
 - s370_perf_ins: removed again, replaced by s370_perf_sort
