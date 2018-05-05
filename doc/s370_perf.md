@@ -124,24 +124,43 @@ The tests are grouped into classes
 
 Most tests are self-explanatory and target a single instruction, but some
 deserve some commentary
-- [T113+T114 - STH unaligned](#user-content-tests-sth-unal)
+- [unaligned memory access](#user-content-tests-unal)
 - [T15x - MVC](#user-content-tests-mvc)
 - [T17x - MVCL](#user-content-tests-mvcl)
 - [T27x - CLC](#user-content-tests-clc)
 - [T28x - CLCL](#user-content-tests-clcl)
+- [T29x - CD+CDS](#user-content-tests-cd)
 - [T301+T302 - BC branch taken / not taken](#user-content-tests-bc)
 - [T303 - BC far](#user-content-tests-bc-far)
 - [T311,T312,T315 - BCT,BCTR,BXLE](#user-content-tests-bloop)
 - [T320+T321 - BALR close and far](#user-content-tests-balr)
 - [T330 - BALR;SAVE;RETURN](#user-content-tests-calret)
-- [T700 - mix int RR](#user-content-tests-t700)
-- [T701+T702 - mix int RX](#user-content-tests-t701)
-- [T703 - mix int RR noopt](#user-content-tests-t703)
-- [T90x - LR R,R count tests](#user-content-tests-t90x)
-- [T92x - L R,m count tests](#user-content-tests-t92x)
-- [T95x - T700 partial sequence tests](#user-content-tests-t95x)
+- [T42x - AP+SP+MP+DP](#user-content-tests-packed)
+- [T62x - TS](#user-content-tests-ts)
+- [T7xx - mix sequences](#user-content-tests-tmix)
+  - [T700 - mix int RR](#user-content-tests-t700)
+  - [T701+T702 - mix int RX](#user-content-tests-t701)
+  - [T703 - mix int RR noopt](#user-content-tests-t703)
+- [T9xx - auxiliary tests](#user-content-tests-taux)
+  - [T90x - LR R,R count tests](#user-content-tests-t90x)
+  - [T92x - L R,m count tests](#user-content-tests-t92x)
+  - [T95x - T700 partial sequence tests](#user-content-tests-t95x)
 
-#### T113+T114 - STH unaligned <a name="tests-sth-unal"></a>
+#### unaligned memory access <a name="tests-unal"></a>
+s370_perf has several tests addressing unaligned memory access
+
+| Test | Description     | hword | word | dword | Comment |
+| ---- | :-------------- | :---: | :--: | :---: | :------ |
+| T103 | L R,m (unal)    |   -   |  yes |   -   | cross word border |
+| T105 | LH R,m (unal3)  |   yes |  yes |   -   | cross word border |
+| T111 | ST R,m (unal)   |   -   |  yes |   -   | cross word border |
+| T113 | STH R,m (unal1) |   yes |   no |   -   | cross half-word border |
+| T114 | STH R,m (unal3) |   yes |  yes |   -   | cross word border |
+| T502 | LE R,m (unal)   |   -   |  yes |   -   | cross word border |
+| T509 | STE R,m (unal)  |   -   |  yes |   -   | cross word border |
+| T532 | LD R,m (unal)   |   -   |    - |   yes | cross double word border |
+| T539 | STD R,m (unal)  |   -   |    - |   yes | cross double word border |
+
 In test T113 `STH` does a write across a halfword border, while in test
 T114 `STH` does a write across a word border. In T114 the access can even
 cross a page border, so the two cases might exhibit quite different
@@ -184,6 +203,29 @@ number of bytes to test before a mismatch is detected. The tests
 T284 and T285 are disabled by default because they are very slow on
 Hercules.
 
+#### T29x - CD+CDS <a name="tests-cd"></a>
+The `CD` and `CDS` instructions implement the
+[compare-and-swap](https://en.wikipedia.org/wiki/Compare-and-swap) paradigm,
+in short
+```
+    opcode:    CS  R1,R3,D2(B2)      or    CS  OP1,OP3,OP2
+    action:    if (OP1==OP2) then OP2 := OP3 else OP1 := OP2
+```
+In a multi-CPU configuration this involves interlocked memory updates and
+access serialization. For different implementations the overhead for interlock
+and serialization can vary strongly with the data pattern, therefore three
+cases are tested
+
+| Test | Description      | Comment |
+| ---- | :----------      | :------ |
+| T290 | CS R,R,m (eq,eq) | OP1==OP2 && OP3==OP1 |
+| T291 | CS R,R,m (eq,ne) | OP1==OP2 && OP3!=OP1 |
+| T292 | CS R,R,m (ne)    | OP1!=OP2 |
+
+Likewise T295-T297 for `CDS`.
+
+The `OP1!=OP2` is considered the _lock missed_ case.
+
 #### T301+T302 - BC branch taken / not taken <a name="tests-bc"></a>
 The `BC` instruction is tested in both the
 - branch not taken (T301)
@@ -219,12 +261,53 @@ This test covers the standard MVS calling sequence, starting with a `L` and
 `(14,12)` save and restore and save area linkage update at the callee
 side. The test returns the time for the full sequence of 11 instructions.
 
+#### T42x - AP+SP+MP+DP <a name="tests-packed"></a>
+The decimal packed arithmetic instructions are tested with two number
+sizes, 10 digits and 30 digits. The tests with 30 digit numbers not only
+involve larger variables, but also values with a higher number of non-zero
+digits. The available tests are
+
+| Instruction | 10d test | 30d test |
+| :---------: | :------: | :------: |
+| AP          | T420     | T421     |
+| SP          | T422     | T423     |
+| MP          | T424     | T425     |
+| DP          | T426     | T427     |
+
+#### T62x - TS <a name="tests-ts"></a>
+The `TS` instruction implements the
+[test-and-set](https://en.wikipedia.org/wiki/Test-and-set) paradigm.
+In a multi-CPU configuration this involves interlocked memory updates and
+access serialization. For different implementations the overhead for interlock
+and serialization can vary strongly with the data pattern, therefore both
+cases are tested
+
+| Test | Description      | Comment |
+| ---- | :----------      | :------ |
+| T620 | TS m (zero)      | lock taken case |
+| T621 | TS m (ones)      | lock missed case |
+
+#### T7xx - mix sequences <a name="tests-tmix"></a>
+The goal of all previous tests is to determine the time of single instruction,
+usually done by repeating the instruction under test many times. Real workloads
+of course have instruction sequences with different instructions. Four simple
+tests are provided to test non-trivial instruction sequences
+- [T700](#user-content-tests-t700) - sequence of RR type instructions
+- [T701](#user-content-tests-t701) - sequence of RX type instructions
+- [T702](#user-content-tests-t701) - like T701, but code+data in different pages
+- [T703](#user-content-tests-t703) - similar to T700, but non-optimizable
+
+See [auxiliary tests](#user-content-tests-taux) for a more detailed tests
+on the additivity of instruction times.
+
 #### T700 - mix int RR <a name="tests-t700"></a>
 The test T700 contains a sequence of 38 integer RR type instructions plus
 two `BC` where the branch isn't taken. The test returns the _average_
 execution time of the involved instructions. This test allows to check whether
 the instruction times are additive on a given system, simply compare the
 T700 time with the average of the involved instructions.
+See [T95x tests](#user-content-tests-t95x) for an in-depth study of this
+instruction sequence.
 
 #### T701+T702 - mix int RX <a name="tests-t701"></a>
 Similar goal as [T700](#user-content-tests-t700), using a sequence of
@@ -236,6 +319,17 @@ a different page than the code.
 Similar goal as [T700](#user-content-tests-t700), now with an instruction
 sequence where each calculated values is used. This prevents that emulators
 using an optimizing binary translator will remove part of the code.
+
+#### T9xx - auxiliary tests <a name="tests-taux"></a>
+The tests [T90x](#user-content-tests-t90x),
+[T92x](#user-content-tests-t92x) and
+[T95x](#user-content-tests-t95x)
+allow to test whether the instruction times are additive, or in other words,
+whether the time for a sequence of instructions is the sum of the measured
+instruction times. The tests report the time for a whole instruction sequence
+and are best analysed with the _raw view_ generated by
+[s370_perf_ana](s370_perf_ana.md) with the
+[-raw option](s370_perf_ana.md#user-content-opt-raw).
 
 #### T90x - LR R,R count tests <a name="tests-t90x"></a>
 The tests T900 to T915 are similar to the T100 test, but use different repeat
@@ -492,6 +586,19 @@ loop iteration. The current code uses the following loop types
 | 11 | LD, LD, BCTR      | |
 
 ### Usage <a name="usage"></a>
+
+Job templates to be used with
+[hercjis](https://github.com/wfjm/herc-tools/blob/master/doc/hercjis.md)
+are provided in the
+[codes](../codes) directory and described in the
+[README](../codes/README.md).
+A typical benchmark run with 30 jobs is started like
+```
+  cd <codes-directory>
+  hercjis -r 30 s370_perf_ff.JES
+```
+
+If s370_perf is run without using the packed job, keep in mind that
 s370_perf is a fairly large assembler module, currently 6800+ lines of code
 with a lot of macro generated code. Both assembler nor linkage editor
 fail under MVS 3.8J and the defaults of the `ASMFCLG` procedure as
@@ -514,12 +621,6 @@ like `SIZE=(512000,122880)`. A well working JCL example is
 //ASM.SYSIN  DD *
 ...
 ```
-
-Job templates to be used with
-[hercjis](https://github.com/wfjm/herc-tools/blob/master/doc/hercjis.md)
-are provided in the
-[codes](../codes) directory and described in the
-[README](../codes/README.md).
 
 ### See also <a name="also"></a>
 - [s370_perf_ana](s370_perf_ana.md) - analyze s370_perf data
