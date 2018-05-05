@@ -7,7 +7,8 @@ running [OS/2](https://en.wikipedia.org/wiki/OS/2), and a
 [PCI](https://en.wikipedia.org/wiki/Conventional_PCI)
 expansion card which carries the P/390 CPU plus memory.
 The CPU is implemented as single ASIC with the key features
-- 0.6 micron CMOS gate array technology
+- announced as: _ESA/390 CMOS processor chip in the 5 MIPS range_
+- 0.6 micron CMOS gate array technology (around 1994–1995)
 - 70.125 MHz clock, divided into a four-phase clock
 - 212K gates complexity
 - 32 kB loadable control store
@@ -16,5 +17,7 @@ The CPU is implemented as single ASIC with the key features
 - full ESA/390 instruction set
 - hardware floating point internal to processor
 - I/O handled via PCI by host system (OS/2)
-- detailed description at [ohlandl.ipv7.net](http://ohlandl.ipv7.net/P390/p390.html)
+- detailed descriptions at
+  - ftp.software.ibm.com: ftp://ftp.software.ibm.com/hardware/p390/doc/p390/p390_hwd.htm
+  - [ohlandl.ipv7.net](http://ohlandl.ipv7.net/P390/p390.html)
 
