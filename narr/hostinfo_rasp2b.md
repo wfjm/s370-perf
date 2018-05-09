@@ -1,6 +1,6 @@
 ## Host Info: rasp2b
 
-**rasp2b** is a [Raspberry Pi 2 Model B](https://www.raspberrypi.org/products/raspberry-pi-2-model-b/) system based on an ARMv7 CPU.
+**rasp2b** is a [Raspberry Pi 2 Model B](https://www.raspberrypi.org/products/raspberry-pi-2-model-b/) system based on an ARMv7-A CPU.
 
 ### CPU Info
 
@@ -24,5 +24,5 @@
 
 | Attribute | Value |
 | --------- | ----- |
-| Host OS      | Raspbian GNU/Linux 8 |
+| Host OS      | Raspbian GNU/Linux 8 (Jessie) |
 | Host kernel  | 4.9.35-v7+ (dated 2017-06-30) |

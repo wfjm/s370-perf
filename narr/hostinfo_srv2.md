@@ -21,11 +21,11 @@
 | bogomips     | 4401.50 |
 | datasheet    | [at ark.intel](https://ark.intel.com/en/products/75272) |
 | microarchitecture | [Ivy Bridge](https://en.wikipedia.org/wiki/Ivy_Bridge_(microarchitecture)) |
-| technology   | 22 nm; lauchned Q3'13 |
+| technology   | 22 nm; launched Q3'13 |
 
 ### OS Info
 
 | Attribute | Value |
 | --------- | ----- |
-| Host OS      | Debian GNU/Linux 8 |
+| Host OS      | Debian GNU/Linux 8 (Jessie) |
 | Host kernel  | 3.16.0-5-amd64 (on 2018-04-20) |

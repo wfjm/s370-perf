@@ -23,12 +23,12 @@
 | datasheet    | [at amd.com](https://www.amd.com/en/products/cpu/amd-epyc-7551) |
 |              | [at cpu-world.com](http://www.cpu-world.com/CPUs/Zen/AMD-EPYC%207551.html) |
 | microarchitecture | [Zen](https://en.wikipedia.org/wiki/Zen_(microarchitecture)) |
-| technology   | 14 nm; lauchned Q2'17 |
+| technology   | 14 nm; launched Q2'17 |
 
 
 ### OS Info
 
 | Attribute | Value |
 | --------- | ----- |
-| Host OS      | Debian GNU/Linux 8 |
+| Host OS      | Debian GNU/Linux 8 (Jessie) |
 | Host kernel  | 4.9.0-0.bpo.5-amd64 (on 2018-04-20) |

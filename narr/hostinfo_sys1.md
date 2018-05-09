@@ -29,7 +29,7 @@
 | bogomips     | 5999.84 |
 | datasheet    | [at ark.intel](https://ark.intel.com/en/products/33910) |
 | microarchitecture | [Core-Wolfdale](https://en.wikipedia.org/wiki/Intel_Core_(microarchitecture)) |
-| technology   | 45 nm; lauchned Q1'08 |
+| technology   | 45 nm; launched Q1'08 |
 
 ### OS Info
 

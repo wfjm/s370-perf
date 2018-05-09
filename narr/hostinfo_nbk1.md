@@ -20,7 +20,7 @@
 | bogomips     | 5801.07 |
 | datasheet    | [at ark.intel](https://ark.intel.com/en/products/64893) |
 | microarchitecture | [Ivy Bridge](https://en.wikipedia.org/wiki/Ivy_Bridge_(microarchitecture)) |
-| technology   | 22 nm; lauchned Q2'12 |
+| technology   | 22 nm; launched Q2'12 |
 
 ### OS Info
 

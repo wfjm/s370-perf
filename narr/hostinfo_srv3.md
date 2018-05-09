@@ -21,11 +21,11 @@
 | bogomips     | 5201.23 |
 | datasheet    | [at ark.intel](https://ark.intel.com/en/products/81706) |
 | microarchitecture | [Haswell](https://en.wikipedia.org/wiki/Haswell_(microarchitecture)) |
-| technology   | 22 nm; lauchned Q3'14 |
+| technology   | 22 nm; launched Q3'14 |
 
 ### OS Info
 
 | Attribute | Value |
 | --------- | ----- |
-| Host OS      | Debian GNU/Linux 8 |
+| Host OS      | Debian GNU/Linux 8 (Jessie) |
 | Host kernel  | 3.16.0-5-amd64 (on 2018-04-20) |

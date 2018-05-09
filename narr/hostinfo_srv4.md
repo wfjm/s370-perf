@@ -21,11 +21,11 @@
 | bogomips     | 4801.63 |
 | datasheet    | [at ark.intel](https://ark.intel.com/en/products/91754) |
 | microarchitecture | [Broadwell](https://en.wikipedia.org/wiki/Broadwell_(microarchitecture)) |
-| technology   | 14 nm; lauchned Q1'16 |
+| technology   | 14 nm; launched Q1'16 |
 
 ### OS Info
 
 | Attribute | Value |
 | --------- | ----- |
-| Host OS      | Debian GNU/Linux 8 |
+| Host OS      | Debian GNU/Linux 8 (Jessie) |
 | Host kernel  | 3.16.0-5-amd64 (on 2018-04-20) |

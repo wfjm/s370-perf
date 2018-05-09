@@ -20,7 +20,7 @@
 | bogomips     | 4904.26 |
 | datasheet    | [at ark.intel](https://ark.intel.com/en/products/47341) |
 | microarchitecture | [Westmere-Arrandale](https://en.wikipedia.org/wiki/Westmere_(microarchitecture)) |
-| technology   | 32 nm; lauchned Q1'10 |
+| technology   | 32 nm; launched Q1'10 |
 
 ### OS Info
 

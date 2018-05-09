@@ -20,12 +20,12 @@
 | bogomips     | 7181.45 |
 | datasheet    | [at ark.intel](https://ark.intel.com/en/products/64621) |
 | microarchitecture | [Sandy Bridge](https://en.wikipedia.org/wiki/Sandy_Bridge) |
-| technology   | 32 nm; lauchned Q1'12 |
+| technology   | 32 nm; launched Q1'12 |
 
 ### OS Info
 
 | Attribute | Value |
 | --------- | ----- |
-| Host OS      | Debian GNU/Linux 7 |
+| Host OS      | Debian GNU/Linux 7 (Wheezy) |
 | Host kernel  | 3.2.0-4-amd64 #1 SMP Debian 3.2.93-1  (since early 2017-12) |
 |              | 3.2.0-4-amd64 #1 SMP Debian 3.2.96-2  (on 2018-01-13) |

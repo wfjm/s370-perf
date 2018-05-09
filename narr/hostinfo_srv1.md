@@ -21,7 +21,7 @@
 | bogomips     | 5199.92 |
 | datasheet    | [at cpu-world.com](http://www.cpu-world.com/CPUs/Bulldozer/AMD-Opteron%206238.html) |
 | microarchitecture | [Bulldozer-Interlagos](https://en.wikipedia.org/wiki/Bulldozer_(microarchitecture)) |
-| technology   | 32 nm; lauchned Q4'11 |
+| technology   | 32 nm; launched Q4'11 |
 
 
 **Note**:
