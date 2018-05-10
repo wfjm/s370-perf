@@ -1,8 +1,8 @@
 s370_perf_sum  -rat  -k r2  -i 
 
-File num: name ----------------------------------- #test w50-avr  w50-max
-      01: 2018-04-30_rasp2b-1cpu.dat                 330   0.78%    20.6%
-      02: 2018-04-16_pogoe2.dat                      330   0.93%     5.4%
+File num: name ----------------------------------- #test w50-med  w50-max
+      01: 2018-04-30_rasp2b-1cpu.dat                 330   0.55%    20.6%
+      02: 2018-04-16_pogoe2.dat                      330   0.97%     5.4%
 
 Tag   Comment                :     tpi01     tpi02 :  t02/t01
 T254  TR m,m (250c)          :   2444.09   2074.98 :    0.849

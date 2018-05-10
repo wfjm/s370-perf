@@ -20,10 +20,10 @@ listing summarizing and comparing the benchmark cases.
 The output format is, for an example with three input files and using
 the [-rat](#user-content-opt-rat) option
 ```
-File num: name ----------------------------------- #test w50-avr  w50-max
-      01: 2018-03-04_sys2.dat                        275   0.69%     3.8%
-      02: 2018-01-09_nbk2.dat                        205   2.19%     8.3%
-      03: 2018-01-03_rasp2b.dat                      205   0.69%     7.4%
+File num: name ----------------------------------- #test w50-med  w50-max
+      01: 2018-03-04_sys2.dat                        303   0.78%     3.8%
+      02: 2018-01-09_nbk2.dat                        230   2.56%     8.4%
+      03: 2018-01-03_rasp2b.dat                      233   0.56%     9.0%
 
 Tag   Comment                :     tpi01     tpi02     tpi03 :  t02/t01  t03/t01
 T100  LR R,R                 :      2.09      3.56     28.98 :    1.703   13.866
@@ -37,7 +37,8 @@ T105  LH R,m (unal3)         :      9.54     15.81    146.03 :    1.657   15.307
 
 The header section lists the input files plus some statistics
 - **#test**: number of s370_perf tests found in this file
-- **w50-avr**: average distribution width in %, good to judge data quality
+- **w50-med**: [median](https://en.wikipedia.org/wiki/Median) of the
+  distribution width in %, good to judge data reproducibility
 - **w50-max**: maximal distribution width in %
 
 The main body has the columns
@@ -220,9 +221,9 @@ by the speed ratio with the [-k option](#user-content-opt-k), like in
 
 which gives an output like
 ```
-File num: name ----------------------------------- #test w50-avr  w50-max
-      01: 2018-03-31_sys2.dat                        330   0.83%     4.5%
-      02: 2018-04-02_rasp2b.dat                      330   0.69%    15.8%
+File num: name ----------------------------------- #test w50-med  w50-max
+      01: 2018-03-31_sys2.dat                        330   0.89%     4.5%
+      02: 2018-04-02_rasp2b.dat                      330   0.54%    15.8%
 
 Tag   Comment                :     tpi01     tpi02 :  t02/t01
 T156  MVC m,m (250c,over1)   :    351.62   1140.12 :    3.242

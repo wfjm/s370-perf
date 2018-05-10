@@ -1,8 +1,8 @@
 s370_perf_sum  -rat  -fsig 2
 
-File num: name ----------------------------------- #test w50-avr  w50-max
-      01: 2018-01-14_sys1-a.dat                      233   0.39%     4.9%
-      02: 2018-01-14_sys1-b.dat                      233   0.46%     5.4%
+File num: name ----------------------------------- #test w50-med  w50-max
+      01: 2018-01-14_sys1-a.dat                      233   0.40%     4.9%
+      02: 2018-01-14_sys1-b.dat                      233   0.43%     5.4%
 
 Tag   Comment                :     tpi01     tpi02 :  t02/t01
 T117  STCM R,i,m (1100)      :     19.98     19.46 :    0.974

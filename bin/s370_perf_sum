@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: s370_perf_sum 1013 2018-04-28 16:07:34Z mueller $
+# $Id: s370_perf_sum 1018 2018-05-10 17:13:28Z mueller $
 #
 # Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-05-10  1018   1.1.1  use median rather average for w50 summary
 # 2018-04-28  1013   1.1    drop -ins; add -k, -r, -i;
 # 2018-04-22  1012   1.0.9  allow 3 digit nt count
 # 2018-03-29  1002   1.0.8  add -ins (instruction name sorted output)
@@ -151,8 +152,8 @@ sub do_file {
 
   my $ntest  = 0;
   my $tpisum = 0.;
-  my $w50sum = 0.;
-  my $w50max = 0.;
+  my @w50df;
+
   while (<IFILE>) {
     chomp;
     if (m/^([DT]\d\d\d)\s+                  # tag
@@ -181,8 +182,7 @@ sub do_file {
       $val = $w50 if $opts{w50};
       $ntest  += 1;
       $tpisum += $tpi;
-      $w50sum += $tpi*$w50;
-      $w50max  = $w50 if $w50 > $w50max;
+      push @w50df, $w50;
       #
       if (exists $tags{$tag}{txt} && $tags{$tag}{txt} ne $txt) {
         printf STDERR "s370_perf_sum-W file '%s' overwrites text for tag '%s'\n",
@@ -200,8 +200,13 @@ sub do_file {
   }
 
   $ftbl{$fnum}{ntest}  = $ntest;
-  $ftbl{$fnum}{w50avr} = $tpisum > 0. ? $w50sum/$tpisum : 0.;
-  $ftbl{$fnum}{w50max} = $w50max;
+  $ftbl{$fnum}{w50max} = 0.;
+  $ftbl{$fnum}{w50med} = 0.;
+  if (scalar @w50df) {
+    my @dfsort = sort {$a <=> $b} @w50df;
+    $ftbl{$fnum}{w50med} = df_lookup(\@dfsort, 0.50);
+    $ftbl{$fnum}{w50max} = $dfsort[-1];
+  }
   close IFILE;
   return;
 }
@@ -276,13 +281,13 @@ sub do_anal {
 
 sub do_show {
   print "File num: name ----------------------------------- ".
-        "#test w50-avr  w50-max\n";
+        "#test w50-med  w50-max\n";
   foreach my $fnum (@fnums) {
     printf "      %s: %-40s  %4d %6.2f%%  %6.1f%%\n",
       $fnum,
       $ftbl{$fnum}{fname},
       $ftbl{$fnum}{ntest},
-      $ftbl{$fnum}{w50avr},
+      $ftbl{$fnum}{w50med},
       $ftbl{$fnum}{w50max};
   }
   printf "\n";
@@ -335,5 +340,21 @@ sub do_show {
     print "\n";
   }
   return;
+}
+
+#
+# -- df_lookup: lookup df ----------------------------------------------------
+#
+sub df_lookup {
+  my ($df,$frac) = @_;
+  my $nval = scalar(@{$df});
+  return 0.        if $nval == 0;
+  return $df->[0]  if $nval == 1;
+  my $imax = $nval - 1;
+  my $rind = $frac * $imax;
+  my $ind  = int $rind;
+  return $df->[$ind] if $ind == $imax;
+  my $find = $rind - $ind;
+  return (1.-$find)*$df->[$ind] + $find*$df->[$ind+1];
 }
 

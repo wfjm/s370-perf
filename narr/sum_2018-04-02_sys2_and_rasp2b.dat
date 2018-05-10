@@ -1,8 +1,8 @@
 s370_perf_sum  -rat  -k r2  -i 
 
-File num: name ----------------------------------- #test w50-avr  w50-max
-      01: 2018-03-31_sys2.dat                        330   0.83%     4.5%
-      02: 2018-04-02_rasp2b.dat                      330   0.69%    15.8%
+File num: name ----------------------------------- #test w50-med  w50-max
+      01: 2018-03-31_sys2.dat                        330   0.89%     4.5%
+      02: 2018-04-02_rasp2b.dat                      330   0.54%    15.8%
 
 Tag   Comment                :     tpi01     tpi02 :  t02/t01
 T156  MVC m,m (250c,over1)   :    351.62   1140.12 :    3.242
