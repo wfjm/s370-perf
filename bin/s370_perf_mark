@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: s370_perf_mark 1013 2018-04-28 16:07:34Z mueller $
+# $Id: s370_perf_mark 1019 2018-05-10 17:43:38Z mueller $
 #
 # Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-05-10  1019   1.0.3  lmix: use for EX bare time (was with TM time)
 # 2018-04-28  1013   1.0.2  protect truncate long file names in listing
 # 2018-04-22  1012   1.0.1  allow 3 digit nt count
 # 2018-04-08  1008   1.0    Initial version
@@ -59,7 +60,7 @@ my %mtbl =
             {i=>'LTR',  w=>0.0098, t=>'T106'},
             {i=>'BCTR', w=>0.0090, t=>'T311'},
             {i=>'LPR',  w=>0.0079, t=>'T109'},
-            {i=>'EX',   w=>0.0076, t=>'T610',            c=>'with TM'},
+            {i=>'EX',   w=>0.0076, t=>'D610',            c=>'base EX'},
             {i=>'SH',   w=>0.0075, t=>'T207'},
             {i=>'SLL',  w=>0.0074, t=>'T240'},
             {i=>'STC',  w=>0.0072, t=>'T115'},

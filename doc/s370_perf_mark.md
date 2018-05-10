@@ -159,7 +159,7 @@ assumptions had to be made for the weighting of these cases:
 - `MVC`, `MVZ`, `MVN`, `TR`, `XC`, and `OC` act on 10 byte operands
 - `CLC` acts on a 10 byte `eq` operands
 - `LM` and `STM` act on a set of 6 registers
-- `EX` has `TM` as target instruction
+- for `EX` the time without target instruction is used
 - `ZAP` and `TRT` act on 10 byte buffers
 - `CP` acts on a 10 digit number
 - `PACK` and `UNPK` act on a 5 digit number
