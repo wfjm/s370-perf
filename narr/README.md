@@ -3,6 +3,7 @@ tbe currently available test cases are
 
 | Date | Host | System | Case narrative | Comment |
 | ---- | ---- | ------ | -------------- | ------- |
+| 1964-05-01 | n/a  | S/360 70 | [1964-05-01_s360-70](1964-05-01_s360-70.md) | System/360 Model 70 as _paper reference_ |
 | 2017-11-30 | n/a  | [P/390](sysinfo_p390.md) | [2017-11-30_p390](2017-11-30_p390.md) | first P/390 data |
 | 2018-01-03 | [rasp2b](hostinfo_rasp2b.md) | Herc tk4- | [2018-01-03_rasp2b](2018-01-03_rasp2b.md) | first Raspberry/ARMv7 data|
 | 2018-01-13 | [sys2](hostinfo_sys2.md) | Herc tk4- | [2018-01-13_sys2-b](2018-01-13_sys2-b.md) | early reference data |
