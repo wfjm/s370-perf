@@ -157,7 +157,7 @@ assumptions had to be made for the weighting of these cases:
 - all memory accesses are taken as aligned and same page
 - `BC` and `BCR` are assumed to be 50% branch taken and 50% fall through
 - `MVC`, `MVZ`, `MVN`, `TR`, `XC`, and `OC` act on 10 byte operands
-- `CLC` acts on a 10 byte `eq` operands
+- `CLC` acts on a 10 byte `ne` operands
 - `LM` and `STM` act on a set of 6 registers
 - for `EX` the time without target instruction is used
 - `ZAP` and `TRT` act on 10 byte buffers

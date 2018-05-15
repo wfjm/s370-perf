@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: s370_perf_mark 1019 2018-05-10 17:43:38Z mueller $
+# $Id: s370_perf_mark 1021 2018-05-15 20:05:23Z mueller $
 #
 # Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-05-15  1021   1.0.4  lmix: use for CLC the (10c,ne) time (not eq)
 # 2018-05-10  1019   1.0.3  lmix: use for EX bare time (was with TM time)
 # 2018-04-28  1013   1.0.2  protect truncate long file names in listing
 # 2018-04-22  1012   1.0.1  allow 3 digit nt count
@@ -38,7 +39,7 @@ my %mtbl =
             {i=>'LA',   w=>0.0498, t=>'T101'},
             {i=>'CLI',  w=>0.0424, t=>'T265'},
             {i=>'MVC',  w=>0.0418, t=>'T151',            c=>'10c'},
-            {i=>'CLC',  w=>0.0342, t=>'T270',            c=>'10c,eq'},
+            {i=>'CLC',  w=>0.0342, t=>'T271',            c=>'10c,ne'},
             {i=>'BCR n',w=>0.0328, t=>'T300'},
             {i=>'BCR y',w=>0.0328, t=>'T304', ie=>'BR'},
             {i=>'ST',   w=>0.0306, t=>'T110'},
