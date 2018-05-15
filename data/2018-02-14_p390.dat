@@ -1,4 +1,4 @@
-s370_perf_ana  -cp 57.135  -t311 171.405
+s370_perf_ana  -w3  -cp 57.135  -t311 171.405
 
 file name ----------------------------  GMUL  i-count  -- total time --   MIPS
 03-10-23-12:04:15_J0184_PERF-ASM.prtfx     8 7.36e+08  309.08s  5m09.08    2.4
