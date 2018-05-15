@@ -120,6 +120,10 @@ For more in-depth and especially cross-system analysis use the
 | [-t311=t](#user-content-opt-t311)  | override time used for bctr loop correction |
 | [-t312=t](#user-content-opt-t312)  | override time used for bct  loop correction |
 | [-nolrun](#user-content-opt-nolrun) | suppress file/run statistics |
+| [-nonrr](#user-content-opt-nonrr)  | fill n-rr and n-rx with 0.0 dummy data |
+| [-dt=f](#user-content-opt-dt)    | cdf lookup value for tpi extraction |
+| [-dl=f](#user-content-opt-dl)    | cdf lookup value lower end of w50 interval |
+| [-du=f](#user-content-opt-du)    | cdf lookup value upper end of w50 interval |
 | [-ltpi](#user-content-opt-ltpi)    | list per run tpi values |
 | [-ldf](#user-content-opt-ldf)      | list list tpi distribution function |
 | [-raw](#user-content-opt-raw)      | show raw data |
@@ -163,6 +167,39 @@ determined from test `T312`.
 
 #### -nolrun <a name="opt-nolrun"></a>
 Suppress the file/run summary at the beginning of the output listing.
+
+#### -nonrr <a name="opt-nonrr"></a>
+Fills the `n-rr` and `n-rx` column with `0.00` dummy data. Can be used in
+cases where `T100` and/or `T102` no not produce meaning full data.
+
+#### -dt=f <a name="opt-dt"></a>
+Defines the cumulative distribution function lookup value for `tpi` extraction.
+The default is `0.50` so that the
+[median](https://en.wikipedia.org/wiki/Median)
+of the distribution is used.
+
+With `-dt=0` the lowest measured value will be used for `tpi`, in effect 
+using the fastest of all runs. With `dt=1` the highest value will be used.
+
+#### -dl=f <a name="opt-dl"></a>
+Defines the cumulative distribution function lookup value for lower end of
+`w50` interval. For default handling see [-du=f](#user-content-opt-du).
+
+#### -du=f <a name="opt-du"></a>
+Defines the cumulative distribution function lookup value for upper end of
+`w50` interval. The defaults for `-dl` and `-du` are derived from the
+[-dt=f](#user-content-opt-dt) value with
+```
+  $dl = $dt - 0.25;
+  $du = $dt + 0.25;
+  if ($dl < 0.) {$dl = 0.0; $du = 0.5;}
+  if ($du > 1.) {$dl = 0.5; $du = 1.0;}
+```
+which gives an interval with a width of `0.50` which is centered if possible
+around `-dt` but stays always in the allowed range of `[0,1]`.
+
+With the options `-dl=0 -dt=1` the `w50` value will reflect the _full_
+width of the measured distribution.
 
 #### -ltpi <a name="opt-ltpi"></a>
 Lists the input raw `tpi` values for each test. The values printed in the
