@@ -22,9 +22,10 @@ The project files are organized in directories as
 | [codes](codes) | the codes and jobs |
 | [data](data)   | benchmark results |
 | [doc](doc)     | documentation |
+| herc-tools     | the [herc-tools](https://github.com/wfjm/herc-tools) project as submodule, mainly for access to `hercjis` |
 | [jcl](jcl)     | JCL job templates |
 | [narr](narr)   | narrative for benchmark results |
-| [sios](sios)   | assembler code snippets |
+| sios           | the [mvs38j-sios](https://github.com/wfjm/mvs38j-sios) project as submodule, simple I/O system asm code |
 
 ### License
 This project is released under the 

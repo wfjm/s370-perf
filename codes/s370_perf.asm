@@ -1,6 +1,6 @@
 *        1         2         3         4         5         6         71
 *23456789*12345*789012345678901234*678901234567890123456789012345678901
-* $Id: s370_perf.asm 1008 2018-04-07 15:52:03Z mueller $
+* $Id: s370_perf.asm 1021 2018-05-15 20:05:23Z mueller $
 *
 * Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 *
@@ -2715,7 +2715,7 @@ T257V    DC    256X'00'
          TSIMEND
 *
 * Test 258 -- TRT m,m (250c,10b) ---------------------------
-*   test TRT with a function table with match for 10th source byte
+*   test TRT with a function table with match for 11th source byte
 *
          TSIMBEG T258,2500,20,1,C'TRT m,m (250c,10b)'
 *
@@ -2730,7 +2730,7 @@ T258V    DC    256X'00'
          TSIMEND
 *
 * Test 259 -- TRT m,m (250c,100b) --------------------------
-*   test TRT with a function table with match for 100th source byte
+*   test TRT with a function table with match for 101th source byte
 *
          TSIMBEG T259,300,20,1,C'TRT m,m (250c,100b)'
 *
@@ -4926,7 +4926,7 @@ T703RES  DC    F'0'
 *
          TSIMEND
 *
-* Test 9xx -- misc tests ========================================
+* Test 9xx -- auxiliary tests ===================================
 *
 * Test 90x -- LR R,R count tests ===========================
 *

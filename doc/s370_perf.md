@@ -264,7 +264,7 @@ side. The test returns the time for the full sequence of 11 instructions.
 #### T42x - AP+SP+MP+DP <a name="tests-packed"></a>
 The decimal packed arithmetic instructions are tested with two number
 sizes, 10 digits and 30 digits. The tests with 30 digit numbers not only
-involve larger variables, but also values with a higher number of non-zero
+involve larger operands, but also values with a higher number of significant
 digits. The available tests are
 
 | Instruction | 10d test | 30d test |
