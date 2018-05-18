@@ -20,5 +20,11 @@ The CPU is implemented as single ASIC with the key features
 - detailed descriptions at
   - ftp.software.ibm.com: ftp://ftp.software.ibm.com/hardware/p390/doc/p390/p390_hwd.htm
   - [ohlandl.ipv7.net](http://ohlandl.ipv7.net/P390/p390.html)
+- introduced in 1994.
 
-The P/390 was introduced in 1994.
+### Available Data <a name="data"></a>
+
+| Case narrative | Comment |
+| -------------- | ------- |
+| [2017-11-30_p390](2017-11-30_p390.md) | first P/390 data |
+| [2018-02-14_p390](2018-02-14_p390.md) | first complete P/390 data |

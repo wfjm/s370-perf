@@ -2,7 +2,12 @@
 
 **sys1** is a vintage 2009 custom build desktop system.
 
-### System Info
+- [System info](#user-content-sys)
+- [CPU info](#user-content-cpu)
+- [OS info](#user-content-os)
+- [Available Data](#user-content-data)
+
+### System Info <a name="sys"></a>
 
 | Attribute   | Value |
 | ----------- | ----- |
@@ -12,7 +17,7 @@
 | grafics     | Intel GMA X4500HD (in G45) |
 | memory      | 4 GByte |
 
-### CPU Info
+### CPU Info <a name="cpu"></a>
 
 | Attribute | Value |
 | --------- | ----- |
@@ -31,7 +36,7 @@
 | microarchitecture | [Core-Wolfdale](https://en.wikipedia.org/wiki/Intel_Core_(microarchitecture)) |
 | technology   | 45 nm; launched Q1'08 |
 
-### OS Info
+### OS Info <a name="os"></a>
 
 | Attribute | Value |
 | --------- | ----- |
@@ -40,3 +45,13 @@
 |              | 4.4.0-104-generic #127-Ubuntu (on 2018-01-14-a) |
 |              | 4.4.0-109-generic #132-Ubuntu (on 2018-01-14-b) |
 |              | 4.4.0-116-generic #140-Ubuntu (on 2018-03-31) |
+
+### Available Data <a name="data"></a>
+
+| Case narrative | Comment |
+| -------------- | ------- |
+| [2018-01-14_sys1-a](2018-01-14_sys1-a.md) | before Meltdown kernel patch |
+| [2018-01-14_sys1-b](2018-01-14_sys1-b.md) | after Meltdown kernel patch |
+| [2018-03-31_sys1-3g](2018-03-31_sys1-3g.md) | with cpufreq-set 3GHz |
+| [2018-03-31_sys1-od](2018-03-31_sys1-od.md) | with cpufreq-set ondemand |
+| [2018-04-01_sys1-08](2018-04-01_sys1-08.md) | with tk4- 08 |

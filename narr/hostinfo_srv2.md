@@ -2,7 +2,11 @@
 
 **srv2** is an Intel Xeon E5-2660 V2 based dual socket server system
 
-### CPU Info
+- [CPU info](#user-content-cpu)
+- [OS info](#user-content-os)
+- [Available Data](#user-content-data)
+
+### CPU Info <a name="cpu"></a>
 
 | Attribute | Value |
 | --------- | ----- |
@@ -23,9 +27,15 @@
 | microarchitecture | [Ivy Bridge](https://en.wikipedia.org/wiki/Ivy_Bridge_(microarchitecture)) |
 | technology   | 22 nm; launched Q3'13 |
 
-### OS Info
+### OS Info <a name="os"></a>
 
 | Attribute | Value |
 | --------- | ----- |
 | Host OS      | Debian GNU/Linux 8 (Jessie) |
 | Host kernel  | 3.16.0-5-amd64 (on 2018-04-20) |
+
+### Available Data <a name="data"></a>
+
+| Case narrative | Comment |
+| -------------- | ------- |
+| [2018-04-20_srv2](2018-04-20_srv2.md) |  |

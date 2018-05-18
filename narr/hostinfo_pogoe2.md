@@ -1,15 +1,28 @@
 ## Host Info: pogoe2
 
-**pogoe2** is a [Pogoplug V2](https://archlinuxarm.org/platforms/armv5/pogoplug-v2-pinkgray) system based on an ARMv5te CPU of the Marvell Kirkwood series.
-It uses a [SheevaPlug](https://en.wikipedia.org/wiki/SheevaPlug) main board.
+**pogoe2** is a [Pogoplug V2](https://archlinuxarm.org/platforms/armv5/pogoplug-v2-pinkgray) system.
 
-### CPU Info
+- [System info](#user-content-sys)
+- [CPU info](#user-content-cpu)
+- [OS info](#user-content-os)
+- [Available Data](#user-content-data)
+
+### System Info <a name="sys"></a>
+
+| Attribute   | Value |
+| ----------- | ----- |
+| vendor      | Cloud Engines |
+| product     | [Pogoplug V2](https://archlinuxarm.org/platforms/armv5/pogoplug-v2-pinkgray) |
+| motherboard | [SheevaPlug](https://en.wikipedia.org/wiki/SheevaPlug) main board |
+
+
+### CPU Info <a name="cpu"></a>
 
 | Attribute | Value |
 | --------- | ----- |
 | model name       | Feroceon 88FR131 rev 1 (v5l) |
 | CPU implementer  | 0x56 (Marvell) |
-| CPU architecture | 5TE |
+| CPU architecture | ARMv5te _(Marvell Kirkwood)_ |
 | CPU variant      | 0x2 |
 | CPU part         | 0x131 |
 | CPU revision     | 1 |
@@ -21,9 +34,15 @@ It uses a [SheevaPlug](https://en.wikipedia.org/wiki/SheevaPlug) main board.
 | bogomips         | 1192.75 |
 | datasheet        | [at www.7-cpu.com](https://www.7-cpu.com/cpu/Kirkwood.html)
 
-### OS Info
+### OS Info <a name="os"></a>
 
 | Attribute | Value |
 | --------- | ----- |
 | Host OS      | derived from Ubuntu 9.04 (t.b.c.) |
 | Host kernel  | 2.6.33 #2 PREEMPT |
+
+### Available Data <a name="data"></a>
+
+| Case narrative | Comment |
+| -------------- | ------- |
+| [2018-04-16_pogoe2](2018-04-16_pogoe2.md) |  |

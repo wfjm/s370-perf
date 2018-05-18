@@ -2,7 +2,11 @@
 
 **sys2** is a Dell Precision T3600 workstation
 
-### CPU Info
+- [CPU info](#user-content-cpu)
+- [OS info](#user-content-os)
+- [Available Data](#user-content-data)
+
+### CPU Info <a name="cpu"></a>
 
 | Attribute | Value |
 | --------- | ----- |
@@ -22,10 +26,21 @@
 | microarchitecture | [Sandy Bridge](https://en.wikipedia.org/wiki/Sandy_Bridge) |
 | technology   | 32 nm; launched Q1'12 |
 
-### OS Info
+### OS Info <a name="os"></a>
 
 | Attribute | Value |
 | --------- | ----- |
 | Host OS      | Debian GNU/Linux 7 (Wheezy) |
 | Host kernel  | 3.2.0-4-amd64 #1 SMP Debian 3.2.93-1  (since early 2017-12) |
 |              | 3.2.0-4-amd64 #1 SMP Debian 3.2.96-2  (on 2018-01-13) |
+
+### Available Data <a name="data"></a>
+
+| Case narrative | Comment |
+| -------------- | ------- |
+| [2018-01-13_sys2-b](2018-01-13_sys2-b.md) | early reference data |
+| [2018-03-04_sys2](2018-03-04_sys2.md) | data with close-to-final s370_perf |
+| [2018-03-31_sys2](2018-03-31_sys2.md) | **reference data** with final s370_perf |
+| [2018-03-31_sys2-1cpu](2018-03-31_sys2-1cpu.md) | with NUMCPU=1 MAXCPU=1 |
+| [2018-03-31_sys2-g001](2018-03-31_sys2-g001.md) | with /G001 |
+| [2018-03-31_sys2-orip](2018-03-31_sys2-orip.md) | with /ORIP |

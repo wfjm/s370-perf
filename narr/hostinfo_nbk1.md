@@ -2,7 +2,11 @@
 
 **nbk1** is a Lenovo ThinkPad T530 Notebook (vintage 2012)
 
-### CPU Info
+- [CPU info](#user-content-cpu)
+- [OS info](#user-content-os)
+- [Available Data](#user-content-data)
+
+### CPU Info <a name="cpu"></a>
 
 | Attribute | Value |
 | --------- | ----- |
@@ -22,7 +26,7 @@
 | microarchitecture | [Ivy Bridge](https://en.wikipedia.org/wiki/Ivy_Bridge_(microarchitecture)) |
 | technology   | 22 nm; launched Q2'12 |
 
-### OS Info
+### OS Info <a name="os"></a>
 
 | Attribute | Value |
 | --------- | ----- |
@@ -30,3 +34,11 @@
 | VM           | VitualBox 5.1.2 r108956 (2 cores exported) |
 | Guest OS     | XUbuntu 16.04 LTS |
 | Guest kernel | 4.4.0-98-generic (on 2017-11-11) |
+
+### Available Data <a name="data"></a>
+
+| Case narrative | Comment |
+| -------------- | ------- |
+| [2018-04-01_nbk1](2018-04-01_nbk1.md) | |
+
+

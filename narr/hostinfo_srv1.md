@@ -2,7 +2,11 @@
 
 **srv1** is an AMD Opteron 6238 based dual socket server system
 
-### CPU Info
+- [CPU info](#user-content-cpu)
+- [OS info](#user-content-os)
+- [Available Data](#user-content-data)
+
+### CPU Info <a name="cpu"></a>
 
 | Attribute | Value |
 | --------- | ----- |
@@ -33,9 +37,17 @@
 - the `max Turbo` is specified with 3200 MHz, but the tested system was
   configured with a maximal turbo setting of 2900 MHz.
 
-### OS Info
+### OS Info <a name="os"></a>
 
 | Attribute | Value |
 | --------- | ----- |
 | Host OS      | Ubuntu 16.04.4 LTS |
 | Host kernel  | 4.4.0-98-generic #121-Ubuntu SMP (on 2018-04-01) |
+
+### Available Data <a name="data"></a>
+
+| Case narrative | Comment |
+| -------------- | ------- |
+| [2018-04-01_srv1](2018-04-01_srv1.md) | Turbo disabled in BIOS |
+| [2018-04-07_srv1-od](2018-04-07_srv1-od.md) | with governor = ondemand |
+| [2018-04-07_srv1-pf](2018-04-07_srv1-pf.md) | with governor = performance |

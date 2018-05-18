@@ -2,7 +2,11 @@
 
 **nbk2** is a Dell Lattitude E4310 Notebook (vintage 2011)
 
-### CPU Info
+- [CPU info](#user-content-cpu)
+- [OS info](#user-content-os)
+- [Available Data](#user-content-data)
+
+### CPU Info <a name="cpu"></a>
 
 | Attribute | Value |
 | --------- | ----- |
@@ -22,7 +26,7 @@
 | microarchitecture | [Westmere-Arrandale](https://en.wikipedia.org/wiki/Westmere_(microarchitecture)) |
 | technology   | 32 nm; launched Q1'10 |
 
-### OS Info
+### OS Info <a name="os"></a>
 
 | Attribute | Value |
 | --------- | ----- |
@@ -33,3 +37,11 @@
 |              | 3.13.0-137-generic #186-Ubuntu  (on 2018-01-21-a) |
 |              | 3.13.0-139-generic #188-Ubuntu  (on 2018-01-21-b) |
 |              | 3.13.0-143-generic #192-Ubuntu  (on 2018-04-01) |
+
+### Available Data <a name="data"></a>
+
+| Case narrative | Comment |
+| -------------- | ------- |
+| [2018-01-21_nbk2-a](2018-01-21_nbk2-a.md) | before Meltdown kernel patch |
+| [2018-01-21_nbk2-b](2018-01-21_nbk2-b.md) | after Meltdown kernel patch |
+| [2018-04-01_nbk2](2018-04-01_nbk2.md) |  |

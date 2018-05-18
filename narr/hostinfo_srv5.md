@@ -2,7 +2,11 @@
 
 **srv5** is an AMD EPYC 7551 based dual socket server system
 
-### CPU Info
+- [CPU info](#user-content-cpu)
+- [OS info](#user-content-os)
+- [Available Data](#user-content-data)
+
+### CPU Info <a name="cpu"></a>
 
 | Attribute | Value |
 | --------- | ----- |
@@ -26,9 +30,15 @@
 | technology   | 14 nm; launched Q2'17 |
 
 
-### OS Info
+### OS Info <a name="os"></a>
 
 | Attribute | Value |
 | --------- | ----- |
 | Host OS      | Debian GNU/Linux 8 (Jessie) |
 | Host kernel  | 4.9.0-0.bpo.5-amd64 (on 2018-04-20) |
+
+### Available Data <a name="data"></a>
+
+| Case narrative | Comment |
+| -------------- | ------- |
+| [2018-04-27_srv5-a](2018-04-27_srv5-a.md) |  |

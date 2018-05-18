@@ -1,8 +1,20 @@
 ## Host Info: rasp3b
 
-**rasp3b** is a [Raspberry Pi 3 Model B](https://www.raspberrypi.org/products/raspberry-pi-3-model-b/) system based on an ARMv8 CPU.
+**rasp3b** is a [Raspberry Pi 3 Model B](https://www.raspberrypi.org/products/raspberry-pi-3-model-b/) system.
 
-### CPU Info
+- [System info](#user-content-sys)
+- [CPU info](#user-content-cpu)
+- [OS info](#user-content-os)
+- [Available Data](#user-content-data)
+
+### System Info <a name="sys"></a>
+
+| Attribute   | Value |
+| ----------- | ----- |
+| vendor      | [Raspberry Pi Trading Ltd](https://www.raspberrypi.org/) |
+| product     | [Raspberry Pi 3 Model B](https://www.raspberrypi.org/products/raspberry-pi-3-model-b/) |
+
+### CPU Info <a name="cpu"></a>
 
 | Attribute | Value |
 | --------- | ----- |
@@ -25,9 +37,15 @@ far the OS run in 32 bit mode, not yet exploiting the 64 bit Cortex-A53 core
 - Model: `ARMv7 (v7l)` instead of `ARMv8`
 - Hardware: `BCM2835` instead of what is written in the ASIC: `BCM2837`
 
-### OS Info
+### OS Info <a name="os"></a>
 
 | Attribute | Value |
 | --------- | ----- |
 | Host OS      | Raspbian GNU/Linux 9 (Stretch) |
 | Host kernel  | 4.14.34-v7+ (dated 2018-04-16) |
+
+### Available Data <a name="data"></a>
+
+| Case narrative | Comment |
+| -------------- | ------- |
+| [2018-05-06_rasp3b](2018-05-06_rasp3b.md) |  |
