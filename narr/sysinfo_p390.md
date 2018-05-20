@@ -28,3 +28,4 @@ The CPU is implemented as single ASIC with the key features
 | -------------- | ------- |
 | [2017-11-30_p390](2017-11-30_p390.md) | first P/390 data |
 | [2018-02-14_p390](2018-02-14_p390.md) | first complete P/390 data |
+| [2018-04-16_p390](2018-04-16_p390.md) | with final s370_perf |

@@ -23,17 +23,17 @@ clock values, on those systems
 was used.
 
 ### ASM step <a name="asm"></a>
-The _ASM step_ line contains a
-[hercjsu](https://github.com/wfjm/herc-tools/blob/master/doc/hercjsu.md)
-generated summary of the ASM steps of ths s370_perf jobs with
+The _ASM step_ line contains a summary, generated with
+[hercjsu using -asum](https://github.com/wfjm/herc-tools/blob/master/doc/hercjsu.md#user-content-opt-asum),
+of the ASM steps of the s370_perf jobs with
 - median value of CPU time
 - 50% width of CPU time distribution
 - ratio of CPU time to elapsed time
 
 ### GO step <a name="go"></a>
-The _GO step_ line contains a
-[hercjsu](https://github.com/wfjm/herc-tools/blob/master/doc/hercjsu.md)
-generated summary of the GO steps of ths s370_perf jobs with
+The _GO step_ line contains a summary, generated with
+[hercjsu using -asum](https://github.com/wfjm/herc-tools/blob/master/doc/hercjsu.md#user-content-opt-asum),
+of the GO steps of the s370_perf jobs with
 - median value of CPU time
 - 50% width of CPU time distribution
 - ratio of CPU time to elapsed time

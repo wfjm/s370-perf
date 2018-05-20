@@ -310,8 +310,8 @@ T103  L R,m (unal)           : 10   236.1   237.6   232.78 0.044%    4.07   1.33
 with three additional columns
 - **n-cp**: number of clock cycles, calculated dividing the instruction time
   shown in the `tpi` column by the clock period.
-- **e-cp**: show how much of the clock cycle number is from an integer value,
-  given in percent of the clock period.
+- **e-cp**: shows how much `n-cp` deviates from an integer value, given
+  in percent of the clock period.
 - **mcc**: the `n-cp` value rounded to the nearest integer.
 
 
