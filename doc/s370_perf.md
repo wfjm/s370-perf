@@ -127,15 +127,17 @@ deserve some commentary
 - [unaligned memory access](#user-content-tests-unal)
 - [T15x - MVC](#user-content-tests-mvc)
 - [T17x - MVCL](#user-content-tests-mvcl)
+- [T25x - TRT](#user-content-tests-trt)
 - [T27x - CLC](#user-content-tests-clc)
 - [T28x - CLCL](#user-content-tests-clcl)
 - [T29x - CD+CDS](#user-content-tests-cd)
 - [T301+T302 - BC branch taken / not taken](#user-content-tests-bc)
-- [T303 - BC far](#user-content-tests-bc-far)
+- [far page branches](#user-content-tests-bc-far)
 - [T311,T312,T315 - BCT,BCTR,BXLE](#user-content-tests-bloop)
 - [T320+T321 - BALR close and far](#user-content-tests-balr)
 - [T330 - BALR;SAVE;RETURN](#user-content-tests-calret)
 - [T42x - AP+SP+MP+DP](#user-content-tests-packed)
+- [T61x - EX](#user-content-tests-ex)
 - [T62x - TS](#user-content-tests-ts)
 - [T7xx - mix sequences](#user-content-tests-tmix)
   - [T700 - mix int RR](#user-content-tests-t700)
@@ -186,6 +188,24 @@ source and destination areas:
 - in T179 the destination buffer is offset by -100 bytes to the source buffer,
   effectively shifting the buffer 100 bytes to the left.
   
+#### T25x - TRT <a name="tests-trt"></a>
+The `TRT` instruction is tested for different operand sizes and
+function tables
+
+| Test | Description         | size | zeros | reads |
+| ---- | ------------------- | ---: | ----: | ----: |
+| T255 | TRT m,m (10c,zero)  |  10  |    10 |    10 |
+| T256 | TRT m,m (100c,zero) | 100  |   100 |   100 |
+| T257 | TRT m,m (250c,zero) | 250  |   250 |   250 |
+| T258 | TRT m,m (250c,10b)  | 250  |    10 |    11 |
+| T259 | TRT m,m (250c,100b) | 250  |   100 |   101 |
+
+In tests T255-T257 the function table lookup is always zero, so all input
+bytes are checked. In tests T258 and T259 the function table is setup such
+that the first 10 or 100 lookups are zero, respectively, and the 11th or 101th
+is non-zero. The number of operand byte and function table reads is indicated
+in the table above.
+
 #### T27x - CLC <a name="tests-clc"></a>
 The `CLC` instruction is tested for a range of buffer sizes (10 to 250)
 and also for fully matching `eq` and completely different `ne` buffers.
@@ -234,9 +254,15 @@ case. The later is implemented as branch maze. In most implementations
 the branch taken case will have a significantly larger instruction time
 the the not taken (or fall through) case.
 
-#### T303 - BC far <a name="tests-bc-far"></a>
-The T303 is similar to T302, but the branch maze is setup such that each
-branch crosses a page border. 
+#### far page branches <a name="tests-bc-far"></a>
+The basic branch instruction tests, like T301, use a branch target located
+in the _same page_ as the branch instruction. Several tests address the case
+where branch instruction and branch target are located in _different pages_,
+where the _branch crosses a page border_
+- T303 is similar to T302, tests `BC (far)`
+- T305 is similar to T304, tests `BR (far)`
+- T321 is similar to T320, tests `BALR (far)`
+- T323 is similar to T322, tests `BAL (far)`
 
 #### T311,T312,T315 - BCT,BCTR,BXLE <a name="tests-bloop"></a>
 The loop instructions `BCT`, `BCTR` and `BXLE` are tested with empty
@@ -273,6 +299,12 @@ digits. The available tests are
 | SP          | T422     | T423     |
 | MP          | T424     | T425     |
 | DP          | T426     | T427     |
+
+#### T61x - EX <a name="tests-ex"></a>
+The `EX` instruction can only be tested together with another instruction
+being modified and executed by `EX`. Two tests are provided
+- T610 - `EX` with `TM m,i`
+- T611 - `EX` with `XI m,i`
 
 #### T62x - TS <a name="tests-ts"></a>
 The `TS` instruction implements the
