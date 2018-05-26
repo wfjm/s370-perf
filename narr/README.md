@@ -13,6 +13,7 @@ tbe currently available test cases are
 | 2018-01-21 | [nbk2](hostinfo_nbk2.md) | Herc tk4- | [2018-01-21_nbk2-b](2018-01-21_nbk2-b.md) | after Meltdown kernel patch |
 | 2018-02-14 | n/a  | [P/390](sysinfo_p390.md) | [2018-02-14_p390](2018-02-14_p390.md) | first complete P/390 data |
 | 2018-03-04 | [sys2](hostinfo_sys2.md) | Herc tk4- | [2018-03-04_sys2](2018-03-04_sys2.md) | data with close-to-final s370_perf |
+| 2018-03-10 |      | z/PDT 1.7 | [2018-03-10_zpdt](2018-03-10_zpdt.md) | z/PDT V1.7 observations |
 | 2018-03-31 | [sys2](hostinfo_sys2.md) | Herc tk4- | [2018-03-31_sys2](2018-03-31_sys2.md) | **reference data** with final s370_perf |
 | 2018-03-31 | [sys2](hostinfo_sys2.md) | Herc tk4- | [2018-03-31_sys2-1cpu](2018-03-31_sys2-1cpu.md) | with NUMCPU=1 MAXCPU=1 |
 | 2018-03-31 | [sys2](hostinfo_sys2.md) | Herc tk4- | [2018-03-31_sys2-g001](2018-03-31_sys2-g001.md) | with /G001 |
