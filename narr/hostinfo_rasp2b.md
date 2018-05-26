@@ -31,6 +31,7 @@
 | cpu min clock    | 600.0 MHz |
 | cpu max clock    | 900.0 MHz |
 | bogomips         | 57.60 |
+| Cortex-A7 specs  | [at infocenter.arm.com](http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.ddi0464f/BABCBFDF.html) |
 
 ### OS Info <a name="os"></a>
 

@@ -31,6 +31,7 @@
 | cpu min clock    | 600.0 MHz |
 | cpu max clock    | 1200.0 MHz |
 | bogomips         | 76.80 |
+| Cortex-A53 specs | [at infocenter.arm.com](http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.ddi0500g/BABFEABI.html) |
 
 **Note**: `lscpu` wrongly reports some CPU parameters, supposedly because so
 far the OS run in 32 bit mode, not yet exploiting the 64 bit Cortex-A53 core
