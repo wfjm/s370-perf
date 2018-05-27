@@ -14,6 +14,8 @@ The HEAD version shows the current development. No guarantees that software or
 the documentation is consistent.
 
 ### Summary
+- s370_perf: DISBAS substitutable via variable SET_DISBAS
+- s370_perf_{ff,tf}_disbas.JES: added, with SET_DISBAS set to 1
 - s370_perf_mark: lmix: use for EX bare time (was with TM time)
 - s370_perf_sum: use median rather average for w50 summary
 - drop sios code; add mvs38j-sios as submodule

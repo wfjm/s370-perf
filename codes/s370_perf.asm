@@ -1,6 +1,6 @@
 *        1         2         3         4         5         6         71
 *23456789*12345*789012345678901234*678901234567890123456789012345678901
-* $Id: s370_perf.asm 1021 2018-05-15 20:05:23Z mueller $
+* $Id: s370_perf.asm 1026 2018-05-27 12:05:23Z mueller $
 *
 * Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 *
@@ -10,6 +10,7 @@
 *
 *  Revision History:  (!! update MSGVERS when adding here !!)
 * Date         Rev Version  Comment
+* 2018-05-27  1026   0.9.8  DISBAS substitutable via var SET_DISBAS
 * 2018-03-30  1003   0.9.7  add and use more ltype codes; add /TCOR
 *                           tune T510-T513,T540-T543,T560;fix T551,T553
 * 2018-03-24  1001   0.9.6  use REPINSN instead of REPINS5 and REPINS2
@@ -364,7 +365,7 @@ TCODE    CSECT
 * global definitions --------------------------------------------------
 *
          GBLB  &DISBAS
-&DISBAS  SETB  0                 set 1 for disable BAS/BASR tests
+&DISBAS  SETB  ${SET_DISBAS:-0}        set 1 to disable BAS/BASR tests
 *
 * main preamble -------------------------------------------------------
 *
@@ -800,7 +801,7 @@ WTOMSG2  DC    C'Txxx'
          DC    B'0100000000000000'    routing codes (2=console info)
 *
          DS    0F
-MSGVERS  OTXTDSC  C's370_perf V0.9.7  rev 1003  2018-03-30'
+MSGVERS  OTXTDSC  C's370_perf V0.9.8  rev 1026  2018-05-27'
 MSGVHDR  OTXTDSC  C'PERF000I VERS: '
 MSGPARM  OTXTDSC  C'PERF001I PARM: '
 MSGGMUL  OTXTDSC  C'PERF002I run with GMUL= '
