@@ -6,7 +6,7 @@
 - [OS info](#user-content-os)
 - [Available Data](#user-content-data)
 
-### CPU Info <a name="cpu"></a>
+### <a id="cpu">CPU Info</a>
 
 | Attribute | Value |
 | --------- | ----- |
@@ -27,14 +27,14 @@
 | microarchitecture | [Ivy Bridge](https://en.wikipedia.org/wiki/Ivy_Bridge_(microarchitecture)) |
 | technology   | 22 nm; launched Q3'13 |
 
-### OS Info <a name="os"></a>
+### <a id="os">OS Info</a>
 
 | Attribute | Value |
 | --------- | ----- |
 | Host OS      | Debian GNU/Linux 8 (Jessie) |
 | Host kernel  | 3.16.0-5-amd64 (on 2018-04-20) |
 
-### Available Data <a name="data"></a>
+### <a id="data">Available Data</a>
 
 | Case narrative | Comment |
 | -------------- | ------- |

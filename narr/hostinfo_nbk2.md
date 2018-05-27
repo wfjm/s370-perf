@@ -6,7 +6,7 @@
 - [OS info](#user-content-os)
 - [Available Data](#user-content-data)
 
-### CPU Info <a name="cpu"></a>
+### <a id="cpu">CPU Info</a>
 
 | Attribute | Value |
 | --------- | ----- |
@@ -26,7 +26,7 @@
 | microarchitecture | [Westmere-Arrandale](https://en.wikipedia.org/wiki/Westmere_(microarchitecture)) |
 | technology   | 32 nm; launched Q1'10 |
 
-### OS Info <a name="os"></a>
+### <a id="os">OS Info</a>
 
 | Attribute | Value |
 | --------- | ----- |
@@ -38,7 +38,7 @@
 |              | 3.13.0-139-generic #188-Ubuntu  (on 2018-01-21-b) |
 |              | 3.13.0-143-generic #192-Ubuntu  (on 2018-04-01) |
 
-### Available Data <a name="data"></a>
+### <a id="data">Available Data</a>
 
 | Case narrative | Comment |
 | -------------- | ------- |

@@ -6,7 +6,7 @@
 - [OS info](#user-content-os)
 - [Available Data](#user-content-data)
 
-### CPU Info <a name="cpu"></a>
+### <a id="cpu">CPU Info</a>
 
 | Attribute | Value |
 | --------- | ----- |
@@ -27,14 +27,14 @@
 | microarchitecture | [Broadwell](https://en.wikipedia.org/wiki/Broadwell_(microarchitecture)) |
 | technology   | 14 nm; launched Q1'16 |
 
-### OS Info <a name="os"></a>
+### <a id="os">OS Info</a>
 
 | Attribute | Value |
 | --------- | ----- |
 | Host OS      | Debian GNU/Linux 8 (Jessie) |
 | Host kernel  | 3.16.0-5-amd64 (on 2018-04-20) |
 
-### Available Data <a name="data"></a>
+### <a id="data">Available Data</a>
 
 | Case narrative | Comment |
 | -------------- | ------- |

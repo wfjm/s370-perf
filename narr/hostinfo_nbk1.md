@@ -6,7 +6,7 @@
 - [OS info](#user-content-os)
 - [Available Data](#user-content-data)
 
-### CPU Info <a name="cpu"></a>
+### <a id="cpu">CPU Info</a>
 
 | Attribute | Value |
 | --------- | ----- |
@@ -26,7 +26,7 @@
 | microarchitecture | [Ivy Bridge](https://en.wikipedia.org/wiki/Ivy_Bridge_(microarchitecture)) |
 | technology   | 22 nm; launched Q2'12 |
 
-### OS Info <a name="os"></a>
+### <a id="os">OS Info</a>
 
 | Attribute | Value |
 | --------- | ----- |
@@ -35,7 +35,7 @@
 | Guest OS     | XUbuntu 16.04 LTS |
 | Guest kernel | 4.4.0-98-generic (on 2017-11-11) |
 
-### Available Data <a name="data"></a>
+### <a id="data">Available Data</a>
 
 | Case narrative | Comment |
 | -------------- | ------- |

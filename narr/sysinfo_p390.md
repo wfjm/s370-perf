@@ -22,7 +22,7 @@ The CPU is implemented as single ASIC with the key features
   - [ohlandl.ipv7.net](http://ohlandl.ipv7.net/P390/p390.html)
 - introduced in 1994.
 
-### Available Data <a name="data"></a>
+### <a id="data">Available Data</a>
 
 | Case narrative | Comment |
 | -------------- | ------- |

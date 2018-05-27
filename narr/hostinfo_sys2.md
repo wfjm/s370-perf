@@ -6,7 +6,7 @@
 - [OS info](#user-content-os)
 - [Available Data](#user-content-data)
 
-### CPU Info <a name="cpu"></a>
+### <a id="cpu">CPU Info</a>
 
 | Attribute | Value |
 | --------- | ----- |
@@ -26,7 +26,7 @@
 | microarchitecture | [Sandy Bridge](https://en.wikipedia.org/wiki/Sandy_Bridge) |
 | technology   | 32 nm; launched Q1'12 |
 
-### OS Info <a name="os"></a>
+### <a id="os">OS Info</a>
 
 | Attribute | Value |
 | --------- | ----- |
@@ -34,7 +34,7 @@
 | Host kernel  | 3.2.0-4-amd64 #1 SMP Debian 3.2.93-1  (since early 2017-12) |
 |              | 3.2.0-4-amd64 #1 SMP Debian 3.2.96-2  (on 2018-01-13) |
 
-### Available Data <a name="data"></a>
+### <a id="data">Available Data</a>
 
 | Case narrative | Comment |
 | -------------- | ------- |

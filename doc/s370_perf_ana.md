@@ -8,12 +8,12 @@
 - [Usage](#user-content-usage)
 - [See also](#user-content-also)
 
-### Synopsis <a name="synopsis"></a>
+### <a id="synopsis">Synopsis</a>
 ```
   s370_perf_ana [OPTIONS]... [FILE]...
 ```
 
-### Description <a name="description"></a>
+### <a id="description">Description</a>
 This script processes the output of a set of [s370_perf](s370_perf.md) runs and
 - extracts for each run the raw time for each test
 - calculates the [cumulative distribution function](https://en.wikipedia.org/wiki/Cumulative_distribution_function)
@@ -108,7 +108,7 @@ typical register-register and register-memory instruction.
 For more in-depth and especially cross-system analysis use the
 [s370_perf_sum](s370_perf_sum.md) script.
 
-### Options <a name="options"></a> 
+### <a id="options">Options</a> 
 
 | Option | Description |
 | ------ | :---------- |
@@ -135,44 +135,44 @@ For more in-depth and especially cross-system analysis use the
 | [-tcal](#user-content-opt-tcal)    | trace calculation steps |
 | [-help](#user-content-opt-help)    | print help text and quit |
 
-#### -d1 <a name="opt-d1"></a>
+#### <a id="opt-d1">-d1</a>
 Decrease the precision of the instruction time field from 2 to 1 decimal places,
 helpful for slow systems.
 
-#### -d3 <a name="opt-d3"></a>
+#### <a id="opt-d3">-d3</a>
 Increase the precision of the instruction time field from 2 to 3 decimal places,
 helpful for fast systems.
 
-#### -w2 <a name="opt-w1"></a>
+#### <a id="opt-w1">-w2</a>
 Decrease the precision of the `w50` field from 2 to 1 decimal places,
 helpful for systems with large run-to-run variation.
 
-#### -w3 <a name="opt-w3"></a>
+#### <a id="opt-w3">-w3</a>
 Increase the precision of the `w50` field from 1 to 3 decimal places,
 helpful for very deterministic systems like a P/390.
 
-#### -nolcor <a name="opt-nolcor"></a>
+#### <a id="opt-nolcor">-nolcor</a>
 Disable correction of loop overhead, the instruction time is simply
 calculated by dividing the test time by the number of instructions.
 
-#### -t311=t <a name="opt-t311"></a>
+#### <a id="opt-t311">-t311=t</a>
 Specifies the instruction time for `BCTR` in ns, this value is used for
 loop overhead corrections. By default the `BCTR` instruction time is
 determined from test `T311`.
 
-#### -t312=t <a name="opt-t312"></a>
+#### <a id="opt-t312">-t312=t</a>
 Specifies the instruction time for `BCT` in ns, this value is used for
 loop overhead corrections. By default the `BCT` instruction time is
 determined from test `T312`.
 
-#### -nolrun <a name="opt-nolrun"></a>
+#### <a id="opt-nolrun">-nolrun</a>
 Suppress the file/run summary at the beginning of the output listing.
 
-#### -nonrr <a name="opt-nonrr"></a>
+#### <a id="opt-nonrr">-nonrr</a>
 Fills the `n-rr` and `n-rx` column with `0.00` dummy data. Can be used in
 cases where `T100` and/or `T102` no not produce meaning full data.
 
-#### -dt=f <a name="opt-dt"></a>
+#### <a id="opt-dt">-dt=f</a>
 Defines the cumulative distribution function lookup value for `tpi` extraction.
 The default is `0.50` so that the
 [median](https://en.wikipedia.org/wiki/Median)
@@ -181,11 +181,11 @@ of the distribution is used.
 With `-dt=0` the lowest measured value will be used for `tpi`, in effect 
 using the fastest of all runs. With `dt=1` the highest value will be used.
 
-#### -dl=f <a name="opt-dl"></a>
+#### <a id="opt-dl">-dl=f</a>
 Defines the cumulative distribution function lookup value for lower end of
 `w50` interval. For default handling see [-du=f](#user-content-opt-du).
 
-#### -du=f <a name="opt-du"></a>
+#### <a id="opt-du">-du=f</a>
 Defines the cumulative distribution function lookup value for upper end of
 `w50` interval. The defaults for `-dl` and `-du` are derived from the
 [-dt=f](#user-content-opt-dt) value with
@@ -201,7 +201,7 @@ around `-dt` but stays always in the allowed range of `[0,1]`.
 With the options `-dl=0 -dt=1` the `w50` value will reflect the _full_
 width of the measured distribution.
 
-#### -ltpi <a name="opt-ltpi"></a>
+#### <a id="opt-ltpi">-ltpi</a>
 Lists the input raw `tpi` values for each test. The values printed in the
 order they are extracted from the input files, 5 values per line,
 immediately following the line describing the test results.
@@ -214,7 +214,7 @@ T100  LR R,R                 : 20     2.1     2.3     2.09   1.7%    1.00   0.28
   tpi:     2.272     2.200     2.177     2.134     2.198
 ```
 
-#### -ldf <a name="opt-ldf"></a>
+#### <a id="opt-ldf">-ldf</a>
 Lists the distribution function of the input raw `tpi` values for each test.
 This is done by printing the values in increasing order, smallest first,
 5 values per line, immediately following the line describing the test results,
@@ -238,7 +238,7 @@ The example is taken from the same input files as shown for
 [-ltpi](#user-content-opt-ltpi), the key difference is that for `-ltpi`
 the values are in input file order, while they are sorted for `-ldf`.
 
-#### -raw <a name="opt-raw"></a>
+#### <a id="opt-raw">-raw</a>
 Lists the raw input data instead of analyzed data in the format
 ```
 Tag   Comment                : nr      lr  ig lt        raw   w50%
@@ -264,7 +264,7 @@ The `lr`, `ig` and `lt` fields are taken 1-to-1 from the
 [s370_perf output](s370_perf.md#user-content-output).
 The `raw` time is calculated by `inst(usec)` field multiplying with `ig`.
 
-#### -csv <a name="opt-csv"></a>
+#### <a id="opt-csv">-csv</a>
 Output in [csv](https://en.wikipedia.org/wiki/Comma-separated_values) format
 for [spreadsheet](https://en.wikipedia.org/wiki/Spreadsheet) import.
 The fields are delimted by a '|' character instead of blanks or ':', like
@@ -293,7 +293,7 @@ This option thus implies [-nolrun](#user-content-opt-nolrun) and disables
 [-ltpi](#user-content-opt-ltpi) and [-ldf](#user-content-opt-ldf).
 
 
-#### -cp=p <a name="opt-cp"></a>
+#### <a id="opt-cp">-cp=p</a>
 Allows to specify a CPU clock period in ns. Useful for real CPUs like a
 P/390 which have a well defined and known cycle time. When a clock period
 is specified via `-cp` or `-cf` the number of clock cycles are determined
@@ -315,11 +315,11 @@ with three additional columns
 - **mcc**: the `n-cp` value rounded to the nearest integer.
 
 
-#### -cf=f <a name="opt-cf"></a>
+#### <a id="opt-cf">-cf=f</a>
 Allows to specify a CPU clock frequency in MHz. Value will be converted
 to a CPU clock period, see [-cp=p](#user-content-opt-cp) for more details.
 
-#### -cn=m <a name="opt-cn"></a>
+#### <a id="opt-cn">-cn=m</a>
 Allows to specify the number of clock phases for systems with a multi-phase
 clock. The analysis calculates now
 - **mcc** major clock cycles
@@ -337,12 +337,12 @@ T103  L R,m (unal)           : 10   236.1   237.6   233.93 0.044%    4.05   1.33
 This option was introduced when analyzing data from a P/390 system, which has
 a four phase clock, but turned out not to be useful in practice.
 
-#### -ttim <a name="opt-ttim"></a>
+#### <a id="opt-ttim">-ttim</a>
 Use the `test(s)` field instead of the `inst(usec)` field of the
 [s370_perf output](s370_perf.md#user-content-output).
 Useful for debugging.
 
-#### -tcal <a name="opt-tcal"></a>
+#### <a id="opt-tcal">-tcal</a>
 Useful to debug the calculation of loop overhead corrections and Dxxx tags.
 Adds to the output a section describing the loop correction, like
 ```
@@ -383,10 +383,10 @@ for D411: 'ED (30c)' = 'MVC;ED (30c)' - 'MVC m,m (30c)'
 ...
 ```
 
-#### -help <a name="opt-help"></a>
+#### <a id="opt-help">-help</a>
 Print help text and quit.
 
-### Usage <a name="usage"></a>
+### <a id="usage">Usage</a>
 s370_perf_ana can process printer output files as they come from MVS.
 It is able to extract multiple s370_perf runs from a single input file.
 
@@ -395,7 +395,7 @@ To analyze a set of s370_perf job print output files simply use
   s370_perf_ana *PERF*.prt
 ```
 
-### See also <a name="also"></a>
+### <a id="also">See also</a>
 - [s370_perf](s370_perf.md) - IBM System/370 Instruction Timing Benchmark
 - [s370_perf_sum](s370_perf_sum.md) - summarize s370_perf data
 - [s370_perf_sort](s370_perf_sort.md) - generate a sorted s370_perf data listing

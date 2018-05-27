@@ -1,6 +1,6 @@
 # s370_perf: IBM System/370 Instruction Timing Benchmark 
 
-### Overview <a name="overview"></a>
+### <a id="overview">Overview</a>
 The project contains an instruction timing benchmark for the
 [IBM System/370](https://en.wikipedia.org/wiki/IBM_System/370)
 instruction set and covers almost all non-privileged instructions. The

@@ -8,12 +8,12 @@
 - [Usage](#user-content-usage)
 - [See also](#user-content-also)
 
-### Synopsis <a name="synopsis"></a>
+### <a id="synopsis">Synopsis</a>
 ```
   s370_perf_sum [OPTIONS]... [FILE]...
 ```
 
-### Description <a name="description"></a>
+### <a id="description">Description</a>
 s370_perf_sum reads multiple [s370_perf_ana](s370_perf_ana.md) output files
 and allows to a create compact, one line per [s370_perf](s370_perf.md) test,
 listing summarizing and comparing the benchmark cases.
@@ -62,7 +62,7 @@ for options to filter output lines, and the description of
 [-i](#user-content-opt-i) for options to sort the output.
 
 
-### Options <a name="options"></a> 
+### <a id="options">Options</a> 
 
 | Option | Description |
 | ------ | :---------- |
@@ -79,7 +79,7 @@ for options to filter output lines, and the description of
 | [-i](#user-content-opt-i)          | select instruction time lines |
 | [-help](#user-content-opt-help)    | print help text and quit |
 
-#### -nrr <a name="opt-nrr"></a>
+#### <a id="opt-nrr">-nrr</a>
 Use the `n-rr` field instead of the `cor` field from the input data.
 Instead of the absolute instruction time in ns the `LR` instruction normalized
 relative time is used. This way the absolute speed of the hardware
@@ -87,24 +87,24 @@ is normalized out and systematic differences can be studied.
 The output columns are labeled `nrr**` instead of `tpi**`.
 See [example](#user-content-exa-nrr) for usage of `-nrr`.
 
-#### -nrx <a name="opt-nrx"></a>
+#### <a id="opt-nrx">-nrx</a>
 Use the `n-rx` field instead of the `cor` field from the input data.
 Like for [-nrr](#user-content-opt-nrr), but with `L` instruction normalized
 relative time.
 The output columns are labeled `nrx**` instead of `tpi**`.
 
-#### -min <a name="opt-min"></a>
+#### <a id="opt-min">-min</a>
 Use the `min` field instead of the `cor` field from the input data.
 Useful for debugging, use the minimal instead of the median time.
 Caveat is that in this case no loop overhead is subtracted.
 The output columns are labeled `min**` instead of `tpi**`.
 
-#### -w50 <a name="opt-w50"></a>
+#### <a id="opt-w50">-w50</a>
 Use the `w50` field instead of the `cor` field from the input data.
 Useful for debugging, to visualize the distribution width.
 The output columns are labeled `w50_**` instead of `tpi**`.
 
-#### -rel <a name="opt-rel"></a>
+#### <a id="opt-rel">-rel</a>
 Will determine, for each  test independently, the minimal value and
 normalize the data to this minimal value. The fastest case has per
 construction a value of 1., all others are >= 1., the value indicating
@@ -112,13 +112,13 @@ how much slower a case is compared to the fastest one.
 Note that this can be combined with [-nrr](#user-content-opt-nrr)
 or [-nrx](#user-content-opt-nrx).
 
-#### -rat <a name="opt-rat"></a>
+#### <a id="opt-rat">-rat</a>
 Adds columns with ratios relative to the 1st file. This allows to have the
 absolute instruction times and ratios in one output file.
 Note that proper choice of file order is important here as the 1st
 one is used as normalization and thus as reference case.
 
-#### -fmis[=n] <a name="opt-fmis"></a>
+#### <a id="opt-fmis">-fmis[=n]</a>
 The input files may contain different sets of tests, e.g. because
 they contain data of different s370_perf revisions. When data is missing
 for an input file '  -' is written into the summary output. 
@@ -126,13 +126,13 @@ If `-fmis=n` is specified tests lines are dropped when n or more values
 are missing. A `-fmis=1`, which can be abbreviated to `-fmis`, will drop
 all tests which are missing in one or more input files.
 
-#### -fsig[=n] <a name="opt-fsig"></a>
+#### <a id="opt-fsig">-fsig[=n]</a>
 Show test line only when differing by at least n percent. This option is
 very helpful when comparing two test campaigns on the same system to verify
 the reproducibility. With `-fsig=1`, which can be abbreviated to `-fsig`,
 only tests where one case differs by at least 1 percent are listed.
 
-#### -k=key <a name="opt-k"></a>
+#### <a id="opt-k">-k=key</a>
 Selects the sorting criterion, if no `-k` option is given `-k=tag` is assumed.
 Supported `key` values are
 - **tag** - the s370_perf test id (Tnnn) or calculation id (Dnnn). In most
@@ -145,21 +145,21 @@ Supported `key` values are
 
 See [example](#user-content-exa-k) for usage of `-k=r2`.
 
-#### -r <a name="opt-r"></a>
+#### <a id="opt-r">-r</a>
 The default sorting order is ascending, this option reverses the sorting order
 to descending. Supported only for value (like `-k=v1`) and ratio sorts
 (line `-k=r2`).
 
-#### -i <a name="opt-i"></a>
+#### <a id="opt-i">-i</a>
 Selects only tests which give the timing of a single instruction. All composite
 and auxiliary tests are removed. 
 
-#### -help <a name="opt-help"></a>
+#### <a id="opt-help">-help</a>
 Print help text and quit.
 
-### Usage <a name="usage"></a>
+### <a id="usage">Usage</a>
 
-#### Compare absolute instruction times <a name="exa-rat"></a>
+#### <a id="exa-rat">Compare absolute instruction times</a>
 To list the instruction times of test cases plus the time rations relative
 to the first case use
 ```
@@ -169,7 +169,7 @@ to the first case use
 An example output is shown in the
 [description section](#user-content-description).
 
-#### Compare datasets from different systems - use -nrr  <a name="exa-nrr"></a>
+#### <a id="exa-nrr">Compare datasets from different systems - use -nrr</a>
 When comparing data from different systems it is interesting to check
 whether the different instructions all show the same speed ratio or
 whether there are significant differences. Relative speed differences
@@ -212,7 +212,7 @@ T107  LCR R,R                :      1.73      1.46      1.50 :    0.844    0.867
 This analysis can also be done with a normalization on the `L`
 instruction time with the [-nrx option](#user-content-opt-nrx).
 
-#### Compare datasets from different systems - use -k  <a name="exa-k"></a>
+#### <a id="exa-k">Compare datasets from different systems - use -k</a>
 For a quick overview of what is faster or slower it helps to sort the output
 by the speed ratio with the [-k option](#user-content-opt-k), like in
 ```
@@ -261,7 +261,7 @@ T547  DD R,m                 :     74.86    253.67 :    3.389
 T546  DDR R,R                :     72.95    250.83 :    3.438
 T401  CVD R,m                :     17.25    213.57 :   12.381
 ```
-### See also <a name="also"></a>
+### <a id="also">See also</a>
 - [s370_perf](s370_perf.md) - IBM System/370 Instruction Timing Benchmark
 - [s370_perf_ana](s370_perf_ana.md) - analyze s370_perf data
 - [s370_perf_sort](s370_perf_sort.md) - generate a sorted s370_perf data listing

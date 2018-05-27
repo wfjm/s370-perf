@@ -9,12 +9,12 @@
 - [Usage](#user-content-usage)
 - [See also](#user-content-also)
 
-### Synopsis <a name="synopsis"></a>
+### <a id="synopsis">Synopsis</a>
 ```
   s370_perf_mark [OPTIONS]... [FILE]...
 ```
 
-### Description <a name="description"></a>
+### <a id="description">Description</a>
 s370_perf_mark reads a single or multiple [s370_perf_ana](s370_perf_ana.md)
 output files, determines for each system a weighted average instruction time
 and derives from this a
@@ -81,7 +81,7 @@ contributes most to the average instruction time at the top.
 When the [-sf option](#user-content-opt-sf) is given the output is sorted
 by frequency weight, with the most frequent instruction at the top.
 
-### Options <a name="options"></a> 
+### <a id="options">Options</a> 
 
 | Option | Description |
 | ------ | :---------- |
@@ -91,18 +91,18 @@ by frequency weight, with the most frequent instruction at the top.
 | [-l](#user-content-opt-l)        | list instruction mix |
 | [-help](#user-content-opt-help)  | print help text and quit |
 
-#### -mix=m <a name="opt-mix"></a>
+#### <a id="opt-mix">-mix=m</a>
 Specify mix to be used. For available values see section
 [Available Mixes](#user-content-mix). Default is [lmix](#user-content-mix-lmix).
 
-#### -v <a name="opt-v"></a>
+#### <a id="opt-v">-v</a>
 Generates a detailed _by instruction_ listing for each case.
 The format is described in section[Description](#user-content-description).
 
-#### -sf <a name="opt-sf"></a>
+#### <a id="opt-sf">-sf</a>
 The detailed listing is sorted by frequency weight and not by time weight.
 
-#### -l <a name="opt-l"></a>
+#### <a id="opt-l">-l</a>
 The frequency distribution of the the select mix it printed in the format
 ```
 Instruction frequencies for mix 'lmix'
@@ -130,13 +130,13 @@ with the columns
 - **map**: indicates that an equivalent instruction is mapped in
 - **comment**: indicates choices of tags
 
-#### -help <a name="opt-help"></a>
+#### <a id="opt-help">-help</a>
 Print help text and quit.
 
-### Available Mixes  <a name="mix"></a>
+### <a id="mix">Available Mixes</a>
 Currently only a single mix is available: lmix
 
-#### lmix: the Liba Svobodova mix from 1974 <a name="mix-lmix"></a>
+#### <a id="mix-lmix">lmix: the Liba Svobodova mix from 1974</a>
 The distribution was extracted from the very comprehensive report
 > Computer System Performance Measurement:  
 >   Instruction Set Processor Level and Microcode Level  
@@ -171,7 +171,7 @@ it is assumed that
 - `OC` has the same timing as `XC`
 - `BXH` has the same timing as `BXLE`
 
-### Usage <a name="usage"></a>
+### <a id="usage">Usage</a>
 
 To get a summary of cases simply
 ```
@@ -179,7 +179,7 @@ cd s370_perf/data
 s370_perf_mark *.dat
 ```
 
-### See also <a name="also"></a>
+### <a id="also">See also</a>
 - [s370_perf](s370_perf.md) - IBM System/370 Instruction Timing Benchmark
 - [s370_perf_ana](s370_perf_ana.md) - analyze s370_perf data
 - [s370_perf_sum](s370_perf_sum.md) - summarize s370_perf data

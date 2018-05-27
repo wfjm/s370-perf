@@ -1,13 +1,13 @@
 ## Content of Narratives
 
-### cpufreq <a name="cpufreq"></a>
+### <a id="cpufreq">cpufreq</a>
 The _cpufreq_ line lists the key settings of the CPU clock freqency scaling
 sub-system of the Linux kernel (see
 [kernel docu](https://www.kernel.org/doc/Documentation/cpu-freq/governors.txt)).
 Usually inquired with the
 [cpufreq-info](https://linux.die.net/man/1/cpufreq-info) command.
 
-### eff. CPU clock <a name="effclk"></a>
+### <a id="effclk">eff. CPU clock</a>
 The _eff. CPU clock_ value is an estmate of the average CPU clock used during
 the execution of the s370_perf jobs. On Intel based systems in general obtained
 from `/proc/cpuinfo` via
@@ -22,7 +22,7 @@ clock values, on those systems
 ```
 was used.
 
-### ASM step <a name="asm"></a>
+### <a id="asm">ASM step</a>
 The _ASM step_ line contains a summary, generated with
 [hercjsu using -asum](https://github.com/wfjm/herc-tools/blob/master/doc/hercjsu.md#user-content-opt-asum),
 of the ASM steps of the s370_perf jobs with
@@ -30,7 +30,7 @@ of the ASM steps of the s370_perf jobs with
 - 50% width of CPU time distribution
 - ratio of CPU time to elapsed time
 
-### GO step <a name="go"></a>
+### <a id="go">GO step</a>
 The _GO step_ line contains a summary, generated with
 [hercjsu using -asum](https://github.com/wfjm/herc-tools/blob/master/doc/hercjsu.md#user-content-opt-asum),
 of the GO steps of the s370_perf jobs with
@@ -38,7 +38,7 @@ of the GO steps of the s370_perf jobs with
 - 50% width of CPU time distribution
 - ratio of CPU time to elapsed time
 
-### lmark <a name="lmark"></a>
+### <a id="lmark">lmark</a>
 The _lmark_ value is a MIPS rating generated with the
 [s370_perf_mark](../doc/s370_perf_mark.md) tool using the
 [lmix](../doc/s370_perf_mark.md#user-content-mix-lmix)

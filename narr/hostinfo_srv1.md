@@ -6,7 +6,7 @@
 - [OS info](#user-content-os)
 - [Available Data](#user-content-data)
 
-### CPU Info <a name="cpu"></a>
+### <a id="cpu">CPU Info</a>
 
 | Attribute | Value |
 | --------- | ----- |
@@ -37,14 +37,14 @@
 - the `max Turbo` is specified with 3200 MHz, but the tested system was
   configured with a maximal turbo setting of 2900 MHz.
 
-### OS Info <a name="os"></a>
+### <a id="os">OS Info</a>
 
 | Attribute | Value |
 | --------- | ----- |
 | Host OS      | Ubuntu 16.04.4 LTS |
 | Host kernel  | 4.4.0-98-generic #121-Ubuntu SMP (on 2018-04-01) |
 
-### Available Data <a name="data"></a>
+### <a id="data">Available Data</a>
 
 | Case narrative | Comment |
 | -------------- | ------- |

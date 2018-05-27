@@ -7,7 +7,7 @@
 - [OS info](#user-content-os)
 - [Available Data](#user-content-data)
 
-### System Info <a name="sys"></a>
+### <a id="sys">System Info</a>
 
 | Attribute   | Value |
 | ----------- | ----- |
@@ -17,7 +17,7 @@
 | grafics     | Intel GMA X4500HD (in G45) |
 | memory      | 4 GByte |
 
-### CPU Info <a name="cpu"></a>
+### <a id="cpu">CPU Info</a>
 
 | Attribute | Value |
 | --------- | ----- |
@@ -36,7 +36,7 @@
 | microarchitecture | [Core-Wolfdale](https://en.wikipedia.org/wiki/Intel_Core_(microarchitecture)) |
 | technology   | 45 nm; launched Q1'08 |
 
-### OS Info <a name="os"></a>
+### <a id="os">OS Info</a>
 
 | Attribute | Value |
 | --------- | ----- |
@@ -46,7 +46,7 @@
 |              | 4.4.0-109-generic #132-Ubuntu (on 2018-01-14-b) |
 |              | 4.4.0-116-generic #140-Ubuntu (on 2018-03-31) |
 
-### Available Data <a name="data"></a>
+### <a id="data">Available Data</a>
 
 | Case narrative | Comment |
 | -------------- | ------- |

@@ -11,7 +11,7 @@
 - [Usage](#user-content-usage)
 - [See also](#user-content-also)
 
-### Overview <a name="overview"></a>
+### <a id="overview">Overview</a>
 s370_perf determines the _time per instruction_ of
 [IBM System/370](https://en.wikipedia.org/wiki/IBM_System/370)
 instructions in 24-bit mode. It
@@ -36,7 +36,7 @@ without modifications on a wide range of platforms
 - Hercules on contemporary PC processors
 - and even contemporary z Systems
 
-### Description <a name="description"></a>
+### <a id="description">Description</a>
 s370_perf contains about 220 test routines, each targeting one S/370
 instruction, plus about 80 additional tests to verify the consistency of
 the measured instruction times. The core of an instruction test looks like
@@ -110,7 +110,7 @@ Almost all of the instruction tests are enabled by default, most of the
 auxiliary tests T9xx are disabled by default. The configuration of all
 available tests can be listed with the [/OPTT](#user-content-par-optt) option.
 
-### Tests <a name="tests"></a>
+### <a id="tests">Tests</a>
 Each test has a unique identifier, usually called _tag_, of the form `Tddd`.
 The tests are grouped into classes
 - Test 1xx -- load/store/move
@@ -148,7 +148,7 @@ deserve some commentary
   - [T92x - L R,m count tests](#user-content-tests-t92x)
   - [T95x - T700 partial sequence tests](#user-content-tests-t95x)
 
-#### unaligned memory access <a name="tests-unal"></a>
+#### <a id="tests-unal">unaligned memory access</a>
 s370_perf has several tests addressing unaligned memory access
 
 | Test | Description     | hword | word | dword | Comment |
@@ -168,7 +168,7 @@ T114 `STH` does a write across a word border. In T114 the access can even
 cross a page border, so the two cases might exhibit quite different
 performance characteristics.
 
-#### T15x - MVC <a name="tests-mvc"></a>
+#### <a id="tests-mvc">T15x - MVC</a>
 The `MVC` instruction is tested for a wide range of transfer sizes between
 5 and 250 characters, and also for two scenarios with overlapping
 source and destination areas:
@@ -177,7 +177,7 @@ source and destination areas:
 - in T157 the destination buffer is offset by -24 bytes to the source buffer,
   effectively shifting the buffer 24 bytes to the left.
 
-#### T17x - MVCL <a name="tests-mvcl"></a>
+#### <a id="tests-mvcl">T17x - MVCL</a>
 The `MVCL` instruction is tested, like `MVC` in [T15x](#user-content-tests-mvc),
 for a wide range of copy transfer sizes between 10 and 4096 bytes,
 for three zero-fill padding cases, and also for two scenarios with overlapping
@@ -188,7 +188,7 @@ source and destination areas:
 - in T179 the destination buffer is offset by -100 bytes to the source buffer,
   effectively shifting the buffer 100 bytes to the left.
   
-#### T25x - TRT <a name="tests-trt"></a>
+#### <a id="tests-trt">T25x - TRT</a>
 The `TRT` instruction is tested for different operand sizes and
 function tables
 
@@ -206,7 +206,7 @@ that the first 10 or 100 lookups are zero, respectively, and the 11th or 101th
 is non-zero. The number of operand byte and function table reads is indicated
 in the table above.
 
-#### T27x - CLC <a name="tests-clc"></a>
+#### <a id="tests-clc">T27x - CLC</a>
 The `CLC` instruction is tested for a range of buffer sizes (10 to 250)
 and also for fully matching `eq` and completely different `ne` buffers.
 Because the `ne` case can be detected at the very first byte comparison
@@ -214,7 +214,7 @@ it's natural to expect that the `ne` tests have the same instruction time
 for all sizes, while the `eq` tests show a time which increases with
 buffer size.
 
-#### T28x - CLCL <a name="tests-clcl"></a>
+#### <a id="tests-clcl">T28x - CLCL</a>
 The `CLCL` instruction is tested for two buffer sizes (10 and 4096)
 and different locations of the first non-matching byte (10, 100, 250,
 1024 and 4096). Like for `CLC` in [T27x](#user-content-tests-clc) it
@@ -223,7 +223,7 @@ number of bytes to test before a mismatch is detected. The tests
 T284 and T285 are disabled by default because they are very slow on
 Hercules.
 
-#### T29x - CD+CDS <a name="tests-cd"></a>
+#### <a id="tests-cd">T29x - CD+CDS</a>
 The `CD` and `CDS` instructions implement the
 [compare-and-swap](https://en.wikipedia.org/wiki/Compare-and-swap) paradigm,
 in short
@@ -246,7 +246,7 @@ Likewise T295-T297 for `CDS`.
 
 The `OP1!=OP2` is considered the _lock missed_ case.
 
-#### T301+T302 - BC branch taken / not taken <a name="tests-bc"></a>
+#### <a id="tests-bc">T301+T302 - BC branch taken / not taken</a>
 The `BC` instruction is tested in both the
 - branch not taken (T301)
 - branch taken (T302)
@@ -254,7 +254,7 @@ case. The later is implemented as branch maze. In most implementations
 the branch taken case will have a significantly larger instruction time
 the the not taken (or fall through) case.
 
-#### far page branches <a name="tests-bc-far"></a>
+#### <a id="tests-bc-far">far page branches</a>
 The basic branch instruction tests, like T301, use a branch target located
 in the _same page_ as the branch instruction. Several tests address the case
 where branch instruction and branch target are located in _different pages_,
@@ -264,7 +264,7 @@ where the _branch crosses a page border_
 - T321 is similar to T320, tests `BALR (far)`
 - T323 is similar to T322, tests `BAL (far)`
 
-#### T311,T312,T315 - BCT,BCTR,BXLE <a name="tests-bloop"></a>
+#### <a id="tests-bloop">T311,T312,T315 - BCT,BCTR,BXLE</a>
 The loop instructions `BCT`, `BCTR` and `BXLE` are tested with empty
 loop bodies, like
 ```asm
@@ -277,17 +277,17 @@ T315LL   EQU   *                  no inner loop body
 As in real applications is the branch taken case much more frequent than the
 fall through case at end of loop.
 
-#### T320+T321 - BALR close and far <a name="tests-balr"></a>
+#### <a id="tests-balr">T320+T321 - BALR close and far</a>
 The `BALR` instruction can only be tested together with a `BR`. T321 is
 setup such that each branch crosses a page border.
 
-#### T330 - BALR;SAVE;RETURN <a name="tests-calret"></a>
+#### <a id="tests-calret">T330 - BALR;SAVE;RETURN</a>
 This test covers the standard MVS calling sequence, starting with a `L` and
 `BALR` on the caller side and standard save area handling with a full
 `(14,12)` save and restore and save area linkage update at the callee
 side. The test returns the time for the full sequence of 11 instructions.
 
-#### T42x - AP+SP+MP+DP <a name="tests-packed"></a>
+#### <a id="tests-packed">T42x - AP+SP+MP+DP</a>
 The decimal packed arithmetic instructions are tested with two number
 sizes, 10 digits and 30 digits. The tests with 30 digit numbers not only
 involve larger operands, but also values with a higher number of significant
@@ -300,13 +300,13 @@ digits. The available tests are
 | MP          | T424     | T425     |
 | DP          | T426     | T427     |
 
-#### T61x - EX <a name="tests-ex"></a>
+#### <a id="tests-ex">T61x - EX</a>
 The `EX` instruction can only be tested together with another instruction
 being modified and executed by `EX`. Two tests are provided
 - T610 - `EX` with `TM m,i`
 - T611 - `EX` with `XI m,i`
 
-#### T62x - TS <a name="tests-ts"></a>
+#### <a id="tests-ts">T62x - TS</a>
 The `TS` instruction implements the
 [test-and-set](https://en.wikipedia.org/wiki/Test-and-set) paradigm.
 In a multi-CPU configuration this involves interlocked memory updates and
@@ -319,7 +319,7 @@ cases are tested
 | T620 | TS m (zero)      | lock taken case |
 | T621 | TS m (ones)      | lock missed case |
 
-#### T7xx - mix sequences <a name="tests-tmix"></a>
+#### <a id="tests-tmix">T7xx - mix sequences</a>
 The goal of all previous tests is to determine the time of single instruction,
 usually done by repeating the instruction under test many times. Real workloads
 of course have instruction sequences with different instructions. Four simple
@@ -332,7 +332,7 @@ tests are provided to test non-trivial instruction sequences
 See [auxiliary tests](#user-content-tests-taux) for a more detailed tests
 on the additivity of instruction times.
 
-#### T700 - mix int RR <a name="tests-t700"></a>
+#### <a id="tests-t700">T700 - mix int RR</a>
 The test T700 contains a sequence of 38 integer RR type instructions plus
 two `BC` where the branch isn't taken. The test returns the _average_
 execution time of the involved instructions. This test allows to check whether
@@ -341,18 +341,18 @@ T700 time with the average of the involved instructions.
 See [T95x tests](#user-content-tests-t95x) for an in-depth study of this
 instruction sequence.
 
-#### T701+T702 - mix int RX <a name="tests-t701"></a>
+#### <a id="tests-t701">T701+T702 - mix int RX</a>
 Similar goal as [T700](#user-content-tests-t700), using a sequence of
 21 integer RX type instructions. In T701 the accessed operands are in
 the same page as the code, while in T702 the accessed operands are in
 a different page than the code.
 
-#### T703 - mix int RR noopt <a name="tests-t703"></a>
+#### <a id="tests-t703">T703 - mix int RR noopt</a>
 Similar goal as [T700](#user-content-tests-t700), now with an instruction
 sequence where each calculated values is used. This prevents that emulators
 using an optimizing binary translator will remove part of the code.
 
-#### T9xx - auxiliary tests <a name="tests-taux"></a>
+#### <a id="tests-taux">T9xx - auxiliary tests</a>
 The tests [T90x](#user-content-tests-t90x),
 [T92x](#user-content-tests-t92x) and
 [T95x](#user-content-tests-t95x)
@@ -363,7 +363,7 @@ and are best analysed with the _raw view_ generated by
 [s370_perf_ana](s370_perf_ana.md) with the
 [-raw option](s370_perf_ana.md#user-content-opt-raw).
 
-#### T90x - LR R,R count tests <a name="tests-t90x"></a>
+#### <a id="tests-t90x">T90x - LR R,R count tests</a>
 The tests T900 to T915 are similar to the T100 test, but use different repeat
 counts of the `LR R,R` instruction, with `ig` ranging from 1 to 72 (T100
 uses 100). These tests report the time for the bundle `ig` `LR` instructions
@@ -371,11 +371,11 @@ and not time for a single instruction as T100. The measured time should
 increase in proportion to the `ig` count if instruction times are additive,
 so this can be used to check whether the loop overhead is subtracted correctly.
 
-#### T92x - L R,m count tests <a name="tests-t92x"></a>
+#### <a id="tests-t92x">T92x - L R,m count tests</a>
 Similar goal as [T90x](#user-content-tests-t90x), using `L R,m`. To be compared
 with T102.
 
-#### T95x - T700 partial sequence tests <a name="tests-t95x"></a>
+#### <a id="tests-t95x">T95x - T700 partial sequence tests</a>
 The tests T952 to T990 contain the first 2,3,...,40 instructions of the
 [T700](#user-content-tests-t700) test, they are therefore truncated versions
 of T700. The tests report the time for whole sequence and not the average
@@ -383,7 +383,7 @@ as T700. The measured time should continuously increase if instruction
 times are additive, so this sequence of tests can be used to check whether
 this is actually true for a given system.
 
-### Parameters <a name="parameters"></a>
+### <a id="parameters">Parameters</a>
 The run time behavior of `s370_perf` is controlled by options passed with
 the JCL `EXEC` card `PARM` mechanism. The `PARM` string is a list of 4 letter
 options, each starting with a `/`. Valid options are:
@@ -405,7 +405,7 @@ options, each starting with a `/`. Valid options are:
 | [/Tnnn](#user-content-par-tnnn) | select  test Tnnn |
 | [/TCOR](#user-content-par-tcor) | select tests required for corrections |
 
-#### /OWTO <a name="par-owto"></a>
+#### <a id="par-owto">/OWTO</a>
 Enables step by step MVS console messages, send with `WTO` as 'job status'
 message to the operator console. This might be useful to see the `s370_perf`
 run steps in the context of all other system activities in the console log,
@@ -417,12 +417,12 @@ messages are send at the end of each test step and look like
 13.49.47 JOB 5226  +s370_perf: done T102
 ```
 
-#### /ODBG <a name="par-odbg"></a>
+#### <a id="par-odbg">/ODBG</a>
 Enable debug trace output for test steps. Gives the start and stop time
 of the test step as retrieved with `STCK` and all other information to
 double check the calculation of the instruction timing.
 
-#### /OTGA <a name="par-otga"></a>
+#### <a id="par-otga">/OTGA</a>
 Enable debug trace output for /GAUT processing in the format
 ```
 --  GAUT:         1 :   D3BCC375  081DF080 :   D3BCC375  098220C0 :       5699
@@ -436,7 +436,7 @@ The 1st number gives the current `GMUL`, the next two the time retrieved with
 `STCK` before and after an execution of the T102 test, the last difference
 divided by 4096, which is the elapsed time in units usec.
 
-#### /OPCF <a name="par-opcf"></a>
+#### <a id="par-opcf">/OPCF</a>
 Prints configuration file entries (comments are skipped) in the format
 ```
   PERF010I config: T151    1      2000
@@ -445,7 +445,7 @@ Prints configuration file entries (comments are skipped) in the format
   ...
 ```
 
-#### /OPTT <a name="par-optt"></a>
+#### <a id="par-optt">/OPTT</a>
 Prints the test descriptor table in the format
 ```
  ind   tag        lr  ig  lt      addr    length
@@ -467,14 +467,14 @@ with the columns containing
 | addr   | absolute address of the beginning of the test code |
 | length | length of the test code |
 
-#### /ORIP <a name="par-orip"></a>
+#### <a id="par-orip">/ORIP</a>
 Run tests in place. The default is to relocate each test before execution into
 a page aligned 8 kByte buffer. This ensures that test don't have branches
 across page boundaries, unless explicitly wanted. `/ORIP` disables this
 relocation and executes the code in the place where the assembler generated
 it. Useful for debugging tests with break after relocation.
 
-#### /GAUT <a name="par-gaut"></a>
+#### <a id="par-gaut">/GAUT</a>
 Enables automatic determination of `GMUL`. This will setup the global repeat
 count such that the `T102` test or the one selected with a
 [/Cnnn](#user-content-par-cnnn) option
@@ -494,16 +494,16 @@ Typical `GMUL` values resulting from `/GAUT` are
 | Intel Xeon E5-1620    | Herc tk4- 08     | 195 | typical 4 core  workstation |
 | Intel Core i7-3520M   | Herc tk4- 08     | 202 | mid-end notebook |
 
-#### /Gnnn and /GnnK <a name="par-gnnn"></a>
+#### <a id="par-gnnn">/Gnnn and /GnnK</a>
 With `/Gnnn` or `GnnK`, where n are decimal digits, the global multiplier
 `GMUL` will be set to nnn or nn*1000, respectively. Helpful for debugging,
 normal production runs usually use [/GAUT](#user-content-par-gaut).
 
-#### /Cnnn <a name="par-cnnn"></a>
+#### <a id="par-cnnn">/Cnnn</a>
 Selects the test used by [/GAUT](#user-content-par-gaut). The three digit
 code must match one of the test numbers. By default `T102` is used.
 
-#### /Ennn and /Dnnn <a name="par-ennn"></a>
+#### <a id="par-ennn">/Ennn and /Dnnn</a>
 Allow to enable or disable the test Tnnn.
 The three characters after the leading `/T` or `/D` can be either a number
 `0` - `9` or a wildcard character `*`, which will match any number in that
@@ -516,14 +516,14 @@ Can be used to disable tests which cause problems.
 To setup a run with only a few tests use the
 [/Tnnn](#user-content-par-tnnn) option.
 
-#### /Tnnn <a name="par-tnnn"></a>
+#### <a id="par-tnnn">/Tnnn</a>
 When the first `/Tnnn` option is detected in the PARM list all tests will
 be disabled.
 Each `/Tnnn` re-enables than the test Tnnn. This allows to setup a run with
 only a few tests enabled. Wildcards are supported as described for
 [/Ennn](#user-content-par-ennn).
 
-#### /TCOR <a name="par-tcor"></a>
+#### <a id="par-tcor">/TCOR</a>
 Inspects all enabled tests and enables all tests required by
 [s370_perf_ana](s370_perf_ana.md)
 for corrections and normalizations:
@@ -535,7 +535,7 @@ the [configuration file](#user-content-config) and all
 [/Ennn,Dnnn](#user-content-par-ennn) and
 [/Tnnn](#user-content-par-tnnn) options.
 
-### Configuration file <a name="config"></a>
+### <a id="config">Configuration file</a>
 The local repeat counts for each test have been adjusted such that all
 tests consume roughly the same CPU time on a reference system, a Hercules
 emulator running on an up-to-date Intel CPU. For very different
@@ -562,7 +562,7 @@ The processing of the configuration file can be monitored with the
 [/OPCF](#user-content-par-opcf) option, the final settings can be
 inspected with the [/OPTT](#user-content-par-optt) option.
 
-### Output <a name="output"></a>
+### <a id="output">Output</a>
 The output of `s370_perf` is a table of test step results in the form
 ```
 PERF001I PARM: /GAUT
@@ -597,7 +597,7 @@ Notes on the given instruction time:
   the time is for the whole bundle, which is described in the
   description field as a `;` separated list like `BALR R,R; BR R`.
 
-#### Loop Types <a name="looptype"></a>
+#### <a id="looptype">Loop Types</a>
 Most tests contain only the replicated instruction under test and a closing
 `BCTR`. In some cases additional initialization is needed for each inner
 loop iteration. The current code uses the following loop types
@@ -617,7 +617,7 @@ loop iteration. The current code uses the following loop types
 | 10 | LD, BCTR          | |
 | 11 | LD, LD, BCTR      | |
 
-### Usage <a name="usage"></a>
+### <a id="usage">Usage</a>
 
 Job templates to be used with
 [hercjis](https://github.com/wfjm/herc-tools/blob/master/doc/hercjis.md)
@@ -654,7 +654,7 @@ like `SIZE=(512000,122880)`. A well working JCL example is
 ...
 ```
 
-### See also <a name="also"></a>
+### <a id="also">See also</a>
 - [s370_perf_ana](s370_perf_ana.md) - analyze s370_perf data
 - [s370_perf_sum](s370_perf_sum.md) - summarize s370_perf data
 - [s370_perf_sort](s370_perf_sort.md) - generate a sorted s370_perf data listing

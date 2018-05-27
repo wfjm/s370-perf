@@ -7,14 +7,14 @@
 - [OS info](#user-content-os)
 - [Available Data](#user-content-data)
 
-### System Info <a name="sys"></a>
+### <a id="sys">System Info</a>
 
 | Attribute   | Value |
 | ----------- | ----- |
 | vendor      | [Raspberry Pi Trading Ltd](https://www.raspberrypi.org/) |
 | product     | [Raspberry Pi 2 Model B](https://www.raspberrypi.org/products/raspberry-pi-2-model-b/) |
 
-### CPU Info <a name="cpu"></a>
+### <a id="cpu">CPU Info</a>
 
 | Attribute | Value |
 | --------- | ----- |
@@ -33,14 +33,14 @@
 | bogomips         | 57.60 |
 | Cortex-A7 specs  | [at infocenter.arm.com](http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.ddi0464f/BABCBFDF.html) |
 
-### OS Info <a name="os"></a>
+### <a id="os">OS Info</a>
 
 | Attribute | Value |
 | --------- | ----- |
 | Host OS      | Raspbian GNU/Linux 8 (Jessie) |
 | Host kernel  | 4.9.35-v7+ (dated 2017-06-30) |
 
-### Available Data <a name="data"></a>
+### <a id="data">Available Data</a>
 
 | Case narrative | Comment |
 | -------------- | ------- |

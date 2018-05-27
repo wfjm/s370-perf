@@ -7,7 +7,7 @@
 - [OS info](#user-content-os)
 - [Available Data](#user-content-data)
 
-### System Info <a name="sys"></a>
+### <a id="sys">System Info</a>
 
 | Attribute   | Value |
 | ----------- | ----- |
@@ -16,7 +16,7 @@
 | motherboard | [SheevaPlug](https://en.wikipedia.org/wiki/SheevaPlug) main board |
 
 
-### CPU Info <a name="cpu"></a>
+### <a id="cpu">CPU Info</a>
 
 | Attribute | Value |
 | --------- | ----- |
@@ -34,14 +34,14 @@
 | bogomips         | 1192.75 |
 | datasheet        | [at www.7-cpu.com](https://www.7-cpu.com/cpu/Kirkwood.html)
 
-### OS Info <a name="os"></a>
+### <a id="os">OS Info</a>
 
 | Attribute | Value |
 | --------- | ----- |
 | Host OS      | derived from Ubuntu 9.04 (t.b.c.) |
 | Host kernel  | 2.6.33 #2 PREEMPT |
 
-### Available Data <a name="data"></a>
+### <a id="data">Available Data</a>
 
 | Case narrative | Comment |
 | -------------- | ------- |

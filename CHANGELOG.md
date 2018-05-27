@@ -8,7 +8,7 @@
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## HEAD <a name="head"></a>
+## <a id="head">HEAD</a>
 ### General Proviso
 The HEAD version shows the current development. No guarantees that software or
 the documentation is consistent.
@@ -21,7 +21,7 @@ the documentation is consistent.
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## 2018-04-01: [V0.80](https://github.com/wfjm/s370-perf/releases/tag/V0.80) - rev 1005(wfjm) <a name="V0.80"></a>
+## <a id="V0.80">2018-04-01: [V0.80](https://github.com/wfjm/s370-perf/releases/tag/V0.80) - rev 1005(wfjm)</a>
 
 ### Summary
 - s370_perf_sum: drop -ins; add -k, -r, -i (generalized sort capability)
@@ -82,7 +82,7 @@ the documentation is consistent.
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## 2018-03-16: [V0.60](https://github.com/wfjm/s370-perf/releases/tag/V0.60) - rev 1000(wfjm) <a name="V0.60"></a>
+## <a id="V0.60">2018-03-16: [V0.60](https://github.com/wfjm/s370-perf/releases/tag/V0.60) - rev 1000(wfjm)</a>
 
 ### Summary
 - rename clib -> sios
@@ -109,7 +109,7 @@ the documentation is consistent.
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## 2018-02-03: [V0.50](https://github.com/wfjm/s370-perf/releases/tag/V0.50) - rev 981(wfjm) <a name="V0.50"></a>
+## <a id="V0.50">2018-02-03: [V0.50](https://github.com/wfjm/s370-perf/releases/tag/V0.50) - rev 981(wfjm)</a>
 
 ### Summary
 - first release. The GitHub project was mentioned in post [82874](https://groups.yahoo.com/neo/groups/hercules-390/conversations/topics/82874) to Yahoo! group [hercules-390](https://groups.yahoo.com/neo/groups/hercules-390/info) but not explicitly announced otherwise.
