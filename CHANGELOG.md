@@ -14,6 +14,7 @@ The HEAD version shows the current development. No guarantees that software or
 the documentation is consistent.
 
 ### Summary
+- job_asm_clg: MAC[1-3] parametrizable, SYS1.AMODGEN default for MAC2
 - s370_perf: DISBAS substitutable via variable SET_DISBAS
 - s370_perf_{ff,tf}_disbas.JES: added, with SET_DISBAS set to 1
 - s370_perf_mark: lmix: use for EX bare time (was with TM time)
