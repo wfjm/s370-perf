@@ -1,4 +1,4 @@
-This directory contains the s370_perf code and associated jobs
+This directory contains the [s370_perf code](s370_perf.asm) and associated jobs
 
 | Job      | PARMs | Description |
 | -------- | ----- | ----------- |
@@ -10,3 +10,10 @@ This directory contains the s370_perf code and associated jobs
 | [s370_perf_ff_disbas](s370_perf_ff_disbas.JES) | /GAUT/E9**      | like s370_perf_ff, but BAS tests removed |
 
 Typical execution time of a `s370_perf_ff` job is 4-6 minutes.
+
+In addition test codes and associated jobs are provided
+
+| Code | Job | Description |
+| ---- | --- | ----------- |
+| [test_cputime](test_cputime.asm) | [JES](test_cputime.JES) | test of high-resolution CPU time retrieval |
+

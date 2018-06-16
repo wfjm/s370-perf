@@ -1,0 +1,4 @@
+//** ##define  JOB    CPUT#ASM
+//** ##define  DDSRC  test_cputime.asm
+//** ##define  DDDAT  /dev/null
+//** ##include ../jcl/job_asm_clg.JESI
