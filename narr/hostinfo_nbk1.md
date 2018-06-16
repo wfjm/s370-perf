@@ -31,7 +31,7 @@
 | Attribute | Value |
 | --------- | ----- |
 | Host OS      | Windows 7 |
-| VM           | VitualBox 5.1.2 r108956 (2 cores exported) |
+| VM           | VirtualBox 5.1.2 r108956 (2 cores exported) |
 | Guest OS     | XUbuntu 16.04 LTS |
 | Guest kernel | 4.4.0-98-generic (on 2017-11-11) |
 
