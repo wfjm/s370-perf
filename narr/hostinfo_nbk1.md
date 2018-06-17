@@ -28,10 +28,19 @@
 
 ### <a id="os">OS Info</a>
 
+#### <a id="os-2018-06-15">Status 2018-06-16</a>
 | Attribute | Value |
 | --------- | ----- |
 | Host OS      | Windows 7 |
-| VM           | VirtualBox 5.1.2 r108956 (2 cores exported) |
+| VM           | VirtualBox 5.2.12 r122591 (2 cores exported; PAE/NX enabled) |
+| Guest OS     | XUbuntu 18.04 LTS |
+| Guest kernel | 4.15.0-23-generic (on 2018-06-16) |
+
+#### <a id="os-2017-11-11">Status 2017-11-11 till 2018-06-15</a>
+| Attribute | Value |
+| --------- | ----- |
+| Host OS      | Windows 7 |
+| VM           | VirtualBox 5.1.2 r108956 (2 cores exported; PAE/NX enabled) |
 | Guest OS     | XUbuntu 16.04 LTS |
 | Guest kernel | 4.4.0-98-generic (on 2017-11-11) |
 
