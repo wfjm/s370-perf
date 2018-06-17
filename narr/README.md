@@ -35,3 +35,4 @@ tbe currently available test cases are
 | 2018-04-29 | [srv3](hostinfo_srv3.md) | Herc tk4- | [2018-04-29_srv3](2018-04-29_srv3.md) | |
 | 2018-04-30 | [rasp2b](hostinfo_rasp2b.md) | Herc tk4- | [2018-04-30_rasp2b-1cpu](2018-04-30_rasp2b-1cpu.md) | with NUMCPU=1 MAXCPU=1 |
 | 2018-05-06 | [rasp3b](hostinfo_rasp3b.md) | Herc tk4- | [2018-05-06_rasp3b](2018-05-06_rasp3b.md) |  |
+| 2018-06-17 | [nbk1](hostinfo_nbk1.md) | Herc tk4- | [2018-06-17_nbk1-b](2018-06-17_nbk1-b.md) | after system upgrade |
