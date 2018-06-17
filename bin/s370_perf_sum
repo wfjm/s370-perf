@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: s370_perf_sum 1018 2018-05-10 17:13:28Z mueller $
+# $Id: s370_perf_sum 1030 2018-06-17 15:43:46Z mueller $
 #
 # Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -127,7 +127,6 @@ sub do_help {
   print "  -w50       use w50  (50% distribution width)\n";
   print "  -rel       show relative speed for each tag\n";
   print "  -rat       show in addition ratios relative to 1st file\n";
-  print "  -ins       sort by instruction name\n";
   print "  -fmis[=n]  drop test line when n values missing\n";
   print "  -fsig[=n]  show test line only when differing by n percent\n";
   print "  -k key     select sort criterion\n";
