@@ -198,9 +198,6 @@ MSGHDR1  OTXTDSC  C'  ......RC  ..............STCK  ..........LCCADTOD'
 MSGHDR2  OTXTDSC  C'  ..........ASCBEJST  ..........ASCBSRBT' 
 MSGHDR3  OTXTDSC  C'  ...............SUM      USEC   dt-USEC R' 
 *
-         DS    0F
-PHONY    DC    X'40000000'
-*
 RCLIST   DC    F'1'
          DC    F'1'
          DC    F'1'
