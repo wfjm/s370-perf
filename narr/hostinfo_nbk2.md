@@ -54,3 +54,4 @@
 | [2018-01-21_nbk2-a](2018-01-21_nbk2-a.md) | before Meltdown kernel patch |
 | [2018-01-21_nbk2-b](2018-01-21_nbk2-b.md) | after Meltdown kernel patch |
 | [2018-04-01_nbk2](2018-04-01_nbk2.md) |  |
+| [2018-06-23_nbk2](2018-06-23_nbk2.md) | after system upgrade |
