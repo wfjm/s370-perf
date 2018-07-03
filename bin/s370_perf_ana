@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: s370_perf_ana 1021 2018-05-15 20:05:23Z mueller $
+# $Id: s370_perf_ana 1033 2018-07-03 05:59:02Z mueller $
 #
 # Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-07-01  1033   2.0.3  drop carriage control char if detected
 # 2018-05-13  1021   2.0.2  add -d1,-d3,-w1,-w3 options to info line
 # 2018-04-01  1006   2.0.1  fix bug in -ldf and -ltpi handling of Dxxx tags
 # 2018-03-31  1004   2.0    re-organize code; use -w1 instead of -w2; add -tcal;
@@ -297,6 +298,7 @@ sub do_file {
   my $gmul  = 0;
   my $gtim  = 0;
   my $gcnt  = 0;
+  my $dropc = 0;
   my $vers;
 
   while (<IFILE>) {
@@ -304,6 +306,8 @@ sub do_file {
     s{\r}{}g;                               # drop ^M
     my @lines = split /\f/,$_;              # split on lone ^L
     foreach (@lines) {
+      $dropc = 1 if m/^[ 1]PERF000I/;       # message with cc char seen ?
+      $_ =~ s/^.// if $dropc;               # drop cc char if detected
       $gmul  = $1 if m/^PERF002I run with GMUL=\s*(\d+)/;
       if (m/^PERF003I start with tests/) {
         $resok = 1;

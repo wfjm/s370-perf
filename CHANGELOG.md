@@ -14,11 +14,12 @@ The HEAD version shows the current development. No guarantees that software or
 the documentation is consistent.
 
 ### Summary
-- add test_cputime test job
-- job_asm_clg: MAC[1-3] parametrizable, SYS1.AMODGEN default for MAC2
-- s370_perf: DISBAS substitutable via variable SET_DISBAS
-- s370_perf_{ff,tf}_disbas.JES: added, with SET_DISBAS set to 1
-- s370_perf_mark: lmix: use for EX bare time (was with TM time)
+- s370_perf_ana: drop carriage control char if detected
+- add test_cputime test job `test_cputime`
+- job_asm_clg: MAC[1-3] parametrizable, `SYS1.AMODGEN` default for `MAC2`
+- s370_perf: `DISBAS` substitutable via variable `SET_DISBAS`
+- s370_perf_{ff,tf}_disbas.JES: added, with `SET_DISBAS` set to 1
+- s370_perf_mark: lmix: use for `EX` bare time (was with TM time)
 - s370_perf_sum: use median rather average for w50 summary
 - drop sios code; add mvs38j-sios as submodule
 - s370_perf_mark: added, a script to derive MIPS ratings
