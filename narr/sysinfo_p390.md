@@ -8,7 +8,7 @@ running [OS/2](https://en.wikipedia.org/wiki/OS/2), and a
 expansion card which carries the P/390 CPU plus memory.
 The CPU is implemented as single ASIC with the key features
 - announced as: _ESA/390 CMOS processor chip in the 5 MIPS range_
-- 0.6 micron CMOS gate array technology (around 1994–1995)
+- 0.6 micron CMOS gate array technology (around 1994-1995)
 - 70.125 MHz clock, divided into a four-phase clock
 - 212K gates complexity
 - 32 kB loadable control store

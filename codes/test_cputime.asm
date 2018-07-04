@@ -1,6 +1,6 @@
 *        1         2         3         4         5         6         71
 *23456789*12345*789012345678901234*678901234567890123456789012345678901
-* $Id: test_cputime.asm 1029 2018-06-16 14:53:20Z mueller $
+* $Id: test_cputime.asm 1031 2018-06-24 06:02:44Z mueller $
 *
 * Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 *
