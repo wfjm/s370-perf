@@ -8,6 +8,7 @@
 - [Available Mixes](#user-content-mix)
 - [Usage](#user-content-usage)
 - [See also](#user-content-also)
+- _source code:_ [bin/s370_perf_mark](../bin/s370_perf_mark)
 
 ### <a id="synopsis">Synopsis</a>
 ```

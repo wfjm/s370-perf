@@ -7,6 +7,7 @@
 - [Options](#user-content-options)
 - [Usage](#user-content-usage)
 - [See also](#user-content-also)
+- _source code:_ [bin/s370_perf_sum](../bin/s370_perf_sum)
 
 ### <a id="synopsis">Synopsis</a>
 ```

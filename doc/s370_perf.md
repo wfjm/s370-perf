@@ -10,6 +10,7 @@
 - [Output](#user-content-output)
 - [Usage](#user-content-usage)
 - [See also](#user-content-also)
+- _source code:_ [codes/s370_perf.asm](../codes/s370_perf.asm)
 
 ### <a id="overview">Overview</a>
 s370_perf determines the _time per instruction_ of

@@ -7,6 +7,7 @@
 - [Options](#user-content-options)
 - [Usage](#user-content-usage)
 - [See also](#user-content-also)
+- _source code:_ [bin/s370_perf_sort](../bin/s370_perf_sort)
 
 ### <a id="synopsis">Synopsis</a>
 ```
