@@ -37,3 +37,7 @@ tbe currently available test cases are
 | 2018-05-06 | [rasp3b](hostinfo_rasp3b.md) | Herc tk4- | [2018-05-06_rasp3b](2018-05-06_rasp3b.md) |  |
 | 2018-06-17 | [nbk1](hostinfo_nbk1.md) | Herc tk4- | [2018-06-17_nbk1-b](2018-06-17_nbk1-b.md) | after system upgrade |
 | 2018-06-23 | [nbk2](hostinfo_nbk2.md) | Herc tk4- | [2018-06-23_nbk2](2018-06-23_nbk2.md) | after system upgrade |
+| 2018-06-26 | [pra1](hostinfo_pra1.md) | Herc tk?? | [2018-06-26_pra1](2018-06-26_pra1.md) | Atom 330, single core/thread |
+| 2018-06-26 | [pra2](hostinfo_pra2.md) | Herc tk?? | [2018-06-26_pra2](2018-06-26_pra2.md) | Atom 330, 2 core / 4 threads |
+| 2018-07-06 | [nbk1](hostinfo_nbk1.md) | Herc tk4- | [2018-07-06_nbk1-1cpu-1core](2018-07-06_nbk1-1cpu-1core.md) | with NUMCPU=1, one host core |
+| 2018-07-06 | [nbk1](hostinfo_nbk1.md) | Herc tk4- | [2018-07-06_nbk1-1cpu-2core](2018-07-06_nbk1-1cpu-2core.md) | with NUMCPU=1, two host cores |

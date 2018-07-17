@@ -50,5 +50,5 @@
 | -------------- | ------- |
 | [2018-04-01_nbk1](2018-04-01_nbk1.md) | |
 | [2018-06-17_nbk1-b](2018-06-17_nbk1-b.md) | after system upgrade |
-
-
+| [2018-07-06_nbk1-1cpu-1core](2018-07-06_nbk1-1cpu-1core.md) | with NUMCPU=1, one host core |
+| [2018-07-06_nbk1-1cpu-2core](2018-07-06_nbk1-1cpu-2core.md) | with NUMCPU=1, two host cores |
