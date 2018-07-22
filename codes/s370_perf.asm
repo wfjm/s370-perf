@@ -1,6 +1,6 @@
 *        1         2         3         4         5         6         71
 *23456789*12345*789012345678901234*678901234567890123456789012345678901
-* $Id: s370_perf.asm 1026 2018-05-27 12:05:23Z mueller $
+* $Id: s370_perf.asm 1034 2018-07-15 16:15:10Z mueller $
 *
 * Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 *
@@ -91,9 +91,9 @@
 *   when s370_perf is run on systems other than a Hercules emulator.
 *   The config file is processed before the /Tnnn,/Ennn,/Dnnn PARMs.
 *
-* Code configuration options:
-*   in 'global definitions' before main code, currently:
-*   &DISBAS  SETB     a 1 will disable BAS/BASR tests
+* Code configuration options via hercjis variable substitutions
+*   SET_DISBAS   0   BAS/BASR tests enabled (default)
+*                1   BAS/BASR tests disabled
 *
 * Return codes:
 *   RC =  0  ok
