@@ -41,3 +41,5 @@ tbe currently available test cases are
 | 2018-06-26 | [pra2](hostinfo_pra2.md) | Herc tk?? | [2018-06-26_pra2](2018-06-26_pra2.md) | Atom 330, 2 core / 4 threads |
 | 2018-07-06 | [nbk1](hostinfo_nbk1.md) | Herc tk4- | [2018-07-06_nbk1-1cpu-1core](2018-07-06_nbk1-1cpu-1core.md) | with NUMCPU=1, one host core |
 | 2018-07-06 | [nbk1](hostinfo_nbk1.md) | Herc tk4- | [2018-07-06_nbk1-1cpu-2core](2018-07-06_nbk1-1cpu-2core.md) | with NUMCPU=1, two host cores |
+| 2018-07-30 | [ms1](hostinfo_ms1.md) | Herc 4.0 | [2018-07-30_ms1-herc40](2018-07-30_ms1-herc40.md) | AMD A6-5200 with Hercules 4.0 |
+| 2018-07-30 | [ms1](hostinfo_ms1.md) | Sim390 1.7 | [2018-07-30_ms1-sim390](2018-07-30_ms1-sim390.md) | AMD A6-5200 with Sim390 1.7 |
