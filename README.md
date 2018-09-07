@@ -1,4 +1,6 @@
-# s370_perf: IBM System/370 Instruction Timing Benchmark 
+# s370-perf: IBM System/370 Instruction Timing Benchmark
+
+[![Build Status](https://travis-ci.org/wfjm/s370-perf.svg?branch=master)](https://travis-ci.org/wfjm/s370-perf)
 
 ### <a id="overview">Overview</a>
 The project contains an instruction timing benchmark for the

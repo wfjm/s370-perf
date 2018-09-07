@@ -23,25 +23,21 @@ the documentation is consistent.
 - s370_perf_sum: use median rather average for w50 summary
 - drop sios code; add mvs38j-sios as submodule
 - s370_perf_mark: added, a script to derive MIPS ratings
+- add Travis CI integration
 
 <!-- --------------------------------------------------------------------- -->
 ---
 ## <a id="V0.80">2018-04-01: [V0.80](https://github.com/wfjm/s370-perf/releases/tag/V0.80) - rev 1005(wfjm)</a>
 
 ### Summary
-- s370_perf_sum: drop -ins; add -k, -r, -i (generalized sort capability)
+- s370_perf_sum: add -k, -r, -i (generalized sort capability)
 - s370_perf_mark: protect truncate long file names in listing
 - s370_perf_sort: added, much enhanced replacement for s370_perf_ins
-- s370_perf_ins: removed again, replaced by s370_perf_sort
 - s370_perf_ana:
   - cleanup ^L handling; add -dt,-dl,-du,-nonrr
   - re-organize code; use -w1 instead of -w2
   - add -tcal; support lt>2 (extended loop overhead correction)
   - add calculated tag lines (Dxxx)
-- s370_perf_sum
-  - add -ins (instruction name sorted output)
-- s370_perf_ins
-  - added, generates instruction name sorted s370_perf_sum listing
 - s370_perf
   - use `REPINSN` instead of `REPINS5` and `REPINS2`
   - add tests for subtract (don't assume add and sub have same timing)
