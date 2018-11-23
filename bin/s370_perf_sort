@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: s370_perf_sort 1013 2018-04-28 16:07:34Z mueller $
+# $Id: s370_perf_sort 1061 2018-10-27 17:39:11Z mueller $
 #
 # Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-10-27  1061   1.0.1  add and use bailout()
 # 2018-04-28  1013   1.0    Initial version
 # 2018-03-29  1002   0.1    First draft (as s370_perf_ins)
 #
@@ -25,7 +26,7 @@ use Getopt::Long;
 my %opts = ();
 
 GetOptions(\%opts, 'k=s', "r", "i", 'help')
-  or die "bad options";
+  or bailout("bad command options");
 
 my %ktyp = (tag => 's',
             ins => 's',
@@ -154,6 +155,15 @@ foreach my $tag (@tlist) {
 }
 
 exit 0;
+
+#
+# -- bailout : end with fatal error ------------------------------------------
+#
+sub bailout {
+  my ($msg) = @_;
+  print STDERR "s370_perf_sort-F: $msg\n";
+  exit 1;
+}
 
 #
 # -- do_help: print help text ------------------------------------------------

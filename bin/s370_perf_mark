@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: s370_perf_mark 1021 2018-05-15 20:05:23Z mueller $
+# $Id: s370_perf_mark 1061 2018-10-27 17:39:11Z mueller $
 #
 # Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -28,7 +28,7 @@ use Getopt::Long;
 my %opts = ();
 
 GetOptions(\%opts, 'help', 'mix=s', 'v', 'sf', 'l' )
-  or die "bad options";
+  or bailout("bad command options");
 
 #
 my %mtbl =
@@ -165,6 +165,15 @@ foreach my $fdsc (@flst) {
 exit 0;
 
 #
+# -- bailout : end with fatal error ------------------------------------------
+#
+sub bailout {
+  my ($msg) = @_;
+  print STDERR "s370_perf_mark-F: $msg\n";
+  exit 1;
+}
+
+#
 # -- do_help: print help text ------------------------------------------------
 #
 
@@ -184,7 +193,7 @@ sub do_help {
 
 sub do_file {
   my ($fname) = @_;
-  open IFILE,"<$fname" or die "failed to open $fname";
+  open IFILE,"<$fname" or bailout("failed to open $fname: $!");
 
   my %dtbl;
 

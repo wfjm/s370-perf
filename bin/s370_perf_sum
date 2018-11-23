@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: s370_perf_sum 1030 2018-06-17 15:43:46Z mueller $
+# $Id: s370_perf_sum 1061 2018-10-27 17:39:11Z mueller $
 #
 # Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-10-27  1061   1.1.2  add and use bailout()
 # 2018-05-10  1018   1.1.1  use median rather average for w50 summary
 # 2018-04-28  1013   1.1    drop -ins; add -k, -r, -i;
 # 2018-04-22  1012   1.0.9  allow 3 digit nt count
@@ -43,8 +44,7 @@ GetOptions(\%opts,
            'fsig:1','fmis:1',
            'k=s','r','i'
           )
-  or die "bad options";
-
+  or bailout("bad command options");
 
 # handle help
 if (defined $opts{help}) { do_help();  exit 0; }
@@ -116,6 +116,15 @@ do_show();
 exit 0;
 
 #
+# -- bailout : end with fatal error ------------------------------------------
+#
+sub bailout {
+  my ($msg) = @_;
+  print STDERR "s370_perf_sum-F: $msg\n";
+  exit 1;
+}
+
+#
 # -- do_help: print help text ------------------------------------------------
 #
 
@@ -147,7 +156,7 @@ sub do_help {
 
 sub do_file {
   my ($fnum,$fname) = @_;
-  open IFILE,"<$fname" or die "failed to open $fname";
+  open IFILE,"<$fname" or bailout("failed to open $fname: $!");
 
   my $ntest  = 0;
   my $tpisum = 0.;

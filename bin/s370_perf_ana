@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: s370_perf_ana 1033 2018-07-03 05:59:02Z mueller $
+# $Id: s370_perf_ana 1061 2018-10-27 17:39:11Z mueller $
 #
 # Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-10-27  1061   2.0.4  add and use bailout()
 # 2018-07-01  1033   2.0.3  drop carriage control char if detected
 # 2018-05-13  1021   2.0.2  add -d1,-d3,-w1,-w3 options to info line
 # 2018-04-01  1006   2.0.1  fix bug in -ldf and -ltpi handling of Dxxx tags
@@ -43,7 +44,7 @@ GetOptions(\%opts, 'help', 'ltpi', 'ldf',
            'd1', 'd3','w1','w3',
            't311=f','t312=f',
            'cf=f', 'cp=f', 'cn=i')
-  or die "bad options";
+  or bailout("bad command options");
 
 my %tags;
 my @tcortbl = ([],                                # lt=0  empty
@@ -256,6 +257,15 @@ do_show();
 exit 0;
 
 #
+# -- bailout : end with fatal error ------------------------------------------
+#
+sub bailout {
+  my ($msg) = @_;
+  print STDERR "s370_perf_ana-F: $msg\n";
+  exit 1;
+}
+
+#
 # -- do_help: print help text ------------------------------------------------
 #
 
@@ -292,7 +302,7 @@ sub do_help {
 
 sub do_file {
   my ($fname) = @_;
-  open IFILE,"<$fname" or die "failed to open $fname";
+  open IFILE,"<$fname" or bailout("failed to open $fname: $!");
 
   my $resok = 0;
   my $gmul  = 0;
