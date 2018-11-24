@@ -21,15 +21,17 @@ script:
   - popd
 #
   - export PATH=$PATH:$PWD/bin:$PWD/herc-tools/bin
-  - pushd codes   &&  hercjis -c C -r 20 s370_perf_t.JES && popd
-  - pushd .travis &&  hercjis -c C       shutdown.jcl    && popd
+  - (cd codes   &&  hercjis -c C -r 20 s370_perf_t.JES)
+  - (cd .travis &&  hercjis -c C       shutdown.jcl)
   - wait $pidherc
   - kill $pidtout || true
 #
   - pushd .travis/work/prt
   - hercjos -db -dt -i prt00e.txt
-  - hercjsu -asum *PERF*
+  - hercjsu -asum *PERF* || (echo "FAILED steps:" && hercjsu -fail *PERF*)
   - s370_perf_ana *PERF* > travis_perf.dat
   - s370_perf_sort -k ins travis_perf.dat
   - s370_perf_mark travis_perf.dat
   - popd
+#
+  - .travis/deploy.sh
