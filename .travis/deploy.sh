@@ -20,7 +20,7 @@ tar -czf deploy.tgz -T deploy.lst
 
 # upload
 curl -w "status: %{http_code} send: %{size_upload} speed: %{speed_upload}\n" \
-  -F 'trepo=mvs38j-langtest' \
+  -F 'trepo=s370-perf' \
   -F "tbldnum=$TRAVIS_BUILD_NUMBER" \
   -F "tjobnum=$TRAVIS_JOB_NUMBER"  \
   -F 'upfile=@deploy.tgz' \
