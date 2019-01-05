@@ -2,6 +2,7 @@
 
 ### Table of contents
 - Current [HEAD](#user-content-head)
+- Release [V0.90](#user-content-V0.90)
 - Release [V0.80](#user-content-V0.80)
 - Release [V0.60](#user-content-V0.60)
 - Release [V0.50](#user-content-V0.50)
@@ -14,6 +15,12 @@ The HEAD version shows the current development. No guarantees that software or
 the documentation is consistent.
 
 ### Summary
+
+<!-- --------------------------------------------------------------------- -->
+---
+## <a id="V0.90">2019-01-05: [V0.90](https://github.com/wfjm/s370-perf/releases/tag/V0.90) - rev 1103(wfjm)</a>
+
+### Summary
 - s370_perf_ana: drop carriage control char if detected
 - add test_cputime test job `test_cputime`
 - job_asm_clg: MAC[1-3] parametrizable, `SYS1.AMODGEN` default for `MAC2`
@@ -24,6 +31,7 @@ the documentation is consistent.
 - drop sios code; add mvs38j-sios as submodule
 - s370_perf_mark: added, a script to derive MIPS ratings
 - add Travis CI integration
+- use herc-tools V1.10
 
 <!-- --------------------------------------------------------------------- -->
 ---
