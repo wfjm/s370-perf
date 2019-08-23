@@ -1,12 +1,8 @@
 *        1         2         3         4         5         6         71
 *23456789*12345*789012345678901234*678901234567890123456789012345678901
-* $Id: test_cputime.asm 1031 2018-06-24 06:02:44Z mueller $
-*
+* $Id: test_cputime.asm 1171 2019-06-28 19:02:57Z mueller $
+* SPDX-License-Identifier: GPL-3.0-or-later
 * Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-*
-* This program is free software; you may redistribute and/or modify
-* it under the terms of the GNU General Public License version 3.
-* See Licence.txt in distribition directory for further details.
 *
 *  Revision History:
 * Date         Rev Version  Comment
