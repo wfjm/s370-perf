@@ -20,7 +20,7 @@
 | threads/core |  1 | hyperthreading disabled |
 | cpu base clock  | 1600 MHz | |
 | bogomips     | 3192.17 | |
-| datasheet    | [at ark.intel](https://ark.intel.com/en/products/35641) | |
+| datasheet    | [at ark.intel](https://ark.intel.com/content/www/us/en/ark/products/35641/intel-atom-processor-330-1m-cache-1-60-ghz-533-mhz-fsb.html) | |
 | microarchitecture | [Bonnell-Diamondville](https://en.wikipedia.org/wiki/Bonnell_(microarchitecture)#Diamondville) | |
 | technology   | 45 nm; launched Q3'08 | |
 

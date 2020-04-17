@@ -23,7 +23,7 @@
 | cpu base clock  | 2200.0 MHz |
 | cpu max Turbo   | 3000.0 MHz |
 | bogomips     | 4401.50 |
-| datasheet    | [at ark.intel](https://ark.intel.com/en/products/75272) |
+| datasheet    | [at ark.intel](https://ark.intel.com/content/www/us/en/ark/products/75272/intel-xeon-processor-e5-2660-v2-25m-cache-2-20-ghz.html) |
 | microarchitecture | [Ivy Bridge](https://en.wikipedia.org/wiki/Ivy_Bridge_(microarchitecture)) |
 | technology   | 22 nm; launched Q3'13 |
 

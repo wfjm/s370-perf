@@ -22,7 +22,7 @@
 | cpu base clock  | 2400.0 MHz |
 | cpu max Turbo   | 2930.0 MHz |
 | bogomips     | 4904.26 |
-| datasheet    | [at ark.intel](https://ark.intel.com/en/products/47341) |
+| datasheet    | [at ark.intel](https://ark.intel.com/content/www/us/en/ark/products/47341/intel-core-i5-520m-processor-3m-cache-2-40-ghz.html) |
 | microarchitecture | [Westmere-Arrandale](https://en.wikipedia.org/wiki/Westmere_(microarchitecture)) |
 | technology   | 32 nm; launched Q1'10 |
 

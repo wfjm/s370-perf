@@ -32,7 +32,7 @@
 | cpu min clock   | 2000.0 MHz |
 | cpu base clock  | 3000.0 MHz |
 | bogomips     | 5999.84 |
-| datasheet    | [at ark.intel](https://ark.intel.com/en/products/33910) |
+| datasheet    | [at ark.intel](https://ark.intel.com/content/www/us/en/ark/products/33910/intel-core-2-duo-processor-e8400-6m-cache-3-00-ghz-1333-mhz-fsb.html) |
 | microarchitecture | [Core-Wolfdale](https://en.wikipedia.org/wiki/Intel_Core_(microarchitecture)) |
 | technology   | 45 nm; launched Q1'08 |
 

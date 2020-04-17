@@ -22,7 +22,7 @@
 | cpu base clock  | 2900.0 MHz |
 | cpu max Turbo   | 3600.0 MHz |
 | bogomips     | 5801.07 |
-| datasheet    | [at ark.intel](https://ark.intel.com/en/products/64893) |
+| datasheet    | [at ark.intel](https://ark.intel.com/content/www/us/en/ark/products/64893/intel-core-i7-3520m-processor-4m-cache-up-to-3-60-ghz.html) |
 | microarchitecture | [Ivy Bridge](https://en.wikipedia.org/wiki/Ivy_Bridge_(microarchitecture)) |
 | technology   | 22 nm; launched Q2'12 |
 

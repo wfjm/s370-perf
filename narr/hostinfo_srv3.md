@@ -23,7 +23,7 @@
 | cpu base clock  | 2600.0 MHz |
 | cpu max Turbo   | 3300.0 MHz |
 | bogomips     | 5201.23 |
-| datasheet    | [at ark.intel](https://ark.intel.com/en/products/81706) |
+| datasheet    | [at ark.intel](https://ark.intel.com/content/www/us/en/ark/products/81706/intel-xeon-processor-e5-2660-v3-25m-cache-2-60-ghz.html) |
 | microarchitecture | [Haswell](https://en.wikipedia.org/wiki/Haswell_(microarchitecture)) |
 | technology   | 22 nm; launched Q3'14 |
 

@@ -23,7 +23,7 @@
 | cpu base clock  | 2400.0 MHz |
 | cpu max Turbo   | 3300.0 MHz |
 | bogomips     | 4801.63 |
-| datasheet    | [at ark.intel](https://ark.intel.com/en/products/91754) |
+| datasheet    | [at ark.intel](https://ark.intel.com/content/www/us/en/ark/products/91754/intel-xeon-processor-e5-2680-v4-35m-cache-2-40-ghz.html) |
 | microarchitecture | [Broadwell](https://en.wikipedia.org/wiki/Broadwell_(microarchitecture)) |
 | technology   | 14 nm; launched Q1'16 |
 

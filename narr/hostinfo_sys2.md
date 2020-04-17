@@ -22,7 +22,7 @@
 | cpu base clock  | 3600.0 MHz |
 | cpu max Turbo   | 3800.0 MHz |
 | bogomips     | 7181.45 |
-| datasheet    | [at ark.intel](https://ark.intel.com/en/products/64621) |
+| datasheet    | [at ark.intel](https://ark.intel.com/content/www/us/en/ark/products/64621/intel-xeon-processor-e5-1620-10m-cache-3-60-ghz-0-0-gt-s-intel-qpi.html) |
 | microarchitecture | [Sandy Bridge](https://en.wikipedia.org/wiki/Sandy_Bridge) |
 | technology   | 32 nm; launched Q1'12 |
 
