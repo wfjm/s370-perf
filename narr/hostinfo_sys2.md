@@ -15,7 +15,7 @@
 | cpu family   | 6 |
 | model        | 45 |
 | stepping     | 7 |
-| microcode    | 0x70d (on 2017-11-15) |
+| microcode    | 0x70d (from 2017 to 2020) |
 | cores        | 4 |
 | threads/core | 2 |
 | cpu min clock   | 1200.0 MHz |
@@ -27,7 +27,13 @@
 | technology   | 32 nm; launched Q1'12 |
 
 ### <a id="os">OS Info</a>
+#### <a id="os-2018-06-15">Status in 2020</a>
+| Attribute | Value |
+| --------- | ----- |
+| Host OS      | Debian GNU/Linux 8 (Stretch) |
+| Host kernel  | 3.16.0-10-amd64 #1 SMP Debian 3.16.81-1  (on 2020-04-18) |
 
+#### <a id="os-2018-06-15">Status in 2018</a>
 | Attribute | Value |
 | --------- | ----- |
 | Host OS      | Debian GNU/Linux 7 (Wheezy) |
@@ -44,3 +50,4 @@
 | [2018-03-31_sys2-1cpu](2018-03-31_sys2-1cpu.md) | with NUMCPU=1 MAXCPU=1 |
 | [2018-03-31_sys2-g001](2018-03-31_sys2-g001.md) | with /G001 |
 | [2018-03-31_sys2-orip](2018-03-31_sys2-orip.md) | with /ORIP |
+| [2020-04-18_sys2](2020-04-18_sys2.md) | after OS upgrade |

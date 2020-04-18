@@ -16,6 +16,7 @@
 | model        | 37 |
 | stepping     | 5 |
 | microcode    | 0x616 (on 2017-11-12) |
+|              | 0x700 (on 2020-04-18) |
 | cores        | 2 |
 | threads/core | 1 |
 | cores in VM  | 2 |
@@ -27,6 +28,12 @@
 | technology   | 32 nm; launched Q1'10 |
 
 ### <a id="os">OS Info</a>
+
+#### <a id="os-2020-04-18">Status 2020-04-18</a>
+| Attribute | Value |
+| --------- | ----- |
+| Host OS      | KUbuntu 18.04.4 LTS |
+| Host kernel  | 4.15.0-91-generic #92-Ubuntu SMP (on 2020-04-18) |
 
 #### <a id="os-2018-06-15">Status 2018-06-16</a>
 | Attribute | Value |
@@ -55,3 +62,4 @@
 | [2018-01-21_nbk2-b](2018-01-21_nbk2-b.md) | after Meltdown kernel patch |
 | [2018-04-01_nbk2](2018-04-01_nbk2.md) |  |
 | [2018-06-23_nbk2](2018-06-23_nbk2.md) | after system upgrade |
+| [2020-04-18_nbk2](2020-04-18_nbk2.md) | after conversion to native Linux |
