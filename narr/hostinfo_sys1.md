@@ -55,3 +55,4 @@
 | [2018-03-31_sys1-3g](2018-03-31_sys1-3g.md) | with cpufreq-set 3GHz |
 | [2018-03-31_sys1-od](2018-03-31_sys1-od.md) | with cpufreq-set ondemand |
 | [2018-04-01_sys1-08](2018-04-01_sys1-08.md) | with tk4- 08 |
+| [2020-04-18_sys1](2020-04-18_sys1.md) | after OS upgrade |

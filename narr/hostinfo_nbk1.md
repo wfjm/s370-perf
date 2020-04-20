@@ -16,6 +16,7 @@
 | model        | 58 |
 | stepping     | 9 |
 | microcode    | 0x19 (on 2017-11-11) |
+| microcode    | 0x21 (on 2020-04-18) |
 | cores        | 2 |
 | threads/core | 2 |
 | cores in VM  | 2 |
@@ -27,6 +28,12 @@
 | technology   | 22 nm; launched Q2'12 |
 
 ### <a id="os">OS Info</a>
+
+#### <a id="os-2020-04-18">Status 2020-04-18</a>
+| Attribute | Value |
+| --------- | ----- |
+| Host OS      | KUbuntu 18.04.4 LTS |
+| Host kernel  | 4.15.0-91-generic #92-Ubuntu SMP (on 2020-04-18) |
 
 #### <a id="os-2018-06-15">Status 2018-06-16</a>
 | Attribute | Value |
@@ -52,3 +59,4 @@
 | [2018-06-17_nbk1-b](2018-06-17_nbk1-b.md) | after system upgrade |
 | [2018-07-06_nbk1-1cpu-1core](2018-07-06_nbk1-1cpu-1core.md) | with NUMCPU=1, one host core |
 | [2018-07-06_nbk1-1cpu-2core](2018-07-06_nbk1-1cpu-2core.md) | with NUMCPU=1, two host cores |
+| [2020-04-18_nbk1](2020-04-18_nbk1.md) | after conversion to native Linux |

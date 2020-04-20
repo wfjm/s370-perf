@@ -44,5 +44,7 @@ tbe currently available test cases are
 | 2018-07-30 | [ms1](hostinfo_ms1.md) | Herc 4.0 | [2018-07-30_ms1-herc40](2018-07-30_ms1-herc40.md) | AMD A6-5200 with Hercules 4.0 |
 | 2018-07-30 | [ms1](hostinfo_ms1.md) | Sim390 1.7 | [2018-07-30_ms1-sim390](2018-07-30_ms1-sim390.md) | AMD A6-5200 with Sim390 1.7 |
 | 2020-04-15 | [sys3](hostinfo_sys3.md) | Herc tk4- | [2020-04-15_sys3](2020-04-15_sys3.md) | |
+| 2020-04-18 | [sys1](hostinfo_sys1.md) | Herc tk4- | [2020-04-18_sys1](2020-04-18_sys1.md) | after system upgrade |
 | 2020-04-18 | [sys2](hostinfo_sys2.md) | Herc tk4- | [2020-04-18_sys2](2020-04-18_sys2.md) | after system upgrade |
-| 2020-04-18 | [nbk2](hostinfo_nbk2.md) | Herc tk4- | [2020-04-18_nbk2](2020-04-18_nbk2.md) | now native Linux |
+| 2020-04-18 | [nbk2](hostinfo_nbk2.md) | Herc tk4- | [2020-04-18_nbk2](2020-04-18_nbk2.md) | after conversion to native Linux |
+| 2020-04-18 | [nbk1](hostinfo_nbk1.md) | Herc tk4- | [2020-04-18_nbk1](2020-04-18_nbk1.md) | after conversion to native Linux |
