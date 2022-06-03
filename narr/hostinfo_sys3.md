@@ -1,6 +1,6 @@
 ## Host Info: sys3
 
-**sys3** is a NUC8I3BEH based system
+**sys3** is a `NUC8I3BEH` based system
 
 - [CPU info](#user-content-cpu)
 - [OS info](#user-content-os)

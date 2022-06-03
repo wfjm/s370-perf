@@ -48,3 +48,4 @@ tbe currently available test cases are
 | 2020-04-18 | [sys2](hostinfo_sys2.md) | Herc tk4- | [2020-04-18_sys2](2020-04-18_sys2.md) | after system upgrade |
 | 2020-04-18 | [nbk2](hostinfo_nbk2.md) | Herc tk4- | [2020-04-18_nbk2](2020-04-18_nbk2.md) | after conversion to native Linux |
 | 2020-04-18 | [nbk1](hostinfo_nbk1.md) | Herc tk4- | [2020-04-18_nbk1](2020-04-18_nbk1.md) | after conversion to native Linux |
+| 2022-06-03 | [sys4](hostinfo_sys4.md) | Herc tk4- | [2022-06-03_sys4](2022-06-03_sys4.md) | |
