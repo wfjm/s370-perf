@@ -20,6 +20,7 @@ the documentation is consistent.
 - .gitmodules: use https: instead of not longer supported git:
 - remove now defunct Travis support
 - add GitHub Action based CI workflow
+- improve documentaion, add HOWTO_execute_benchmark
 - CHANGELOG: fix user-content label case issue (must be lower case)
 
 <!-- --------------------------------------------------------------------- -->

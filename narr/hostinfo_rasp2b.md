@@ -1,6 +1,6 @@
 ## Host Info: rasp2b
 
-**rasp2b** is a [Raspberry Pi 2 Model B](https://www.raspberrypi.org/products/raspberry-pi-2-model-b/) system.
+**rasp2b** is a [Raspberry Pi 2 V1.1 Model B](https://www.raspberrypi.org/products/raspberry-pi-2-model-b/) system.
 
 - [System info](#user-content-sys)
 - [CPU info](#user-content-cpu)
@@ -24,7 +24,7 @@
 | CPU variant      | 0x0 |
 | CPU part         | 0xc07 (Cortex-A7) |
 | CPU revision     | 5 |
-| Hardware         | BCM2835 |
+| Hardware         | BCM2836 (See Note) |
 | Revision         | a01041 |
 | cores            | 4 |
 | threads/core     | 1 |
@@ -32,6 +32,8 @@
 | cpu max clock    | 900.0 MHz |
 | bogomips         | 57.60 |
 | Cortex-A7 specs  | [at infocenter.arm.com](http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.ddi0464f/BABCBFDF.html) |
+
+Note: The CPU is marked as `BCM2836` while `/proc/cpuinfo` shows `BCM2835`.
 
 ### <a id="os">OS Info</a>
 

@@ -1,6 +1,6 @@
 ## Grand summary of s370_perf tests
 
-### Runs with Hercules tk4- 08
+### Runs with Hercules [tk4- 08](sysinfo_tk4m08.md)
 
 | Vendor | CPU | Technology | Ref-Case | lmark | eff clk | lmark/clk |
 | ------ | --- | ---------- | -------- | ----: |   ----: |     ----: |
