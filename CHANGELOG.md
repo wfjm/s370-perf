@@ -2,6 +2,7 @@
 
 ### Table of contents
 - Current [HEAD](#user-content-head)
+- Release [V1.00](#user-content-v1.00)
 - Release [V0.90](#user-content-v0.90)
 - Release [V0.80](#user-content-v0.80)
 - Release [V0.60](#user-content-v0.60)
@@ -15,6 +16,11 @@ The HEAD version shows the current development. No guarantees that software or
 the documentation is consistent.
 
 ### Summary
+
+<!-- --------------------------------------------------------------------- -->
+---
+## <a id="v1.00">2022-06-11: [V1.00](https://github.com/wfjm/s370-perf/releases/tag/V1.00) - rev 1247(wfjm)</a>
+### Summary
 - use SPDX style disclaimers (see [w11 blog entry](https://wfjm.github.io/blogs/w11/2019-07-21-spdx.html), same basic arguments here)
 - fixup broken links to ark.intel
 - .gitmodules: use https: instead of not longer supported git:
@@ -22,6 +28,7 @@ the documentation is consistent.
 - add GitHub Action based CI workflow
 - improve documentaion, add HOWTO_execute_benchmark
 - CHANGELOG: fix user-content label case issue (must be lower case)
+- project mature, a good point to release V1.00
 
 <!-- --------------------------------------------------------------------- -->
 ---
@@ -39,6 +46,13 @@ the documentation is consistent.
 - s370_perf_mark: added, a script to derive MIPS ratings
 - add Travis CI integration
 - use herc-tools V1.10
+- results have been posted to Yohoo! groups Hercules-390 and H390-MVS,
+  see blogs on
+  [first analysis](https://wfjm.github.io/blogs/mvs/2018-05-06-hercules-instruction-times-first-analysis.html),
+  [P/390](https://wfjm.github.io/blogs/mvs/2018-05-20-hercules-vs-p390-comparison.html),
+  [z/PDT](https://wfjm.github.io/blogs/mvs/2018-05-26-hercules-vs-zpdt-observations.html),
+  [CPU TIME retrieval](https://wfjm.github.io/blogs/mvs/2018-06-16-high-resolution-cpu-time-under-mvs38j.html), and
+  [Sim390](https://wfjm.github.io/blogs/mvs/2018-12-02-hercules-vs-sim390-comparison.html).
 
 <!-- --------------------------------------------------------------------- -->
 ---
@@ -128,5 +142,10 @@ the documentation is consistent.
 ## <a id="v0.50">2018-02-03: [V0.50](https://github.com/wfjm/s370-perf/releases/tag/V0.50) - rev 981(wfjm)</a>
 
 ### Summary
-- first release. The GitHub project was mentioned in post [82874](https://groups.yahoo.com/neo/groups/hercules-390/conversations/topics/82874) to Yahoo! group [hercules-390](https://groups.yahoo.com/neo/groups/hercules-390/info) but not explicitly announced otherwise.
+- first release.
+- an early version was posted to Yahoo! group turnkey-MVS,
+  see [mvs blog entry](https://wfjm.github.io/blogs/mvs/2017-11-05-perf_asm-a-370-instruction-timing-tester.html).
+- the GitHub project was mentioned in post 82874 Yahoo! group Hercules-390.
+- Some first results were discussed in a post to Yahoo! group Hercules-390,
+  see [mvs blog entry](https://wfjm.github.io/blogs/mvs/2018-01-14-impact-of-meltdown-on-hercules.html).
 - the code was initially developed as part of the [mvs38j-langtest](https://github.com/wfjm/mvs38j-langtest) project under the name `perf_asm`, removed there with the commit [ab95f76](https://github.com/wfjm/mvs38j-langtest/commit/ab95f765f6a6b3979d79ab8f07d69b128911357a), and renamed to `s370_perf`.
