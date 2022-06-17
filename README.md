@@ -22,7 +22,7 @@ like a [P/390](narr/sysinfo_p390.md) or `z/PDT 1.7` are also included.
 The instruction time tables were condensed into a
 [MIPS](https://en.wikipedia.org/wiki/Instructions_per_second) rating called
 _lmark_ using the weighting factors published in 1974 by Liba Svobodova,
-see [lmark](doc/s370_perf_mark.md.html#user-content-mix-lmix) description.
+see [lmark](doc/s370_perf_mark.md#user-content-mix-lmix) description.
 
 The results as well as some explaining narrative is also part of this project.
 
